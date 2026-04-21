@@ -24,7 +24,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           </label>
         )}
 
-        <div className={cn('field-wrap', leftIcon && 'field-wrap--icon')}>
+        <div className={cn('field-wrap', leftIcon ? 'field-wrap--icon' : '')}>
           {leftIcon && (
             <span className="field-icon" aria-hidden="true">
               {leftIcon}

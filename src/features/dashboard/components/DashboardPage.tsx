@@ -27,7 +27,7 @@ export function DashboardPage({ onArticleClick, onNewArticle }: DashboardPagePro
   const user     = useAuthStore(selectUser);
   const role     = useAuthStore(selectUserRole);
   const token    = useAuthStore(s => s.session?.accessToken);
-  const { state, refetch } = useDashboard(token);
+  const { state, refetch } = useDashboard();
 
   const isLoading  = state.status === 'loading' || state.status === 'idle';
   const isError    = state.status === 'error';

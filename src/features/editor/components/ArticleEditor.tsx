@@ -100,8 +100,8 @@ export function ArticleEditor({ articleId, onSaved, onCancel }: ArticleEditorPro
     field: K, value: EditorFormState[K],
   ) => {
     setForm(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => { const n = { ...prev }; delete n[field]; return n; });
+    if ((errors as any)[field]) {
+      setErrors(prev => { const n = { ...prev }; delete (n as any)[field]; return n; });
     }
   }, [errors]);
 
