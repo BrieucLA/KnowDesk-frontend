@@ -1,4 +1,5 @@
-/** Global shared types. Feature-specific types live in features/*/types.ts */
+// Global shared types. Feature-specific types live in features/[name]/types.ts
+
 export type UserRole = 'admin' | 'manager' | 'advisor';
 export type OrgPlan  = 'free'  | 'pro'     | 'enterprise';
 
