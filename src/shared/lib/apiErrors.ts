@@ -1,0 +1,27 @@
+/**
+ * Mapping des codes d'erreur API → messages utilisateur français.
+ * Utiliser via getErrorMessage(err) dans les catch blocks.
+ */
+const ERROR_MESSAGES: Record<string, string> = {
+  INVALID_CREDENTIALS:   'Email ou mot de passe incorrect.',
+  TOKEN_EXPIRED:         'Votre session a expiré. Reconnectez-vous.',
+  UNAUTHORIZED:          'Authentification requise.',
+  FORBIDDEN:             'Vous n\'avez pas les droits pour cette action.',
+  NOT_FOUND:             'Ressource introuvable.',
+  CONFLICT:              'Cette ressource existe déjà.',
+  VALIDATION_ERROR:      'Données invalides. Vérifiez le formulaire.',
+  ORG_LIMIT_REACHED:     'Limite du plan gratuit atteinte. Passez au plan Pro.',
+  TOO_MANY_REQUESTS:     'Trop de tentatives. Attendez 1 minute.',
+  INTERNAL_ERROR:        'Une erreur interne est survenue. Réessayez.',
+  UNSUPPORTED_MEDIA_TYPE:'Format de requête invalide.',
+};
+
+export function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) {
+    // ApiError a un code — cherche dans le mapping
+    const code = (err as any).code as string | undefined;
+    if (code && ERROR_MESSAGES[code]) return ERROR_MESSAGES[code];
+    return err.message;
+  }
+  return 'Une erreur inattendue est survenue.';
+}
