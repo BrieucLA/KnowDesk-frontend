@@ -664,3 +664,156 @@
   line-height: 1.5;
   max-width: 320px;
 }
+
+/* ── Account page ───────────────────────────────────────────── */
+.account-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+.account-page__title {
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--neutral-900);
+  letter-spacing: -0.02em;
+  margin-bottom: 32px;
+}
+.account-section {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-100);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.account-section__header { margin-bottom: 20px; }
+.account-section__title  { font-size: 15px; font-weight: 500; color: var(--neutral-900); }
+.account-section__desc   { font-size: 13px; color: var(--neutral-500); margin-top: 4px; }
+.account-form__row       { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.account-form__info      { margin: 12px 0; font-size: 13px; color: var(--neutral-500); }
+.account-form__email     { font-weight: 500; color: var(--neutral-700); }
+.account-form__actions   { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+.account-form__saved     { font-size: 13px; color: var(--color-success); }
+.account-success {
+  padding: 16px;
+  background: var(--color-success-bg, #EAF7F0);
+  color: var(--color-success, #1A6B3C);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+}
+
+/* ── Trees page ─────────────────────────────────────────────── */
+.trees-page { padding: 32px 24px; }
+.trees-page__header {
+  display: flex; align-items: flex-start;
+  justify-content: space-between; margin-bottom: 24px;
+}
+.trees-page__title { font-size: 22px; font-weight: 500; color: var(--neutral-900); letter-spacing: -0.02em; }
+.trees-page__desc  { font-size: 14px; color: var(--neutral-500); margin-top: 4px; }
+
+.trees-list { display: flex; flex-direction: column; gap: 12px; list-style: none; }
+.tree-card {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-100);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+  transition: border-color var(--t-fast);
+}
+.tree-card:hover { border-color: var(--neutral-200); }
+.tree-card__main { flex: 1; cursor: pointer; }
+.tree-card__header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.tree-card__category { font-size: 12px; color: var(--neutral-400); }
+.tree-card__title { font-size: 15px; font-weight: 500; color: var(--neutral-900); margin-bottom: 4px; }
+.tree-card__desc  { font-size: 13px; color: var(--neutral-500); margin-bottom: 8px; }
+.tree-card__time  { font-size: 12px; color: var(--neutral-400); }
+.tree-card__actions { display: flex; gap: 4px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+
+/* ── Tree editor ────────────────────────────────────────────── */
+.tree-editor { height: 100%; display: flex; flex-direction: column; }
+.tree-editor__topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 20px; border-bottom: 1px solid var(--neutral-100);
+  background: var(--neutral-0); flex-shrink: 0;
+}
+.tree-editor__back {
+  font-size: 13px; color: var(--neutral-500); background: none; border: none;
+  cursor: pointer; font-family: var(--font-ui); padding: 4px;
+}
+.tree-editor__back:hover { color: var(--neutral-900); }
+.tree-editor__title {
+  font-size: 15px; font-weight: 500; color: var(--neutral-900);
+  background: none; border: none; cursor: pointer;
+  font-family: var(--font-ui); padding: 4px 8px; border-radius: var(--radius-md);
+}
+.tree-editor__title:hover { background: var(--neutral-100); }
+.tree-editor__title-edit { display: flex; align-items: center; gap: 8px; }
+.tree-editor__title-input {
+  font-size: 15px; font-weight: 500; padding: 4px 8px;
+  border: 1px solid var(--brand-300); border-radius: var(--radius-md);
+  font-family: var(--font-ui); min-width: 240px;
+}
+.tree-editor__topbar-actions { display: flex; gap: 8px; }
+.tree-editor__canvas { flex: 1; overflow-y: auto; padding: 24px; }
+.tree-editor__empty  { text-align: center; color: var(--neutral-400); padding: 48px 0; }
+
+/* Nœuds */
+.tree-roots { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
+.tree-node {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 8px;
+}
+.tree-node--conclusion { border-color: var(--color-success, #1A6B3C); background: #F0FBF5; }
+.tree-node__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.tree-node__badge {
+  font-size: 12px; font-weight: 500; padding: 2px 8px;
+  border-radius: 99px; background: var(--brand-100); color: var(--brand-700);
+}
+.tree-node__badge--conclusion { background: #EAF7F0; color: #1A6B3C; }
+.tree-node__actions { display: flex; gap: 4px; }
+.tree-node__action {
+  background: none; border: none; cursor: pointer; font-size: 14px;
+  padding: 2px 6px; border-radius: var(--radius-sm);
+}
+.tree-node__action:hover { background: var(--neutral-100); }
+.tree-node__action--danger:hover { background: #FEE2E2; }
+.tree-node__content { font-size: 14px; color: var(--neutral-800); line-height: 1.5; }
+.tree-node__textarea {
+  width: 100%; padding: 8px 12px; border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md); font-family: var(--font-ui); font-size: 14px;
+  resize: vertical; margin-bottom: 8px;
+}
+.tree-node__edit-actions { display: flex; gap: 8px; }
+.tree-node__edit { margin-top: 8px; }
+
+/* Réponses */
+.tree-node__answers { margin-top: 12px; border-top: 1px solid var(--neutral-100); padding-top: 12px; }
+.tree-answer { margin-bottom: 8px; }
+.tree-answer__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.tree-answer__label  { font-size: 13px; font-weight: 500; color: var(--brand-600); }
+.tree-answer__delete {
+  background: none; border: none; cursor: pointer; color: var(--neutral-400);
+  font-size: 16px; padding: 0 4px; line-height: 1;
+}
+.tree-answer__delete:hover { color: var(--color-danger); }
+
+.tree-add-answer-btn {
+  font-size: 12px; color: var(--brand-600); background: none; border: none;
+  cursor: pointer; font-family: var(--font-ui); padding: 4px;
+  margin-top: 8px; display: block;
+}
+.tree-add-answer-btn:hover { text-decoration: underline; }
+.tree-add-answer { margin-top: 8px; }
+
+.tree-add-child, .tree-add-root {
+  font-size: 12px; color: var(--brand-600); background: none;
+  border: 1px dashed var(--brand-300); border-radius: var(--radius-md);
+  cursor: pointer; font-family: var(--font-ui); padding: 6px 12px;
+  margin-top: 8px; display: block; width: 100%;
+  transition: all var(--t-fast);
+}
+.tree-add-child:hover, .tree-add-root:hover { background: var(--brand-50); }
+.tree-add-node { margin-top: 8px; }
+.tree-add-node__type { margin-bottom: 8px; }

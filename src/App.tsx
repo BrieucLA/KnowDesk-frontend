@@ -7,6 +7,9 @@ import { KnowledgePage }    from './features/knowledge/components/KnowledgePage'
 import { QuestionTreePage } from './features/knowledge/components/QuestionTreePage';
 import { ArticleEditor }    from './features/editor/components/ArticleEditor';
 import { AcceptInvitationPage } from './features/invitation/components/AcceptInvitationPage';
+import { TreesPage }    from './features/trees/components/TreesPage';
+import { TreeEditor }  from './features/trees/components/TreeEditor';
+import { AccountPage } from './features/account/components/AccountPage';
 import { MembersPage }      from './features/members/components/MembersPage';
 import { SettingsPage }     from './features/settings/components/SettingsPage';
 import { SearchBar }        from './features/search/components/SearchBar';
@@ -19,6 +22,8 @@ import {
 } from './store/authStore';
 import type { AuthSession }  from './features/auth/types';
 import type { SearchResult } from './features/search/types';
+
+
 
 type Screen =
   | 'dashboard'
@@ -36,7 +41,10 @@ type View =
   | { screen: 'tree';     treeId: string;    from: Screen }
   | { screen: 'editor';   articleId?: string; from: Screen }
   | { screen: 'members'  }
-  | { screen: 'settings'; section?: string  };
+  | { screen: 'settings'; section?: string  }
+  | { screen: 'trees' }
+  | { screen: 'tree-editor'; treeId: string }
+  | { screen: 'account' };
 
 export function App() {
   const isLoggedIn        = useAuthStore(selectIsLoggedIn);
@@ -81,6 +89,8 @@ export function App() {
   }, [go, view.screen]);
 
   const activeRoute = (
+    view.screen === 'trees' || view.screen === 'tree-editor' ? 'knowledge' :
+    view.screen === 'account' ? 'settings' :
     view.screen === 'knowledge' || view.screen === 'article' ||
     view.screen === 'tree'      || view.screen === 'editor'
       ? 'knowledge'
@@ -116,6 +126,9 @@ if (isAcceptInvitation && invitationToken) {
             if (route === 'knowledge') go({ screen: 'knowledge' });
             if (route === 'team')      go({ screen: 'members'   });
             if (route === 'settings')  go({ screen: 'settings'  });
+          if (route === 'trees')     go({ screen: 'trees'     });
+          if (route === 'account')   go({ screen: 'account'   });
+            if (route === 'account') go({ screen: 'account' });
           }}
           searchSlot={<SearchBar onSelect={handleSearchSelect} />}
         >
@@ -155,6 +168,21 @@ if (isAcceptInvitation && invitationToken) {
           )}
           {view.screen === 'members'  && <MembersPage />}
           {view.screen === 'settings' && <SettingsPage />}
+          {view.screen === 'trees' && (
+  <TreesPage
+    onOpenTree={id    => go({ screen: 'tree-editor', treeId: id })}
+    onEditTree={id    => go({ screen: 'tree-editor', treeId: id })}
+    onPreviewTree={id => go({ screen: 'tree',        treeId: id, from: 'trees' })}
+  />
+)}
+{view.screen === 'tree-editor' && (
+  <TreeEditor
+    treeId={view.treeId}
+    onBack={() => go({ screen: 'trees' })}
+    onPreview={id => go({ screen: 'tree', treeId: id, from: 'tree-editor' })}
+  />
+)}
+{view.screen === 'account' && <AccountPage />}
         </AppLayout>
       </ProtectedRoute>
       <NetworkErrorBanner />

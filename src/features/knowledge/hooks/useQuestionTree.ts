@@ -1,13 +1,41 @@
-import { useReducer, useCallback, useEffect } from 'react';
-import { mockGetQuestionTree }    from '../api/knowledge.mock';
-import type {
-  QuestionTree, TreeNavigatorState, TreeNavigatorAction, TreeOption,
-} from '../types';
-import type { AsyncState } from '../../../shared/types';
+import { useReducer, useEffect, useCallback, useState } from 'react';
+import { apiClient } from '../../../shared/lib/apiClient';
 
-/* ── Load state ─────────────────────────────────────────────── */
+// ── Types locaux ──────────────────────────────────────────────
 
-type LoadState = AsyncState<QuestionTree>;
+interface NodeAnswer {
+  id:       string;
+  node_id:  string;
+  label:    string;
+  position: number;
+}
+
+interface TreeNode {
+  id:               string;
+  parent_id:        string | null;
+  parent_answer_id: string | null;
+  type:             'question' | 'conclusion';
+  content:          string;
+  article_id:       string | null;
+  article_title:    string | null;
+  position:         number;
+  answers:          NodeAnswer[];
+}
+
+interface QuestionTree {
+  id:          string;
+  title:       string;
+  description: string | null;
+  status:      string;
+  nodes:       TreeNode[];
+}
+
+type LoadState =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'success'; data: QuestionTree }
+  | { status: 'error';   message: string };
+
 type LoadAction =
   | { type: 'LOADING' }
   | { type: 'SUCCESS'; data: QuestionTree }
@@ -21,133 +49,66 @@ function loadReducer(_: LoadState, a: LoadAction): LoadState {
   }
 }
 
-/* ── Navigator reducer — pure, zero side effects ────────────── */
-/**
- * This reducer is intentionally exported so it can be unit-tested
- * without mounting React:
- *
- *   const s0 = { history: [], currentNodeId: 'node-1', resolution: null };
- *   const s1 = navigatorReducer(s0, { type: 'SELECT_OPTION', option: opt });
- *   expect(s1.currentNodeId).toBe('node-2');
- */
-export function navigatorReducer(
-  state: TreeNavigatorState,
-  action: TreeNavigatorAction,
-  tree: QuestionTree,
-): TreeNavigatorState {
-  switch (action.type) {
+// ── Hook ──────────────────────────────────────────────────────
 
-    case 'SELECT_OPTION': {
-      const opt = action.option;
-
-      // Terminal — option carries a final answer or an article link
-      if (opt.articleId || opt.answer) {
-        return {
-          ...state,
-          resolution: opt.articleId
-            ? { type: 'article', articleId: opt.articleId, articleTitle: opt.label }
-            : { type: 'answer',  answer: opt.answer! },
-        };
-      }
-
-      // Navigate to next node
-      if (opt.nextNodeId && tree.nodes[opt.nextNodeId]) {
-        return {
-          history:       [...state.history, state.currentNodeId],
-          currentNodeId: opt.nextNodeId,
-          resolution:    null,
-        };
-      }
-
-      // Fallback — dead-end option (shouldn't happen in clean data)
-      return { ...state, resolution: { type: 'answer', answer: 'Aucune information disponible pour cette option.' } };
-    }
-
-    case 'GO_BACK': {
-      if (state.resolution) {
-        // First Back press clears the resolution, stays on same node
-        return { ...state, resolution: null };
-      }
-      if (state.history.length === 0) return state;
-      const history       = state.history.slice(0, -1);
-      const currentNodeId = state.history[state.history.length - 1];
-      return { history, currentNodeId, resolution: null };
-    }
-
-    case 'RESTART':
-      return { history: [], currentNodeId: tree.rootNodeId, resolution: null };
-  }
-}
-
-/* ── Hook ───────────────────────────────────────────────────── */
-
-interface UseQuestionTreeReturn {
-  loadState:      LoadState;
-  navState:       TreeNavigatorState | null;
-  currentNode:    ReturnType<typeof getCurrentNode>;
-  stepCount:      number;     // 1-based, for the progress bar
-  totalEstimate:  number;     // rough depth estimate
-  selectOption:   (option: TreeOption) => void;
-  goBack:         () => void;
-  restart:        () => void;
-}
-
-export function useQuestionTree(treeId: string): UseQuestionTreeReturn {
+export function useQuestionTree(treeId: string) {
   const [loadState, dispatchLoad] = useReducer(loadReducer, { status: 'idle' });
-
-  // navState is derived from the loaded tree — can't init until tree loads
-  const [navState, setNavState] = useReducer(
-    (state: TreeNavigatorState | null, action: TreeNavigatorAction | { type: 'INIT'; tree: QuestionTree }) => {
-      if (action.type === 'INIT') {
-        return { history: [], currentNodeId: action.tree.rootNodeId, resolution: null };
-      }
-      if (!state) return state;
-      const tree = (loadState as { status: 'success'; data: QuestionTree }).data;
-      return navigatorReducer(state, action as TreeNavigatorAction, tree);
-    },
-    null,
-  );
+  const [currentNodeId, setCurrentNodeId] = useState<string | null>(null);
+  const [history,       setHistory]       = useState<string[]>([]);
 
   useEffect(() => {
     dispatchLoad({ type: 'LOADING' });
-    mockGetQuestionTree(treeId)
+    apiClient.get<QuestionTree>(`/trees/${treeId}`)
       .then(tree => {
         dispatchLoad({ type: 'SUCCESS', data: tree });
-        setNavState({ type: 'INIT', tree });
+        // Premier nœud racine comme point d'entrée par défaut
+        const root = tree.nodes.find(n => n.parent_id === null);
+        if (root) setCurrentNodeId(root.id);
       })
       .catch(err => dispatchLoad({
         type: 'ERROR',
-        message: err instanceof Error ? err.message : 'Impossible de charger l\'arbre.',
+        message: err instanceof Error ? err.message : 'Processus introuvable.',
       }));
   }, [treeId]);
 
-  const selectOption = useCallback((option: TreeOption) => {
-    setNavState({ type: 'SELECT_OPTION', option });
+  const tree = loadState.status === 'success' ? loadState.data : null;
+  const currentNode = tree?.nodes.find(n => n.id === currentNodeId) ?? null;
+
+  const selectAnswer = useCallback((answerId: string) => {
+    if (!tree || !currentNodeId) return;
+    const nextNode = tree.nodes.find(n => n.parent_answer_id === answerId);
+    if (nextNode) {
+      setHistory(h => [...h, currentNodeId]);
+      setCurrentNodeId(nextNode.id);
+    }
+  }, [tree, currentNodeId]);
+
+  const goBack = useCallback(() => {
+    setHistory(h => {
+      if (h.length === 0) return h;
+      const prev = h[h.length - 1];
+      setCurrentNodeId(prev);
+      return h.slice(0, -1);
+    });
   }, []);
 
-  const goBack    = useCallback(() => setNavState({ type: 'GO_BACK' }),   []);
-  const restart   = useCallback(() => setNavState({ type: 'RESTART' }),   []);
-
-  const tree = loadState.status === 'success' ? loadState.data : null;
+  const restart = useCallback(() => {
+    if (!tree) return;
+    const root = tree.nodes.find(n => n.parent_id === null);
+    if (root) {
+      setCurrentNodeId(root.id);
+      setHistory([]);
+    }
+  }, [tree]);
 
   return {
     loadState,
-    navState,
-    currentNode:   getCurrentNode(tree, navState),
-    stepCount:     (navState?.history.length ?? 0) + 1,
-    totalEstimate: 4,  // shown in the progress bar; refine with tree depth analysis
-    selectOption,
+    tree,
+    currentNode,
+    history,
+    selectAnswer,
     goBack,
     restart,
+    canGoBack: history.length > 0,
   };
-}
-
-/* ── Helpers ────────────────────────────────────────────────── */
-
-function getCurrentNode(
-  tree: QuestionTree | null,
-  nav:  TreeNavigatorState | null,
-) {
-  if (!tree || !nav) return null;
-  return tree.nodes[nav.currentNodeId] ?? null;
 }

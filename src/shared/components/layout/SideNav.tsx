@@ -4,7 +4,7 @@ import { useAuthStore, selectUserRole } from '../../../store/authStore';
 import { useNotifications } from '../../../features/notifications/hooks/useNotifications';
 import { NotificationPanel } from '../../../features/notifications/components/NotificationPanel';
 
-export type NavRoute = 'dashboard' | 'search' | 'knowledge' | 'team' | 'settings';
+export type NavRoute = 'dashboard' | 'search' | 'knowledge' | 'trees' | 'team' | 'settings' | 'account';
 
 interface NavItem {
   id:        NavRoute;
@@ -23,11 +23,13 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'dashboard',  label: 'Accueil',   href: '/',          icon: <HomeIcon /> },
   { id: 'search',     label: 'Recherche', href: '/search',    icon: <SearchIcon /> },
   { id: 'knowledge',  label: 'Base',      href: '/knowledge', icon: <BookIcon /> },
+  { id: 'trees',      label: 'Processus', href: '/trees',     icon: <TreeIcon /> },
   { id: 'team',       label: 'Équipe',    href: '/team',      icon: <TeamIcon />, adminOnly: true },
 ];
 
 const BOTTOM_ITEMS: NavItem[] = [
   { id: 'settings', label: 'Paramètres', href: '/settings', icon: <SettingsIcon /> },
+  { id: 'account',  label: 'Mon compte', href: '/account',  icon: <UserIcon /> },
 ];
 
 export function SideNav({ active, onNavigate }: SideNavProps) {
@@ -200,6 +202,26 @@ function BellIcon() {
       <path d="M9 2a5 5 0 00-5 5v3l-1.5 2.5h13L14 10V7a5 5 0 00-5-5z"
         stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" fill="none"/>
       <path d="M7 14.5a2 2 0 004 0" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+function TreeIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <circle cx="9"  cy="3"  r="2" stroke="currentColor" strokeWidth="1.4" fill="none"/>
+      <circle cx="4"  cy="13" r="2" stroke="currentColor" strokeWidth="1.4" fill="none"/>
+      <circle cx="14" cy="13" r="2" stroke="currentColor" strokeWidth="1.4" fill="none"/>
+      <path d="M9 5v3M9 8l-5 3M9 8l5 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+function UserIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <circle cx="9" cy="6" r="3" stroke="currentColor" strokeWidth="1.4" fill="none"/>
+      <path d="M2 16c0-3 3.1-5 7-5s7 2 7 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none"/>
     </svg>
   );
 }
