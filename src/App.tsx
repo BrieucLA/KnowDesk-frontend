@@ -32,7 +32,10 @@ type Screen =
   | 'tree'
   | 'editor'
   | 'members'
-  | 'settings';
+  | 'settings'
+  | 'trees'
+  | 'tree-editor'
+  | 'account';
 
 type View =
   | { screen: 'dashboard' }
