@@ -7,6 +7,8 @@ import { Button }         from '../../../shared/components/ui/Button';
 import { useToast } from '../../../shared/lib/useToast';
 import { apiClient }      from '../../../shared/lib/apiClient';
 import type { EditorFormState, EditorErrors } from '../types';
+import { useArticleVersions } from '../hooks/useArticleVersions';
+import { VersionsPanel }      from './VersionsPanel';
 
 interface ArticleEditorProps {
   articleId?: string;
@@ -47,6 +49,7 @@ export function ArticleEditor({ articleId, onSaved, onCancel }: ArticleEditorPro
   const [isPublishing, setIsPublishing] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const toast = useToast();
+  const versions = articleId ? useArticleVersions(articleId) : null;
 
   // Charger les catégories
   useEffect(() => {
@@ -174,6 +177,11 @@ export function ArticleEditor({ articleId, onSaved, onCancel }: ArticleEditorPro
         <div className="article-editor__topbar-center">
           <SaveIndicator status={saveStatus} lastSavedAt={lastSavedAt} />
         </div>
+        {isEdit && versions && (
+          <Button variant="ghost" size="sm" onClick={versions.toggle}>
+            Historique
+          </Button>
+        )}
         <div className="article-editor__topbar-actions">
           <Button variant="ghost" size="sm" onClick={handleSaveDraft} loading={isSavingDraft}>
             Garder en brouillon
@@ -232,6 +240,17 @@ export function ArticleEditor({ articleId, onSaved, onCancel }: ArticleEditorPro
         />
         {errors.content && <p className="field-error">{errors.content}</p>}
       </div>
+      {isEdit && versions?.open && (
+  <VersionsPanel
+    versions={versions.versions}
+    loading={versions.loading}
+    onClose={versions.toggle}
+    onRestore={async (version) => {
+      const content = await versions.restore(version);
+      if (content) updateField('content', content.html ?? '');
+    }}
+  />
+)}
     </div>
   );
 }
