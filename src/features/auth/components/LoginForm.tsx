@@ -11,7 +11,8 @@ interface LoginFormProps {
   onChange:     (field: keyof LoginFormState, value: string) => void;
   onBlur:       (field: keyof LoginFormState) => void;
   onSubmit:     (e: React.FormEvent) => void;
-  onTogglePassword: () => void;
+  onTogglePassword:    () => void;
+  onSwitchToRegister: () => void;
 }
 
 /**
@@ -20,7 +21,7 @@ interface LoginFormProps {
  */
 export function LoginForm({
   values, errors, isLoading, showPassword,
-  onChange, onBlur, onSubmit, onTogglePassword,
+  onChange, onBlur, onSubmit, onTogglePassword, onSwitchToRegister,
 }: LoginFormProps) {
   return (
     <form onSubmit={onSubmit} noValidate className="login-form">
@@ -88,9 +89,9 @@ export function LoginForm({
 
       <p className="login-form__signup">
         Pas encore de compte ?{' '}
-        <a href="/register" className="login-form__link">
-          Créer un espace
-        </a>
+<button type="button" className="login-form__link" onClick={e => { e.stopPropagation(); onSwitchToRegister(); }}>
+  Créer un espace
+</button>
       </p>
 
     </form>
