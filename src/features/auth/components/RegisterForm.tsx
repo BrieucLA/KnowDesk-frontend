@@ -54,27 +54,26 @@ export function RegisterForm({
         autoComplete="email"
       />
 
-      <Input
-        id="password"
-        name="password"
-        type={showPassword ? 'text' : 'password'}
-        label="Mot de passe"
-        placeholder="8 caractères minimum"
-        value={form.password}
-        onChange={onChange}
-        error={errors.password}
-        autoComplete="new-password"
-        rightAction={
-          <button
-            type="button"
-            className="input-toggle-pw"
-            onClick={onTogglePassword}
-            aria-label={showPassword ? 'Masquer' : 'Afficher'}
-          >
-            {showPassword ? '🙈' : '👁'}
-          </button>
-        }
-      />
+<Input
+  id="password"
+  name="password"
+  type={showPassword ? 'text' : 'password'}
+  label="Mot de passe"
+  placeholder="8 caractères minimum"
+  value={form.password}
+  onChange={onChange}
+  error={errors.password}
+  autoComplete="new-password"
+/>
+<button
+  type="button"
+  className="input-toggle-pw"
+  onClick={onTogglePassword}
+  aria-label={showPassword ? 'Masquer' : 'Afficher'}
+  style={{ marginTop: '-32px', float: 'right', background: 'none', border: 'none', cursor: 'pointer' }}
+>
+  {showPassword ? '🙈' : '👁'}
+</button>
 
       <Input
         id="confirmPassword"
