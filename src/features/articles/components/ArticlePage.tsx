@@ -4,6 +4,8 @@ import { ArticleFaqSection }    from './ArticleFaqSection';
 import { StatusBadge }          from '../../../shared/components/ui/StatusBadge';
 import { Skeleton }             from '../../../shared/components/ui/Skeleton';
 import { useArticle }           from '../hooks/useArticle';
+import { apiClient }           from '../../../shared/lib/apiClient';
+import { useToast }            from '../../../shared/lib/useToast';
 import { useAuthStore, selectUserRole } from '../../../store/authStore';
 import { formatRelative }       from '../../../shared/lib/formatDate';
 
@@ -17,6 +19,16 @@ export function ArticlePage({ articleId, onBack, onEdit }: ArticlePageProps) {
   const role    = useAuthStore(selectUserRole);
   const isAdmin = role === 'admin' || role === 'manager';
   const { state, reload } = useArticle(articleId);
+  const toast = useToast();
+  const handleRestore = useCallback(async (version: number) => {
+    try {
+      await apiClient.post(`/articles//versions/${version}/restore`, {});
+      toast.success(`Version ${version} restaurée.`);
+      reload();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erreur lors de la restauration.');
+    }
+  }, [articleId, reload, toast]);
 
   const handleCopyLink = useCallback(() => {
     navigator.clipboard?.writeText(window.location.href);
@@ -134,7 +146,7 @@ export function ArticlePage({ articleId, onBack, onEdit }: ArticlePageProps) {
         currentVersion={article.version}
         canRestore={isAdmin}
         onRestore={isAdmin
-          ? (v) => console.log('Restore version', v)
+          ? handleRestore
           : undefined
         }
       />

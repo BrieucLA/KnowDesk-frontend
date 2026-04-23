@@ -142,14 +142,17 @@ export function ArticleEditor({ articleId, onSaved, onCancel }: ArticleEditorPro
       let id = articleId;
 
       // Créer d'abord si nouvel article
-      if (!isEdit) {
-        const article = await apiClient.post<any>('/articles', {
-          title:      form.title,
-          content:    { html: form.content },
-          categoryId: form.categoryId || undefined,
-        });
-        id = article.id;
-      } else {
+if (!isEdit) {
+  const article = await apiClient.post<any>('/articles', {
+    title:      form.title,
+    content:    { html: form.content },
+    categoryId: form.categoryId || undefined,
+    status:     'published',
+  });
+  toast.success('Article publié avec succès !');
+  onSaved(article.id);
+  return;
+} else {
         await apiClient.patch(`/articles/${articleId}`, {
           title:      form.title,
           content:    { html: form.content },
