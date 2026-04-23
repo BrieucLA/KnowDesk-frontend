@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { useQuestionTree }    from '../hooks/useQuestionTree';
-import { Skeleton }           from '../../../shared/components/ui/Skeleton';
+import { Skeleton }       from '../../../shared/components/ui/Skeleton';
+import { NotFoundPage } from '../../../shared/components/ui/NotFoundPage';
 import { Button }             from '../../../shared/components/ui/Button';
 
 interface QuestionTreePageProps {

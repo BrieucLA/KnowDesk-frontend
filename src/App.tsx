@@ -9,7 +9,8 @@ import { ArticleEditor }    from './features/editor/components/ArticleEditor';
 import { AcceptInvitationPage } from './features/invitation/components/AcceptInvitationPage';
 import { TreesPage }    from './features/trees/components/TreesPage';
 import { TreeEditor }  from './features/trees/components/TreeEditor';
-import { AccountPage } from './features/account/components/AccountPage';
+import { AccountPage }   from './features/account/components/AccountPage';
+import { NotFoundPage } from './shared/components/ui/NotFoundPage';
 import { MembersPage }      from './features/members/components/MembersPage';
 import { SettingsPage }     from './features/settings/components/SettingsPage';
 import { SearchBar }        from './features/search/components/SearchBar';
@@ -186,6 +187,9 @@ if (isAcceptInvitation && invitationToken) {
   />
 )}
 {view.screen === 'account' && <AccountPage />}
+{!(['dashboard','knowledge','article','tree','editor','members','settings','trees','tree-editor','account'] as string[]).includes(view.screen) && (
+  <NotFoundPage onBack={() => go({ screen: 'dashboard' })} />
+)}
         </AppLayout>
       </ProtectedRoute>
       <NetworkErrorBanner />

@@ -1,25 +1,30 @@
 import React from 'react';
+import { Button } from './Button';
 
 interface NotFoundPageProps {
-  onGoHome: () => void;
+  title?:       string;
+  description?: string;
+  onBack?:      () => void;
+  backLabel?:   string;
 }
 
-export function NotFoundPage({ onGoHome }: NotFoundPageProps) {
+export function NotFoundPage({
+  title       = 'Page introuvable',
+  description = 'La page que vous cherchez n\'existe pas ou a été déplacée.',
+  onBack,
+  backLabel   = '← Retour au tableau de bord',
+}: NotFoundPageProps) {
   return (
-    <div className="not-found">
-      <div className="not-found__content">
-        <span className="not-found__code" aria-hidden="true">404</span>
-        <h1 className="not-found__title">Page introuvable</h1>
-        <p className="not-found__desc">
-          La page que vous cherchez n'existe pas ou a été déplacée.
-        </p>
-        <button
-          type="button"
-          className="not-found__btn"
-          onClick={onGoHome}
-        >
-          ← Retour au dashboard
-        </button>
+    <div className="not-found-page">
+      <div className="not-found-page__content">
+        <span className="not-found-page__code">404</span>
+        <h1 className="not-found-page__title">{title}</h1>
+        <p className="not-found-page__desc">{description}</p>
+        {onBack && (
+          <Button variant="primary" size="md" onClick={onBack}>
+            {backLabel}
+          </Button>
+        )}
       </div>
     </div>
   );

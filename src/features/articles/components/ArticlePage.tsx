@@ -2,7 +2,8 @@ import React, { useCallback } from 'react';
 import { ArticleVersionHistory } from './ArticleVersionHistory';
 import { ArticleFaqSection }    from './ArticleFaqSection';
 import { StatusBadge }          from '../../../shared/components/ui/StatusBadge';
-import { Skeleton }             from '../../../shared/components/ui/Skeleton';
+import { Skeleton }       from '../../../shared/components/ui/Skeleton';
+import { NotFoundPage } from '../../../shared/components/ui/NotFoundPage';
 import { useArticle }           from '../hooks/useArticle';
 import { apiClient }           from '../../../shared/lib/apiClient';
 import { useToast }            from '../../../shared/lib/useToast';
@@ -53,21 +54,17 @@ export function ArticlePage({ articleId, onBack, onEdit }: ArticlePageProps) {
     );
   }
 
-  if (state.status === 'error') {
-    return (
-      <div className="article-page article-page--error" role="alert">
-        <p className="article-page__error-msg">{state.message}</p>
-        <button className="article-page__retry" onClick={reload}>
-          Réessayer
-        </button>
-        {onBack && (
-          <button className="article-page__back-btn" onClick={onBack}>
-            ← Retour
-          </button>
-        )}
-      </div>
-    );
-  }
+if (state.status === 'error') {
+  return (
+    <NotFoundPage
+      title="Article introuvable"
+      description={state.message}
+      onBack={onBack}
+      backLabel="← Retour"
+    />
+  );
+}
+
 
   const article = state.data;
 
