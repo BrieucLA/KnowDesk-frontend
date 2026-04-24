@@ -1,6 +1,7 @@
 export type SettingsSection =
   | 'general'
   | 'notifications'
+  | 'api'
   | 'billing'
   | 'danger';
 

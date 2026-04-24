@@ -6,7 +6,8 @@ import {
   MOCK_NOTIF_PREFS, MOCK_BILLING,
   mockSaveNotifPrefs, mockDeleteOrg,
 } from '../api/settings.mock';
-import { useAuthStore } from '../../../store/authStore';
+import { useAuthStore }    from '../../../store/authStore';
+import { ApiKeysSection } from './ApiKeysSection';
 import type { SettingsSection, NotifPreferences } from '../types';
 
 interface SettingsPageProps {
@@ -41,6 +42,7 @@ export function SettingsPage({ initialSection = 'general' }: SettingsPageProps) 
       <div className="settings-page__body">
         {activeSection === 'general'       && <SectionGeneral />}
         {activeSection === 'notifications' && <SectionNotifications />}
+        {activeSection === 'api' && <ApiKeysSection />}
         {activeSection === 'billing'       && <SectionBilling />}
         {activeSection === 'danger'        && <SectionDanger />}
       </div>
@@ -51,6 +53,7 @@ export function SettingsPage({ initialSection = 'general' }: SettingsPageProps) 
 const SECTIONS = [
   { id: 'general',       label: 'Général'        },
   { id: 'notifications', label: 'Notifications'  },
+  { id: 'api', label: 'API' },
   { id: 'billing',       label: 'Facturation'    },
   { id: 'danger',        label: 'Zone de danger' },
 ];
