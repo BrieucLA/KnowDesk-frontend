@@ -11,6 +11,7 @@ import { TreesPage }    from './features/trees/components/TreesPage';
 import { TreeEditor }  from './features/trees/components/TreeEditor';
 import { AccountPage }      from './features/account/components/AccountPage';
 import { SuperadminApp }   from './features/superadmin/components/SuperadminApp';
+import { HelpPanel }       from './features/help/components/HelpPanel';
 import { NotFoundPage } from './shared/components/ui/NotFoundPage';
 import { MembersPage }      from './features/members/components/MembersPage';
 import { SettingsPage }     from './features/settings/components/SettingsPage';
@@ -59,6 +60,7 @@ export function App() {
   const setOnboardingDone = useAuthStore(s => s.setOnboardingDone);
 
   const [view, setView] = useState<View>({ screen: 'dashboard' });
+  const [helpOpen, setHelpOpen] = useState(false);
   
   // Détection du token d'invitation dans l'URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -130,6 +132,7 @@ if (isAcceptInvitation && invitationToken) {
     <>
       <ProtectedRoute>
         <AppLayout
+          onHelp={() => setHelpOpen(true)}
           activeRoute={activeRoute}
           onNavigate={route => {
             if (route === 'dashboard') go({ screen: 'dashboard' });
@@ -198,6 +201,12 @@ if (isAcceptInvitation && invitationToken) {
 )}
         </AppLayout>
       </ProtectedRoute>
+      {helpOpen && (
+  <HelpPanel
+    onClose={() => setHelpOpen(false)}
+    currentScreen={view.screen}
+  />
+)}
       <NetworkErrorBanner />
       <ToastContainer />
     </>

@@ -17,6 +17,7 @@ interface NavItem {
 interface SideNavProps {
   active:     NavRoute;
   onNavigate: (route: NavRoute) => void;
+  onHelp:     () => void;
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -32,7 +33,7 @@ const BOTTOM_ITEMS: NavItem[] = [
   { id: 'account',  label: 'Mon compte', href: '/account',  icon: <UserIcon /> },
 ];
 
-export function SideNav({ active, onNavigate }: SideNavProps) {
+export function SideNav({ active, onNavigate, onHelp }: SideNavProps) {
   const role    = useAuthStore(selectUserRole);
   const isAdmin = role === 'admin' || role === 'manager';
 
@@ -103,7 +104,15 @@ export function SideNav({ active, onNavigate }: SideNavProps) {
           </li>
 
           {BOTTOM_ITEMS.map(renderItem)}
-
+<button
+  type="button"
+  className="sidenav__item sidenav__item--help"
+  onClick={onHelp}
+  title="Aide"
+>
+  <span className="sidenav__icon"><HelpIcon /></span>
+  <span className="sidenav__label">Aide</span>
+</button>
           <li>
             <UserAvatar />
           </li>
@@ -222,6 +231,16 @@ function UserIcon() {
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
       <circle cx="9" cy="6" r="3" stroke="currentColor" strokeWidth="1.4" fill="none"/>
       <path d="M2 16c0-3 3.1-5 7-5s7 2 7 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none"/>
+    </svg>
+  );
+}
+
+function HelpIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <circle cx="9" cy="9" r="7.5" stroke="currentColor" strokeWidth="1.4" fill="none"/>
+      <path d="M6.5 7c0-1.4 1.1-2.5 2.5-2.5s2.5 1.1 2.5 2.5c0 1.5-2.5 2-2.5 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none"/>
+      <circle cx="9" cy="13" r="0.8" fill="currentColor"/>
     </svg>
   );
 }

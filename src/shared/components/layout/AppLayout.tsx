@@ -5,12 +5,13 @@ interface AppLayoutProps {
   children:    React.ReactNode;
   pageTitle?:  string;
   activeRoute?: NavRoute;
-  onNavigate?: (route: NavRoute) => void;
+    onNavigate?: (route: NavRoute) => void;
+  onHelp?:     () => void;
   searchSlot?: React.ReactNode;
 }
 
 export function AppLayout({
-  children, pageTitle, activeRoute = 'dashboard', onNavigate, searchSlot,
+  children, pageTitle, activeRoute = 'dashboard', onNavigate, onHelp, searchSlot,
 }: AppLayoutProps) {
   const handleNavigate = (route: NavRoute) => {
     onNavigate?.(route);
@@ -18,7 +19,7 @@ export function AppLayout({
 
   return (
     <div className="app-layout">
-      <SideNav active={activeRoute} onNavigate={handleNavigate} />
+     <SideNav active={activeRoute} onNavigate={handleNavigate} onHelp={onHelp ?? (() => {})} />
       <div className="app-layout__body">
         <header className="topbar" role="banner">
           {pageTitle && <h1 className="topbar__title sr-only">{pageTitle}</h1>}
