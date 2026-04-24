@@ -12,6 +12,7 @@ import { TreeEditor }  from './features/trees/components/TreeEditor';
 import { AccountPage }      from './features/account/components/AccountPage';
 import { SuperadminApp }   from './features/superadmin/components/SuperadminApp';
 import { HelpPanel }       from './features/help/components/HelpPanel';
+import { ApiDocsApp }     from './features/apidocs/components/ApiDocsApp';
 import { NotFoundPage } from './shared/components/ui/NotFoundPage';
 import { MembersPage }      from './features/members/components/MembersPage';
 import { SettingsPage }     from './features/settings/components/SettingsPage';
@@ -109,6 +110,10 @@ export function App() {
 // Mode superadmin — accessible via ?superadmin dans l'URL
 if (window.location.search.includes('superadmin')) {
   return <SuperadminApp />;
+}
+  if (window.location.search.includes('api-docs')) {
+return <ApiDocsApp />;
+
 }
 
 // Page d'acceptation d'invitation — accessible sans être connecté
