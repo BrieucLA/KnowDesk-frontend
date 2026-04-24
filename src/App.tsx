@@ -9,7 +9,8 @@ import { ArticleEditor }    from './features/editor/components/ArticleEditor';
 import { AcceptInvitationPage } from './features/invitation/components/AcceptInvitationPage';
 import { TreesPage }    from './features/trees/components/TreesPage';
 import { TreeEditor }  from './features/trees/components/TreeEditor';
-import { AccountPage }   from './features/account/components/AccountPage';
+import { AccountPage }      from './features/account/components/AccountPage';
+import { SuperadminApp }   from './features/superadmin/components/SuperadminApp';
 import { NotFoundPage } from './shared/components/ui/NotFoundPage';
 import { MembersPage }      from './features/members/components/MembersPage';
 import { SettingsPage }     from './features/settings/components/SettingsPage';
@@ -102,6 +103,11 @@ export function App() {
     : view.screen === 'settings' ? 'settings'
     : 'dashboard'
   ) as 'dashboard' | 'search' | 'knowledge' | 'team' | 'settings';
+
+// Mode superadmin — accessible via ?superadmin dans l'URL
+if (window.location.search.includes('superadmin')) {
+  return <SuperadminApp />;
+}
 
 // Page d'acceptation d'invitation — accessible sans être connecté
 if (isAcceptInvitation && invitationToken) {
