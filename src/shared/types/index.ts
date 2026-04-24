@@ -8,7 +8,8 @@ export interface User {
   email:      string;
   firstName?: string;
   lastName?:  string;
-  role:       UserRole;
+  role:          UserRole;
+  onboardingDone?: boolean;
 }
 
 export interface Organization {
