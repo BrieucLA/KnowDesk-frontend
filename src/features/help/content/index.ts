@@ -408,6 +408,53 @@ Saisis tes nouvelles informations et clique sur **Enregistrer**.
 Tu es automatiquement déconnecté après un changement d'email ou de mot de passe.
         `.trim(),
       },
+{
+  id:    'api-keys',
+  title: 'Gérer les clés API',
+  content: `
+## Gérer les clés API
+
+Les clés API permettent à des applications tierces d'accéder en lecture à ta base de connaissance KnowDesk — sans que les utilisateurs aient besoin de se connecter.
+
+**Accéder à la gestion des clés**
+Va dans **Paramètres → API** depuis le menu de gauche.
+
+**Créer une clé**
+1. Clique sur **+ Créer une clé**
+2. Donne-lui un nom descriptif (ex. *Intégration Hubicus*, *Site web*)
+3. Clique sur **Créer**
+4. Copie immédiatement la clé affichée — elle ne sera plus visible après fermeture
+
+> ⚠️ **Attention** : La clé complète n'est affichée qu'une seule fois. Si tu la perds, tu devras en créer une nouvelle.
+
+**Ce qu'une clé API permet de faire**
+- Lire la liste des catégories
+- Lire la liste des articles publiés et leur contenu
+- Lire les processus guidés publiés et leur structure
+
+**Ce qu'une clé API ne permet pas**
+- Créer ou modifier du contenu
+- Accéder aux brouillons
+- Gérer les membres ou les paramètres
+
+**Utiliser une clé dans une requête**
+Ajoute le header \`X-API-Key\` à chaque requête :
+\`\`\`
+GET https://knowdesk-production.up.railway.app/public/v1/articles
+X-API-Key: kd_live_ta_cle_api
+\`\`\`
+
+**Révoquer une clé**
+Dans la liste des clés, clique sur **Révoquer** à droite de la clé concernée et confirme. La révocation est immédiate et irréversible — toute application utilisant cette clé perdra l'accès instantanément.
+
+> 💡 **Astuce** : Crée une clé par application ou service qui utilise l'API. Si une clé est compromise, tu peux la révoquer sans impacter les autres intégrations.
+
+**Consulter la documentation API complète**
+La documentation détaillée avec tous les endpoints et exemples de code est disponible sur :
+\`https://know-desk-frontend.vercel.app/?api-docs\`
+  `.trim(),
+},
+
     ],
   },
 ];
