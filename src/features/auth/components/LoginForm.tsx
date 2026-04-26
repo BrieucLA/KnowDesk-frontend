@@ -13,6 +13,7 @@ interface LoginFormProps {
   onSubmit:     (e: React.FormEvent) => void;
   onTogglePassword:    () => void;
   onSwitchToRegister: () => void;
+  onSwitchToForgot:   () => void;
 }
 
 /**
@@ -21,7 +22,7 @@ interface LoginFormProps {
  */
 export function LoginForm({
   values, errors, isLoading, showPassword,
-  onChange, onBlur, onSubmit, onTogglePassword, onSwitchToRegister,
+  onChange, onBlur, onSubmit, onTogglePassword, onSwitchToRegister, onSwitchToForgot,
 }: LoginFormProps) {
   return (
     <form onSubmit={onSubmit} noValidate className="login-form">
@@ -72,9 +73,9 @@ export function LoginForm({
       </div>
 
       <div className="login-form__forgot">
-        <a href="/reset-password" className="login-form__link">
-          Mot de passe oublié ?
-        </a>
+<button type="button" className="login-form__link" onClick={onSwitchToForgot}>
+  Mot de passe oublié ?
+</button>
       </div>
 
       <Button

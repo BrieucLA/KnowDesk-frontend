@@ -1174,3 +1174,12 @@
 .apidoc-examples__tab--active { background: var(--neutral-900); color: var(--neutral-0); }
 
 .apidoc-response__title { font-size: 12px; font-weight: 600; color: var(--neutral-500); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+
+/* ── Forgot password ────────────────────────────────────────── */
+.forgot-success {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 16px; text-align: center; padding: 8px 0;
+}
+.forgot-success__icon  { font-size: 48px; line-height: 1; }
+.forgot-success__title { font-size: 22px; font-weight: 500; color: var(--neutral-900); letter-spacing: -0.02em; }
+.forgot-success__desc  { font-size: 14px; color: var(--neutral-500); line-height: 1.5; max-width: 320px; }

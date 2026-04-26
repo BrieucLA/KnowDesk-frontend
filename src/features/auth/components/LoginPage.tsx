@@ -4,13 +4,21 @@ import { RegisterForm } from './RegisterForm';
 import { useLogin }     from '../hooks/useLogin';
 import { useRegister }  from '../hooks/useRegister';
 import type { AuthSession } from '../types';
+import { ForgotPasswordForm } from './ForgotPasswordForm';
+import { ResetPasswordForm }  from './ResetPasswordForm';
 
 interface LoginPageProps {
   onLoginSuccess: (session: AuthSession) => void;
 }
 
 export function LoginPage({ onLoginSuccess }: LoginPageProps) {
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [mode, setMode] = useState<'login' | 'register' | 'forgot' | 'reset'>('login');
+  
+  // Détection du token de reset dans l'URL
+const resetToken = new URLSearchParams(window.location.search).get('reset_token');
+React.useEffect(() => {
+  if (resetToken) setMode('reset');
+}, [resetToken]);
 
   const handleSuccess = useCallback((session: AuthSession) => {
     onLoginSuccess(session);
@@ -44,46 +52,73 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
             <span className="login-page__app-name">KnowDesk</span>
           </div>
 
-          {mode === 'login' ? (
-            <>
-              <div className="login-page__header">
-                <h1 className="login-page__title">Connexion</h1>
-                <p className="login-page__subtitle">
-                  Accédez à la base de connaissance de votre équipe.
-                </p>
-              </div>
-              <LoginForm
-                values={login.values}
-                errors={login.errors}
-                isLoading={login.isLoading}
-                showPassword={login.showPassword}
-                onChange={login.handleChange}
-                onBlur={login.handleBlur}
-                onSubmit={login.handleSubmit}
-                onTogglePassword={login.togglePassword}
-                onSwitchToRegister={() => setMode('register')}
-              />
-            </>
-          ) : (
-            <>
-              <div className="login-page__header">
-                <h1 className="login-page__title">Créer un espace</h1>
-                <p className="login-page__subtitle">
-                  Configurez votre base de connaissance en quelques secondes.
-                </p>
-              </div>
-              <RegisterForm
-                form={register.form}
-                errors={register.errors}
-                isLoading={register.isLoading}
-                showPassword={register.showPassword}
-                onChange={register.handleChange}
-                onSubmit={register.handleSubmit}
-                onTogglePassword={register.togglePassword}
-                onSwitchToLogin={() => setMode('login')}
-              />
-            </>
-          )}
+          {mode === 'login' && (
+  <>
+    <div className="login-page__header">
+      <h1 className="login-page__title">Connexion</h1>
+      <p className="login-page__subtitle">
+        Accédez à la base de connaissance de votre équipe.
+      </p>
+    </div>
+    <LoginForm
+      values={login.values}
+      errors={login.errors}
+      isLoading={login.isLoading}
+      showPassword={login.showPassword}
+      onChange={login.handleChange}
+      onBlur={login.handleBlur}
+      onSubmit={login.handleSubmit}
+      onTogglePassword={login.togglePassword}
+      onSwitchToRegister={() => setMode('register')}
+      onSwitchToForgot={() => setMode('forgot')}
+    />
+  </>
+)}
+{mode === 'register' && (
+  <>
+    <div className="login-page__header">
+      <h1 className="login-page__title">Créer un espace</h1>
+      <p className="login-page__subtitle">
+        Configurez votre base de connaissance en quelques secondes.
+      </p>
+    </div>
+    <RegisterForm
+      form={register.form}
+      errors={register.errors}
+      isLoading={register.isLoading}
+      showPassword={register.showPassword}
+      onChange={register.handleChange}
+      onSubmit={register.handleSubmit}
+      onTogglePassword={register.togglePassword}
+      onSwitchToLogin={() => setMode('login')}
+    />
+  </>
+)}
+{mode === 'forgot' && (
+  <>
+    <div className="login-page__header">
+      <h1 className="login-page__title">Mot de passe oublié</h1>
+      <p className="login-page__subtitle">
+        Saisis ton email et on t'envoie un lien de réinitialisation.
+      </p>
+    </div>
+    <ForgotPasswordForm onBack={() => setMode('login')} />
+  </>
+)}
+{mode === 'reset' && (
+  <>
+    <div className="login-page__header">
+      <h1 className="login-page__title">Nouveau mot de passe</h1>
+      <p className="login-page__subtitle">
+        Choisis un mot de passe sécurisé d'au moins 8 caractères.
+      </p>
+    </div>
+    <ResetPasswordForm
+      token={resetToken ?? ''}
+      onBack={() => setMode('login')}
+    />
+  </>
+)}
         </div>
 
         <footer className="login-page__footer">
