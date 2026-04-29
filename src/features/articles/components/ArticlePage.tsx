@@ -129,10 +129,20 @@ if (state.status === 'error') {
       </header>
 
       {/* Article body */}
-      <div
-        className="article-page__body article-content"
-        dangerouslySetInnerHTML={{ __html: article.content }}
-      />
+<div
+  className="article-page__body article-content"
+  dangerouslySetInnerHTML={{ __html: article.content }}
+  onClick={e => {
+    const target = (e.target as HTMLElement).closest('a');
+    if (!target) return;
+    const href = target.getAttribute('href') ?? '';
+    if (href.startsWith('knowdesk://article/')) {
+      e.preventDefault();
+      const articleId = href.replace('knowdesk://article/', '');
+      onEdit?.(articleId);
+    }
+  }}
+/>
 
       {/* FAQ section */}
       <ArticleFaqSection faqs={article.faqs ?? []} />
