@@ -1,32 +1,32 @@
 import React, { useRef, useCallback, useEffect, useState } from 'react';
-import { LinkModal } from './LinkModal';
+import { LinkModal }    from './LinkModal';
 import { useAuthStore } from '../../../store/authStore';
 
 interface RichTextEditorProps {
-  value:        string;
-  onChange:     (html: string) => void;
-  placeholder?: string;
-  readOnly?:    boolean;
-  labelledBy?:  string;
+  value:          string;
+  onChange:       (html: string) => void;
+  placeholder?:   string;
+  readOnly?:      boolean;
+  labelledBy?:    string;
   onViewArticle?: (articleId: string) => void;
+  articleId?:     string;
+  onBeforeImageUpload?: () => Promise<string | null>;
 }
 
 export function RichTextEditor({
-  value, onChange, placeholder, readOnly, labelledBy, onViewArticle,
+  value, onChange, placeholder, readOnly, labelledBy, onViewArticle, articleId, onBeforeImageUpload,
 }: RichTextEditorProps) {
-  const editorRef    = useRef<HTMLDivElement>(null);
-  const isTypingRef  = useRef(false);
-  const prevValueRef = useRef('');
+  const editorRef     = useRef<HTMLDivElement>(null);
+  const isTypingRef   = useRef(false);
+  const prevValueRef  = useRef('');
   const savedRangeRef = useRef<Range | null>(null);
   const [showLinkModal, setShowLinkModal] = useState(false);
   const session = useAuthStore(s => s.session);
 
-  // Expose le token pour la recherche d'articles internes
   useEffect(() => {
     (window as any).__knowdesk_token = session?.accessToken ?? '';
   }, [session?.accessToken]);
 
-  // Sync value → DOM
   useEffect(() => {
     if (!editorRef.current) return;
     if (isTypingRef.current) return;
@@ -52,7 +52,6 @@ export function RichTextEditor({
     handleInput();
   }, [handleInput]);
 
-  // Sauvegarde la sélection avant d'ouvrir la modale
   const saveSelection = useCallback(() => {
     const sel = window.getSelection();
     if (sel && sel.rangeCount > 0) {
@@ -60,7 +59,6 @@ export function RichTextEditor({
     }
   }, []);
 
-  // Restaure la sélection
   const restoreSelection = useCallback(() => {
     if (!savedRangeRef.current) return;
     const sel = window.getSelection();
@@ -75,51 +73,94 @@ export function RichTextEditor({
     setShowLinkModal(true);
   }, [saveSelection]);
 
-  const handleInsertLink = useCallback((url: string, text: string, isInternal: boolean, articleId?: string) => {
+  const handleInsertLink = useCallback((url: string, text: string, isInternal: boolean, artId?: string) => {
     setShowLinkModal(false);
     editorRef.current?.focus();
     restoreSelection();
 
-    const sel = window.getSelection();
+    const sel          = window.getSelection();
     const hasSelection = sel && sel.toString().trim().length > 0;
 
     if (hasSelection) {
-      // Wraps la sélection en lien
       document.execCommand('createLink', false, url);
-      // Ajoute les attributs sur le lien créé
       const link = editorRef.current?.querySelector(`a[href="${url}"]`) as HTMLAnchorElement;
       if (link) {
-        if (!isInternal) link.target = '_blank';
-        if (!isInternal) link.rel = 'noopener noreferrer';
-        if (isInternal) link.setAttribute('data-article-id', articleId ?? '');
+        if (!isInternal) { link.target = '_blank'; link.rel = 'noopener noreferrer'; }
+        if (isInternal)  { link.setAttribute('data-article-id', artId ?? ''); }
         link.className = isInternal ? 'article-link--internal' : 'article-link--external';
       }
     } else {
-      // Insère un nouveau lien avec le texte
       const a = document.createElement('a');
-      a.href = url;
+      a.href        = url;
       a.textContent = text;
       if (!isInternal) { a.target = '_blank'; a.rel = 'noopener noreferrer'; }
-      if (isInternal)  { a.setAttribute('data-article-id', articleId ?? ''); }
+      if (isInternal)  { a.setAttribute('data-article-id', artId ?? ''); }
       a.className = isInternal ? 'article-link--internal' : 'article-link--external';
-
       if (savedRangeRef.current) {
         savedRangeRef.current.insertNode(a);
         savedRangeRef.current.collapse(false);
       }
     }
-
     handleInput();
   }, [restoreSelection, handleInput]);
 
-  // Gestion du clic sur les liens internes dans l'éditeur
+  const handleImageUpload = useCallback(async (file: File) => {
+    let id = articleId;
+    if (!id && onBeforeImageUpload) {
+      id = (await onBeforeImageUpload()) ?? undefined;
+      }
+      if (!id) return;
+  const token    = session?.accessToken ?? '';
+  const base     = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api/v1';
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const placeholder = document.createElement('span');
+    placeholder.className   = 'rte-img-placeholder';
+    placeholder.textContent = '⏳ Chargement…';
+    if (savedRangeRef.current) {
+      savedRangeRef.current.insertNode(placeholder);
+    } else {
+      editorRef.current?.appendChild(placeholder);
+    }
+
+    try {
+      const res  = await fetch(`${base}/articles/${id}/images`, {
+        method:  'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body:    formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message ?? 'Erreur upload');
+      const img     = document.createElement('img');
+      img.src       = data.data.public_url;
+      img.alt       = data.data.filename;
+      img.className = 'article-img';
+      placeholder.replaceWith(img);
+    } catch {
+      placeholder.replaceWith(document.createTextNode('[Erreur chargement image]'));
+    }
+    handleInput();
+  }, [articleId, session?.accessToken, handleInput, onBeforeImageUpload]);
+
+  const handleImageClick = useCallback(() => {
+    const input    = document.createElement('input');
+    input.type     = 'file';
+    input.accept   = 'image/jpeg,image/png,image/gif,image/webp';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) { saveSelection(); handleImageUpload(file); }
+    };
+    input.click();
+  }, [saveSelection, handleImageUpload]);
+
   const handleClick = useCallback((e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
-    const link = target.closest('a[data-article-id]') as HTMLAnchorElement | null;
+    const link   = target.closest('a[data-article-id]') as HTMLAnchorElement | null;
     if (link && readOnly && onViewArticle) {
       e.preventDefault();
-      const articleId = link.getAttribute('data-article-id');
-      if (articleId) onViewArticle(articleId);
+      const aid = link.getAttribute('data-article-id');
+      if (aid) onViewArticle(aid);
     }
   }, [readOnly, onViewArticle]);
 
@@ -140,6 +181,9 @@ export function RichTextEditor({
             <ToolButton onClick={() => execCmd('insertOrderedList')}   label="Liste numérotée" shortcut="">1.</ToolButton>
             <div className="rte__separator" aria-hidden="true" />
             <ToolButton onClick={handleLinkClick}                      label="Lien"            shortcut="">🔗</ToolButton>
+            {(articleId || onBeforeImageUpload) && (
+              <ToolButton onClick={handleImageClick} label="Image" shortcut="">🖼</ToolButton>
+            )}
             <div className="rte__separator" aria-hidden="true" />
             <ToolButton onClick={() => execCmd('removeFormat')}        label="Effacer le formatage" shortcut="">Tx</ToolButton>
           </div>

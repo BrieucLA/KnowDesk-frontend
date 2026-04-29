@@ -39,6 +39,7 @@ function flattenCategories(cats: Category[], depth = 0): { id: string; name: str
 
 export function ArticleEditor({ articleId, onSaved, onCancel }: ArticleEditorProps) {
   const isEdit  = !!articleId;
+  const [currentArticleId, setCurrentArticleId] = useState<string | undefined>(articleId);
   const titleId = useId();
 
   const [form, setForm] = useState<EditorFormState>({
@@ -49,6 +50,20 @@ export function ArticleEditor({ articleId, onSaved, onCancel }: ArticleEditorPro
   const [isPublishing, setIsPublishing] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const toast = useToast();
+  const ensureArticleExists = useCallback(async (): Promise<string | null> => {
+  if (currentArticleId) return currentArticleId;
+  try {
+    const article = await apiClient.post<any>('/articles', {
+      title:   form.title || 'Sans titre',
+      content: { html: form.content },
+      categoryId: form.categoryId || undefined,
+    });
+    setCurrentArticleId(article.id);
+    return article.id;
+  } catch {
+    return null;
+  }
+}, [currentArticleId, form]);
   const versions = articleId ? useArticleVersions(articleId) : null;
 
   // Charger les catégories
@@ -240,6 +255,8 @@ if (!isEdit) {
           onChange={v => updateField('content', v)}
           placeholder="Commencez à rédiger…"
           labelledBy={titleId}
+          articleId={currentArticleId}
+          onBeforeImageUpload={ensureArticleExists}
         />
         {errors.content && <p className="field-error">{errors.content}</p>}
       </div>
