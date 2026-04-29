@@ -142,7 +142,7 @@
   display: flex; align-items: center;
   padding: 0 40px; position: sticky; top: 0; z-index: 10;
 }
-.topbar__search-wrap { flex: 1; max-width: 540px; }
+.topbar__search-wrap { flex: 1; max-width: 540px; margin: 0 auto; }
 .topbar__search {
   display: flex; align-items: center; gap: 8px;
   padding: 0 12px; height: 34px;
@@ -666,3 +666,17 @@
   .topbar { padding: 0 16px; }
   .dashboard__stats { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ── TopBar actions ─────────────────────────────────────────── */
+.topbar__actions {
+  display: flex; align-items: center; gap: 8px;
+  margin-left: auto; flex-shrink: 0;
+}
+.topbar__logout {
+  font-size: 13px; color: var(--neutral-400);
+  background: none; border: none; cursor: pointer;
+  font-family: var(--font-ui); padding: 4px 8px;
+  border-radius: var(--radius-md);
+  transition: all var(--t-fast);
+}
+.topbar__logout:hover { background: var(--neutral-100); color: var(--neutral-700); }

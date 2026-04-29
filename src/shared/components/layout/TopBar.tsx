@@ -1,16 +1,13 @@
 import React, { useRef, useEffect } from 'react';
+import { useAuthStore } from '../../../store/authStore';
 
 interface TopBarProps {
-  /** Page title shown in the topbar */
   title?: string;
 }
 
-/**
- * TopBar — contains the global search bar.
- * Cmd+K anywhere in the app focuses the search input.
- */
 export function TopBar({ title }: TopBarProps) {
-  const searchRef = useRef<HTMLInputElement>(null);
+  const searchRef  = useRef<HTMLInputElement>(null);
+  const clearSession = useAuthStore(s => s.clearSession);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -26,7 +23,6 @@ export function TopBar({ title }: TopBarProps) {
   return (
     <header className="topbar" role="banner">
       {title && <h1 className="topbar__title sr-only">{title}</h1>}
-
       <div className="topbar__search-wrap">
         <label htmlFor="global-search" className="sr-only">
           Rechercher dans la base de connaissance
@@ -43,6 +39,16 @@ export function TopBar({ title }: TopBarProps) {
           />
           <kbd className="topbar__kbd" aria-hidden="true">⌘K</kbd>
         </div>
+      </div>
+      <div className="topbar__actions">
+        <button
+          type="button"
+          className="topbar__logout"
+          onClick={clearSession}
+          aria-label="Se déconnecter"
+        >
+          Déconnexion
+        </button>
       </div>
     </header>
   );

@@ -21,21 +21,31 @@ interface SideNavProps {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: 'dashboard',  label: 'Accueil',   href: '/',          icon: <HomeIcon /> },
-  { id: 'search',     label: 'Recherche', href: '/search',    icon: <SearchIcon /> },
-  { id: 'knowledge',  label: 'Base',      href: '/knowledge', icon: <BookIcon /> },
-  { id: 'trees',      label: 'Processus', href: '/trees',     icon: <TreeIcon /> },
-  { id: 'team',       label: 'Équipe',    href: '/team',      icon: <TeamIcon />, adminOnly: true },
+  { id: 'dashboard', label: 'Accueil',   href: '/',          icon: <HomeIcon /> },
+  { id: 'knowledge', label: 'Base',      href: '/knowledge', icon: <BookIcon /> },
+  { id: 'trees',     label: 'Processus', href: '/trees',     icon: <TreeIcon /> },
+  { id: 'team',      label: 'Équipe',    href: '/team',      icon: <TeamIcon />, adminOnly: true },
 ];
 
 const BOTTOM_ITEMS: NavItem[] = [
   { id: 'settings', label: 'Paramètres', href: '/settings', icon: <SettingsIcon /> },
-  { id: 'account',  label: 'Mon compte', href: '/account',  icon: <UserIcon /> },
 ];
 
 export function SideNav({ active, onNavigate, onHelp }: SideNavProps) {
   const role    = useAuthStore(selectUserRole);
   const isAdmin = role === 'admin' || role === 'manager';
+  const session  = useAuthStore(s => s.session);
+const initials = (() => {
+  const fn = session?.user?.firstName;
+  const ln = session?.user?.lastName;
+  const em = session?.user?.email ?? '';
+  if (fn && ln) return `${fn[0]}${ln[0]}`.toUpperCase();
+  if (fn)       return fn[0].toUpperCase();
+  const parts = em.split('@')[0].split(/[._-]/);
+  return parts.length >= 2
+    ? `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+    : (parts[0][0] ?? 'K').toUpperCase();
+})();
 
   const [showNotifs, setShowNotifs] = useState(false);
   const {
@@ -104,18 +114,30 @@ export function SideNav({ active, onNavigate, onHelp }: SideNavProps) {
           </li>
 
           {BOTTOM_ITEMS.map(renderItem)}
-<button
-  type="button"
-  className="sidenav__item sidenav__item--help"
-  onClick={onHelp}
-  title="Aide"
->
-  <span className="sidenav__icon"><HelpIcon /></span>
-  <span className="sidenav__label">Aide</span>
-</button>
-          <li>
-            <UserAvatar />
-          </li>
+<li>
+  <button
+    type="button"
+    className="sidenav__item sidenav__item--help"
+    onClick={onHelp}
+    title="Aide"
+    aria-label="Aide"
+  >
+    <span className="sidenav__icon" aria-hidden="true"><HelpIcon /></span>
+    <span className="sidenav__label">Aide</span>
+  </button>
+</li>
+<li>
+  <button
+    type="button"
+    className="sidenav__item sidenav__initials"
+    onClick={() => onNavigate('account')}
+    title="Mon compte"
+    aria-label="Mon compte"
+  >
+    <span className="sidenav__initials-circle" aria-hidden="true">{initials}</span>
+    <span className="sidenav__label">Mon compte</span>
+  </button>
+</li>
         </ul>
       </nav>
 

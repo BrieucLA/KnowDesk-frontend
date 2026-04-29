@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { SideNav, type NavRoute } from './SideNav';
+import { useAuthStore } from '../../../store/authStore';
 
 interface AppLayoutProps {
   children:    React.ReactNode;
@@ -16,6 +17,7 @@ export function AppLayout({
   const handleNavigate = (route: NavRoute) => {
     onNavigate?.(route);
   };
+const clearSession = useAuthStore(s => s.clearSession);
 
   return (
     <div className="app-layout">
@@ -39,6 +41,16 @@ export function AppLayout({
               </div>
             )}
           </div>
+          <div className="topbar__actions">
+  <button
+    type="button"
+    className="topbar__logout"
+    onClick={clearSession}
+    aria-label="Se déconnecter"
+  >
+    Déconnexion
+  </button>
+</div>
         </header>
         <main className="app-layout__content" id="main-content" tabIndex={-1}>
           {children}
