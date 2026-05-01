@@ -56,7 +56,13 @@ export function useSearch({ onSelect }: UseSearchOptions) {
         ? `/search?q=${encodeURIComponent(q)}`
         : '/search';
       const results = await apiClient.get<SearchResult[]>(path);
-      dispatch({ type: 'SUCCESS', results });
+      // Boost les FAQs en haut (réponse rapide pour conseillers en ligne).
+      // Stable sort par type — l'ordre de score interne au type est préservé.
+      const TYPE_ORDER: Record<string, number> = { faq: 0, article: 1, tree: 2 };
+      const sorted = [...results].sort((a, b) =>
+        (TYPE_ORDER[a.type] ?? 99) - (TYPE_ORDER[b.type] ?? 99)
+      );
+      dispatch({ type: 'SUCCESS', results: sorted });
       // Tracking analytics : on ne consigne que les recherches "intentionnelles" (avec query),
       // après TRACK_DEBOUNCE_MS d'inactivité. Si l'utilisateur continue de taper, on annule
       // et on reprogramme — seule la dernière query "stable" sera consignée.

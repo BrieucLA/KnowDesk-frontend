@@ -1,8 +1,10 @@
-import React, { useCallback, useId } from 'react';
-import { SearchResultItem } from './SearchResultItem';
-import { useSearch }        from '../hooks/useSearch';
-import { useAuthStore }     from '../../../store/authStore';
-import type { SearchResult } from '../types';
+import React, { useCallback, useEffect, useId, useState } from 'react';
+import { SearchResultItem }    from './SearchResultItem';
+import { FaqResultExpansion }  from './FaqResultExpansion';
+import { useSearch }           from '../hooks/useSearch';
+import { useAuthStore }        from '../../../store/authStore';
+import { useToast }            from '../../../shared/lib/useToast';
+import type { SearchResult }   from '../types';
 
 interface SearchBarProps {
   /** Called when user selects a result — caller handles navigation */
@@ -24,16 +26,42 @@ export function SearchBar({ onSelect, className }: SearchBarProps) {
   const token      = useAuthStore(s => s.session?.accessToken);
   const listboxId  = useId();
   const resultIdPrefix = useId();
+  const toast      = useToast();
+  const [expandedFaqId, setExpandedFaqId] = useState<string | null>(null);
 
   const handleSelect = useCallback((result: SearchResult) => {
-    onSelect(result);
+    if (result.type === 'faq') {
+      // Pour une FAQ, on n'ouvre pas une page — on déplie la réponse en place
+      // pour permettre la copie en 1 clic. C'est le cas d'usage conseiller.
+      setExpandedFaqId(prev => prev === result.id ? null : result.id);
+    } else {
+      setExpandedFaqId(null);
+      onSelect(result);
+    }
   }, [onSelect]);
+
+  const handleCopyAnswer = useCallback(async (text: string) => {
+    // Strip les <mark> du highlight pour ne copier que le texte propre
+    const plain = text.replace(/<\/?mark>/g, '');
+    try {
+      await navigator.clipboard.writeText(plain);
+      toast.success('Réponse copiée');
+    } catch {
+      toast.error('Impossible d\'accéder au presse-papier');
+    }
+  }, [toast]);
+
+  // Reset l'expansion quand la query change
+  // (évite les états zombies après nouvelle recherche)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
 
   const {
     state, activeIndex, isOpen,
     inputRef, listRef,
     handleChange, handleClear, handleKeyDown, handleFocus,
   } = useSearch({ token, onSelect: handleSelect });
+
+  useEffect(() => { setExpandedFaqId(null); }, [state.query]);
 
   const activeResultId = activeIndex >= 0
     ? `${resultIdPrefix}-${activeIndex}`
@@ -106,13 +134,20 @@ export function SearchBar({ onSelect, className }: SearchBarProps) {
             className="search-bar__results"
           >
             {state.results.map((result, i) => (
-              <SearchResultItem
-                key={result.id}
-                id={`${resultIdPrefix}-${i}`}
-                result={result}
-                isActive={i === activeIndex}
-                onClick={handleSelect}
-              />
+              <React.Fragment key={result.id}>
+                <SearchResultItem
+                  id={`${resultIdPrefix}-${i}`}
+                  result={result}
+                  isActive={i === activeIndex}
+                  onClick={handleSelect}
+                />
+                {result.type === 'faq' && expandedFaqId === result.id && (
+                  <FaqResultExpansion
+                    result={result}
+                    onCopy={handleCopyAnswer}
+                  />
+                )}
+              </React.Fragment>
             ))}
           </ul>
 

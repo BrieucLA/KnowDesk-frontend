@@ -1622,3 +1622,26 @@
 }
 .faq-editor__radio-desc { font-size: 12px; color: var(--neutral-500); }
 .faq-editor__radio-badge { font-size: 10px; }
+
+/* ── FAQ result expansion (dans la SearchBar) ──────────────── */
+.faq-result-expansion {
+  background: var(--brand-50);
+  border-bottom: 1px solid var(--neutral-100);
+  padding: 14px 18px 14px 28px;   /* indent gauche pour suggérer la hiérarchie */
+  display: flex; flex-direction: column; gap: 10px;
+  border-left: 3px solid var(--brand-400);
+}
+.faq-result-expansion__answer {
+  font-size: 13px; color: var(--neutral-800); line-height: 1.55;
+}
+.faq-result-expansion__text {
+  margin: 0; white-space: normal;   /* override le truncate des résultats */
+  word-break: break-word;
+}
+.faq-result-expansion__text mark {
+  background: var(--brand-100); color: var(--brand-700);
+  font-weight: 500; padding: 0 2px; border-radius: 2px;
+}
+.faq-result-expansion__actions {
+  display: flex; justify-content: flex-end; gap: 8px;
+}
