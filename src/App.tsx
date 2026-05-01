@@ -1,5 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useCallback, useState } from 'react';
 import { LoginPage }        from './features/auth/components/LoginPage';
 import { OnboardingPage }   from './features/onboarding/components/OnboardingPage';
 import { DashboardPage }    from './features/dashboard/components/DashboardPage';
@@ -58,36 +57,6 @@ type View =
   | { screen: 'tree-editor'; treeId: string }
   | { screen: 'account' };
 
-/** Maps URL pathname to a View (G1 routes only, returns null for unmapped paths). */
-function pathToView(pathname: string, fallbackFrom: Screen): View | null {
-  if (pathname === '/' || pathname === '')        return { screen: 'dashboard' };
-  if (pathname === '/knowledge')                  return { screen: 'knowledge' };
-  if (pathname === '/articles/new')               return { screen: 'editor', from: fallbackFrom };
-
-  const editMatch = pathname.match(/^\/articles\/([^/]+)\/edit$/);
-  if (editMatch) return { screen: 'editor', articleId: editMatch[1], from: 'article' };
-
-  const articleMatch = pathname.match(/^\/articles\/([^/]+)$/);
-  if (articleMatch) return { screen: 'article', articleId: articleMatch[1], from: fallbackFrom };
-
-  const treeMatch = pathname.match(/^\/trees\/([^/]+)$/);
-  if (treeMatch) return { screen: 'tree', treeId: treeMatch[1], from: fallbackFrom };
-
-  return null;
-}
-
-/** Maps a View back to the canonical URL pathname (G1 routes only). */
-function viewToPath(view: View): string | null {
-  switch (view.screen) {
-    case 'dashboard': return '/';
-    case 'knowledge': return '/knowledge';
-    case 'article':   return `/articles/${view.articleId}`;
-    case 'editor':    return view.articleId ? `/articles/${view.articleId}/edit` : '/articles/new';
-    case 'tree':      return `/trees/${view.treeId}`;
-    default:          return null;  // legacy view, leave URL alone
-  }
-}
-
 export function App() {
 
 
@@ -96,39 +65,8 @@ export function App() {
   const role              = useAuthStore(selectUserRole);
   const onboardingDone    = useAuthStore(s => s.onboardingDone);
   const setOnboardingDone = useAuthStore(s => s.setOnboardingDone);
-
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  // Initial view derived from URL — supports deep-linking on G1 routes.
-  const [view, setView] = useState<View>(() => {
-    return pathToView(location.pathname, 'dashboard') ?? { screen: 'dashboard' };
-  });
+  const [view, setView] = useState<View>({ screen: 'dashboard' });
   const [helpOpen, setHelpOpen] = useState(false);
-
-  // URL → View : back/forward du navigateur, deep-link, paste d'URL
-  useEffect(() => {
-    const next = pathToView(location.pathname, view.screen as Screen);
-    if (!next) return;
-    // Si on cible déjà la même ressource (même screen + même id), on ne touche pas
-    // au view actuel pour préserver le `from` posé par la nav interne.
-    const sameTarget =
-      next.screen === view.screen &&
-      (next as { articleId?: string }).articleId === (view as { articleId?: string }).articleId &&
-      (next as { treeId?: string }).treeId       === (view as { treeId?: string }).treeId;
-    if (sameTarget) return;
-    setView(next);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname]);
-
-  // View → URL : synchronise l'URL quand la navigation est faite via setView
-  useEffect(() => {
-    const expected = viewToPath(view);
-    if (expected && expected !== location.pathname) {
-      navigate(expected);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view]);
   
   // Détection du token d'invitation dans l'URL
   const urlParams = new URLSearchParams(window.location.search);
