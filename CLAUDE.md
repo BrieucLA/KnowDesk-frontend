@@ -85,7 +85,7 @@ src/
   shared/
     components/
       layout/                     # AppLayout, SideNav, TopBar
-      ui/                         # Button, Input, Skeleton, EmptyState, Toast, ImpersonateBanner...
+      ui/                         # Button, Input, Skeleton, EmptyState, Toast, Modal, ConfirmDialog, ChipsInput, StatusBadge, ImpersonateBanner...
     lib/
       apiClient.ts                # Wrapper fetch avec auth automatique
       useToast.ts                 # Hook toasts
@@ -138,10 +138,19 @@ cd ~/KDProject/knowdesk-backend && npm run build
 
 - Feature-based architecture — chaque feature dans `src/features/`
 - Les composants partagés vont dans `src/shared/components/`
-- Les appels API passent par `apiClient` (gère le token automatiquement)
+- Les appels API passent par `apiClient` (jamais `fetch()` direct dans un composant — gère cookie + refresh automatique)
 - Le store Zustand (`authStore`) est persisté en `sessionStorage`
-- CSS uniquement via les classes du design system — jamais de style inline sauf exceptions
+- CSS uniquement via les classes du design system — pas de `style={{}}` sauf valeurs runtime (% de barre de progression, CSS custom property dynamique pour indentation, couleur dérivée d'un map)
 - Pas de `any` TypeScript sauf cas vraiment nécessaire
+- **Routing** : React Router v6 wrappé via `<BrowserRouter>` dans `main.tsx`. `App.tsx` maintient un `useState<View>` + un bridge `pathToView`/`viewToPath` qui synchronise URL ↔ view dans les deux sens. Toutes les vues (sauf `?superadmin`/`?api-docs`/`?token=` legacy) ont une URL canonique deep-linkable
+- **Modales** : composant `<Modal>` partagé dans `shared/components/ui/Modal.tsx` (focus trap, Escape, fermeture backdrop, `aria-modal`). Pour les confirmations destructives, utiliser `<ConfirmDialog>` qui s'appuie dessus — **jamais `window.confirm()`** (cassé visuellement, non localisable)
+- **Inputs** : toujours `<Input>` (jamais `<input>` brut) pour cohérence d'accessibilité (aria-invalid, aria-describedby)
+- **Error handling** : règle stricte
+  - Action utilisateur échoue → `toast.error()`
+  - Chargement initial échoue → `toast.error()` (l'écran reste, l'utilisateur sait)
+  - Sync background non critique (analytics, autocomplete suggestions, onboarding-done) → `.catch()` silencieux légitime
+  - Jamais `console.error` ou `errors.general` orphelin
+- **`useToast()`** retourne une référence STABLE (instance créée au module level). Tu peux la mettre en deps de `useEffect` sans déclencher de boucle
 
 ## Design system
 
@@ -211,6 +220,9 @@ Conséquence : **le navigateur voit toutes les requêtes comme same-origin**, ce
 - Recherche intelligente (Meilisearch) — tolérance aux fautes, indexation articles + processus guidés, synonymes par organisation gérables dans Settings
 - Tags libres sur les articles — chips avec auto-complétion dans l'éditeur, filtre multi-tag dans la liste, affichage sur la fiche article et le dashboard, gestion admin (rename, suppression) dans Settings
 - Analytics d'utilisation — page admin/manager avec inventaire, articles à vérifier, brouillons orphelins, articles sans tag, top contributeurs, couverture par catégorie, top tags, tags inutilisés, top articles consultés, articles peu consultés, top recherches, recherches sans résultat, engagement DAU/WAU/MAU. Tracking d'événements (table events), purge cron 90 jours.
+- **Refacto UI/UX (axes A→E)** — `<ConfirmDialog>` (4 `confirm()` natifs remplacés), `<Modal>` partagé avec focus trap (8 modales unifiées), 2 `<input>` bruts → `<Input>`, `fetch()` direct → `apiClient`, error handling unifié (toasts partout, plus aucun silent failure côté UI), 16 styles inline → 8 (tous légitimes runtime)
+- **React Router v6** côté frontend (Phases G1+G2) — toutes les vues (`/dashboard`, `/knowledge`, `/articles/:id`, `/articles/:id/edit`, `/articles/new`, `/trees`, `/trees/:id`, `/trees/:id/edit`, `/members`, `/analytics`, `/settings`, `/account`) ont une URL canonique : deep-linking, F5 préserve l'écran, bouton Précédent fonctionnel, partage de liens. Bridge URL ↔ `useState<View>` dans `App.tsx` (cleanup vers `<Routes>` direct prévu en G3)
+- Pool PG résilient — `pool.on('error')` listener (empêche les crashs silencieux quand un client idle perd sa connexion), `max: 20`, `keepAlive`. Rate limiter skippé en `NODE_ENV=development` pour ne pas gêner le dev local
 
 ### Haute priorité
 - Toasts sur les erreurs API
@@ -226,11 +238,12 @@ Conséquence : **le navigateur voit toutes les requêtes comme same-origin**, ce
 - Centre d'aide V2 (Sprint Help-D) — ouvrir l'article pertinent depuis le contexte (pas la section), footer feedback 👍/👎 sur chaque article (tracké via la table events), parseur markdown standard avec support des images, indexation Meilisearch dédiée si l'aide grossit au-delà de ~50 articles.
 
 ### Refacto à venir
-- **Retirer le fallback Bearer** dans `auth.middleware` une fois que tous les clients utilisent les cookies (~1 sprint après stabilisation de la Phase 1). Retirer aussi `accessToken` du retour JSON de `auth.controller` et du type `AuthSession` côté frontend.
-- **React Router v6** côté frontend : sortir du routing par `useState<View>` dans `App.tsx`, autoriser le deep-linking (`/articles/:id`, etc.).
-- **Refacto-B frontend** : composant `<Modal>` partagé (5+ modales dupliquées), hook `useApi` générique (~7 hooks de fetch redupliqués), CSS par feature au lieu de `sprintN.css`, adapter de réponse typé.
+- **Phase G3** (~1j) : nettoyer le bridge `useState<View>` ↔ Router dans `App.tsx`, passer en `<Routes><Route ...></Routes>` direct + `useParams`. Convertir `?superadmin` / `?api-docs` / `?token=` en routes propres (`/superadmin`, `/api-docs`, `/invitation/:token`).
+- **Axe F — CSS par feature** (~2j) : éclater `sprint3.css` (730 lignes) / `sprint4.css` / `sprint5.css` (1300+ lignes) en fichiers co-localisés à chaque feature (ex: `features/articles/articles.css`, `shared/components/ui/modal.css`). Garder `tokens.css` et `base.css` au niveau global.
+- **Retirer le fallback Bearer** dans `auth.middleware` une fois que tous les clients utilisent les cookies (~1 sprint après stabilisation). Retirer aussi `accessToken` du retour JSON de `auth.controller` et du type `AuthSession` côté frontend.
+- **Hook `useApi` générique** côté frontend (~7 hooks de fetch redupliqués) : pattern uniforme loading/error/data, intégration apiClient, retour typé.
 - **Custom domain** (`app.knowdesk.fr` + `api.knowdesk.fr`) : remplacer le proxy Vercel par des sous-domaines de la même TLD+1, pour éviter le hop supplémentaire et avoir des cookies natifs sans rewrite.
-- **Tests frontend** : zéro test côté frontend ; vitest installé. Cibler ArticleEditor (sauvegarde + tags), TagsInput (autocomplete), AnalyticsPage, ProtectedRoute. Côté backend, **31 tests passants** (auth + multi-tenancy + permissions) couvrent les chemins critiques.
+- **Tests frontend** : zéro test côté frontend ; vitest installé. Cibler ArticleEditor (sauvegarde + tags), TagsInput (autocomplete), AnalyticsPage, ProtectedRoute, le bridge router. Côté backend, **31 tests passants** (auth + multi-tenancy + permissions) couvrent les chemins critiques.
 
 ### Import de documents (plan rédigé)
 - MVP : import PDF/DOCX → article
