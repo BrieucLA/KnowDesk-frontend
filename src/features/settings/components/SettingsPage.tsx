@@ -9,6 +9,7 @@ import {
 import { useAuthStore }    from '../../../store/authStore';
 import { ApiKeysSection } from './ApiKeysSection';
 import { SearchSettingsSection } from './SearchSettingsSection';
+import { TagsSettingsSection }   from './TagsSettingsSection';
 import type { SettingsSection, NotifPreferences } from '../types';
 
 interface SettingsPageProps {
@@ -47,6 +48,7 @@ export function SettingsPage({ initialSection = 'general' }: SettingsPageProps) 
         {activeSection === 'notifications' && <SectionNotifications />}
         {activeSection === 'api' && <ApiKeysSection />}
         {activeSection === 'search'        && <SearchSettingsSection />}
+        {activeSection === 'tags'          && <TagsSettingsSection />}
         {activeSection === 'billing'       && <SectionBilling />}
         {activeSection === 'danger'        && <SectionDanger />}
       </div>
@@ -59,6 +61,7 @@ const SECTIONS: { id: SettingsSection; label: string; adminOnly?: boolean }[] = 
   { id: 'notifications', label: 'Notifications'  },
   { id: 'api',           label: 'API'            },
   { id: 'search',        label: 'Recherche', adminOnly: true },
+  { id: 'tags',          label: 'Tags',      adminOnly: true },
   { id: 'billing',       label: 'Facturation'    },
   { id: 'danger',        label: 'Zone de danger' },
 ];

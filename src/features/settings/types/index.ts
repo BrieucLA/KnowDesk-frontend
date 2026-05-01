@@ -3,6 +3,7 @@ export type SettingsSection =
   | 'notifications'
   | 'api'
   | 'search'
+  | 'tags'
   | 'billing'
   | 'danger';
 
