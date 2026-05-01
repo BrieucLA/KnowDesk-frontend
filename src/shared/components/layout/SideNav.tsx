@@ -4,7 +4,7 @@ import { useAuthStore, selectUserRole } from '../../../store/authStore';
 import { useNotifications } from '../../../features/notifications/hooks/useNotifications';
 import { NotificationPanel } from '../../../features/notifications/components/NotificationPanel';
 
-export type NavRoute = 'dashboard' | 'search' | 'knowledge' | 'trees' | 'team' | 'analytics' | 'settings' | 'account';
+export type NavRoute = 'dashboard' | 'search' | 'knowledge' | 'faqs' | 'trees' | 'team' | 'analytics' | 'settings' | 'account';
 
 interface NavItem {
   id:        NavRoute;
@@ -23,6 +23,7 @@ interface SideNavProps {
 const NAV_ITEMS: NavItem[] = [
   { id: 'dashboard', label: 'Accueil',   href: '/',           icon: <HomeIcon /> },
   { id: 'knowledge', label: 'Base',      href: '/knowledge',  icon: <BookIcon /> },
+  { id: 'faqs',      label: 'FAQs',      href: '/faqs',       icon: <FaqIcon /> },
   { id: 'trees',     label: 'Processus', href: '/trees',      icon: <TreeIcon /> },
   { id: 'team',      label: 'Équipe',    href: '/team',       icon: <TeamIcon />,  adminOnly: true },
   { id: 'analytics', label: 'Analytics', href: '/analytics',  icon: <ChartIcon />, adminOnly: true },
@@ -275,6 +276,16 @@ function HelpIcon() {
       <circle cx="9" cy="9" r="7.5" stroke="currentColor" strokeWidth="1.4" fill="none"/>
       <path d="M6.5 7c0-1.4 1.1-2.5 2.5-2.5s2.5 1.1 2.5 2.5c0 1.5-2.5 2-2.5 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none"/>
       <circle cx="9" cy="13" r="0.8" fill="currentColor"/>
+    </svg>
+  );
+}
+
+function FaqIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <path d="M3 4a2 2 0 012-2h8a2 2 0 012 2v7a2 2 0 01-2 2H8l-3 3v-3H5a2 2 0 01-2-2V4z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" fill="none"/>
+      <path d="M7 6.5c0-1 .8-1.5 2-1.5s2 .5 2 1.5c0 1-2 1-2 2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none"/>
+      <circle cx="9" cy="11.5" r="0.7" fill="currentColor"/>
     </svg>
   );
 }

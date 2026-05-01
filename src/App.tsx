@@ -11,6 +11,8 @@ import { AcceptInvitationPage } from './features/invitation/components/AcceptInv
 import { TreesPage }    from './features/trees/components/TreesPage';
 import { TreeEditor }  from './features/trees/components/TreeEditor';
 import { AccountPage }      from './features/account/components/AccountPage';
+import { FaqsPage }         from './features/faqs/components/FaqsPage';
+import { FaqEditor }        from './features/faqs/components/FaqEditor';
 import { SuperadminApp }   from './features/superadmin/components/SuperadminApp';
 import { HelpPanel }       from './features/help/components/HelpPanel';
 import { ApiDocsApp }     from './features/apidocs/components/ApiDocsApp';
@@ -43,7 +45,9 @@ type Screen =
   | 'settings'
   | 'trees'
   | 'tree-editor'
-  | 'account';
+  | 'account'
+  | 'faqs'
+  | 'faq-editor';
 
 type View =
   | { screen: 'dashboard' }
@@ -56,7 +60,9 @@ type View =
   | { screen: 'settings'; section?: string  }
   | { screen: 'trees' }
   | { screen: 'tree-editor'; treeId: string }
-  | { screen: 'account' };
+  | { screen: 'account' }
+  | { screen: 'faqs' }
+  | { screen: 'faq-editor'; faqId?: string };
 
 /** Maps URL pathname to a View. Returns null for unmapped paths. */
 function pathToView(pathname: string, fallbackFrom: Screen): View | null {
@@ -68,6 +74,11 @@ function pathToView(pathname: string, fallbackFrom: Screen): View | null {
   if (pathname === '/settings')                   return { screen: 'settings' };
   if (pathname === '/account')                    return { screen: 'account' };
   if (pathname === '/trees')                      return { screen: 'trees' };
+  if (pathname === '/faqs')                       return { screen: 'faqs' };
+  if (pathname === '/faqs/new')                   return { screen: 'faq-editor' };
+
+  const faqEditMatch = pathname.match(/^\/faqs\/([^/]+)\/edit$/);
+  if (faqEditMatch) return { screen: 'faq-editor', faqId: faqEditMatch[1] };
 
   const editMatch = pathname.match(/^\/articles\/([^/]+)\/edit$/);
   if (editMatch) return { screen: 'editor', articleId: editMatch[1], from: 'article' };
@@ -99,6 +110,8 @@ function viewToPath(view: View): string | null {
     case 'analytics':   return '/analytics';
     case 'settings':    return '/settings';
     case 'account':     return '/account';
+    case 'faqs':        return '/faqs';
+    case 'faq-editor':  return view.faqId ? `/faqs/${view.faqId}/edit` : '/faqs/new';
     default:            return null;
   }
 }
@@ -130,7 +143,8 @@ export function App() {
     const sameTarget =
       next.screen === view.screen &&
       (next as { articleId?: string }).articleId === (view as { articleId?: string }).articleId &&
-      (next as { treeId?: string }).treeId       === (view as { treeId?: string }).treeId;
+      (next as { treeId?: string }).treeId       === (view as { treeId?: string }).treeId &&
+      (next as { faqId?: string }).faqId         === (view as { faqId?: string }).faqId;
     if (sameTarget) return;
     setView(next);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -180,6 +194,7 @@ export function App() {
 
   const activeRoute = (
     view.screen === 'trees' || view.screen === 'tree-editor' ? 'knowledge' :
+    view.screen === 'faqs'  || view.screen === 'faq-editor'  ? 'faqs' :
     view.screen === 'account' ? 'settings' :
     view.screen === 'knowledge' || view.screen === 'article' ||
     view.screen === 'tree'      || view.screen === 'editor'
@@ -188,7 +203,7 @@ export function App() {
     : view.screen === 'analytics' ? 'analytics'
     : view.screen === 'settings'  ? 'settings'
     : 'dashboard'
-  ) as 'dashboard' | 'search' | 'knowledge' | 'team' | 'analytics' | 'settings';
+  ) as 'dashboard' | 'search' | 'knowledge' | 'faqs' | 'team' | 'analytics' | 'settings';
 
 // Mode superadmin — accessible via ?superadmin dans l'URL
 if (window.location.search.includes('superadmin')) {
@@ -237,9 +252,9 @@ if (!isLoggedIn) {
             if (route === 'team')      go({ screen: 'members'   });
             if (route === 'analytics') go({ screen: 'analytics' });
             if (route === 'settings')  go({ screen: 'settings'  });
-          if (route === 'trees')     go({ screen: 'trees'     });
-          if (route === 'account')   go({ screen: 'account'   });
-            if (route === 'account') go({ screen: 'account' });
+            if (route === 'trees')     go({ screen: 'trees'     });
+            if (route === 'faqs')      go({ screen: 'faqs'      });
+            if (route === 'account')   go({ screen: 'account'   });
           }}
           searchSlot={<SearchBar onSelect={handleSearchSelect} />}
         >
@@ -278,6 +293,19 @@ if (!isLoggedIn) {
             />
           )}
           {view.screen === 'members'  && <MembersPage />}
+          {view.screen === 'faqs' && (
+            <FaqsPage
+              onNewFaq={() => go({ screen: 'faq-editor' })}
+              onEditFaq={id => go({ screen: 'faq-editor', faqId: id })}
+            />
+          )}
+          {view.screen === 'faq-editor' && (
+            <FaqEditor
+              faqId={view.faqId}
+              onSaved={() => go({ screen: 'faqs' })}
+              onCancel={() => go({ screen: 'faqs' })}
+            />
+          )}
           {view.screen === 'analytics' && (
             <AnalyticsPage onOpenArticle={id => go({ screen: 'article', articleId: id, from: 'analytics' })} />
           )}
