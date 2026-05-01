@@ -16,6 +16,7 @@ export interface FaqListItem {
   last_reviewed_at:  string | null;
   updated_at:        string;
   tags:              string[];
+  is_stale:          boolean;
 }
 
 export interface FaqDetail extends FaqListItem {
@@ -28,6 +29,7 @@ export interface FaqListFilters {
   status?:     FaqStatus;
   categoryId?: string;
   q?:          string;
+  staleOnly?:  boolean;
   page?:       number;
   perPage?:    number;
 }

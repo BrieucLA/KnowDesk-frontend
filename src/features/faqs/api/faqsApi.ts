@@ -6,6 +6,7 @@ function buildQuery(filters: FaqListFilters): string {
   if (filters.status)            p.set('status',     filters.status);
   if (filters.categoryId)        p.set('categoryId', filters.categoryId);
   if (filters.q?.trim())         p.set('q',          filters.q.trim());
+  if (filters.staleOnly)         p.set('staleOnly',  '1');
   if (filters.page    !== undefined) p.set('page',    String(filters.page));
   if (filters.perPage !== undefined) p.set('perPage', String(filters.perPage));
   const qs = p.toString();
@@ -33,4 +34,7 @@ export const faqsApi = {
 
   vote: (id: string, vote: 'yes' | 'no') =>
     apiClient.post<{ helpful_yes: number; helpful_no: number }>(`/faqs/${id}/helpful`, { vote }),
+
+  markReviewed: (id: string) =>
+    apiClient.post<FaqDetail>(`/faqs/${id}/mark-reviewed`, {}),
 };

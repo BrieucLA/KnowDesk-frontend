@@ -57,6 +57,21 @@ export function useFaq(faqId?: string) {
     }
   }, [toast]);
 
+  const markReviewed = useCallback(async (id: string): Promise<boolean> => {
+    setSaving(true);
+    try {
+      const updated = await faqsApi.markReviewed(id);
+      setFaq(updated);
+      toast.success('FAQ marquée comme à jour.');
+      return true;
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'Action impossible.');
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  }, [toast]);
+
   const setTags = useCallback(async (id: string, tags: string[]): Promise<boolean> => {
     try {
       const result = await faqsApi.setTags(id, tags);
@@ -68,5 +83,5 @@ export function useFaq(faqId?: string) {
     }
   }, [toast]);
 
-  return { faq, loading, saving, create, update, setTags };
+  return { faq, loading, saving, create, update, setTags, markReviewed };
 }

@@ -1738,3 +1738,16 @@
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .faqs-to-create__meta { font-size: 12px; color: #78350F; }
+
+/* ── FAQ stale banner (dans l'éditeur, mode édition uniquement) ── */
+.faq-editor__stale-banner {
+  background: #FEF6E7; border: 1px solid #F5C842; border-left: 4px solid #F59E0B;
+  border-radius: var(--radius-md); padding: 14px 18px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+}
+.faq-editor__stale-banner strong {
+  font-size: 14px; color: #78350F; display: block; margin-bottom: 2px;
+}
+.faq-editor__stale-banner p {
+  font-size: 13px; color: #92400E; margin: 0; line-height: 1.4;
+}

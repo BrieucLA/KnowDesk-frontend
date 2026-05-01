@@ -39,7 +39,7 @@ const ANSWER_MAX   = 2000;
 const ANSWER_SOFT  = 500;
 
 export function FaqEditor({ faqId, initialQuestion, onSaved, onCancel }: FaqEditorProps) {
-  const { faq, loading, saving, create, update, setTags } = useFaq(faqId);
+  const { faq, loading, saving, create, update, setTags, markReviewed } = useFaq(faqId);
   const toast = useToast();
   const location = useLocation();
 
@@ -137,6 +137,23 @@ export function FaqEditor({ faqId, initialQuestion, onSaved, onCancel }: FaqEdit
       </div>
 
       <div className="faq-editor__body">
+        {faq?.is_stale && (
+          <div className="faq-editor__stale-banner" role="status">
+            <div>
+              <strong>📌 Cette FAQ n'a pas été révisée depuis plus de 6 mois.</strong>
+              <p>Vérifiez que la réponse est toujours d'actualité, puis relisez ou mettez à jour.</p>
+            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => markReviewed(faq.id)}
+              loading={saving}
+            >
+              C'est à jour
+            </Button>
+          </div>
+        )}
+
         {faq && (faq.views > 0 || (faq.helpful_yes + faq.helpful_no) > 0) && (
           <div className="faq-editor__stats">
             <span className="faq-editor__stat">
@@ -153,8 +170,10 @@ export function FaqEditor({ faqId, initialQuestion, onSaved, onCancel }: FaqEdit
               />
             </span>
             <span className="faq-editor__stat">
-              <span className="faq-editor__stat-label">Mise à jour</span>
-              <span className="faq-editor__stat-value">{formatRelative(faq.updated_at)}</span>
+              <span className="faq-editor__stat-label">Dernière révision</span>
+              <span className="faq-editor__stat-value">
+                {formatRelative(faq.last_reviewed_at ?? faq.updated_at)}
+              </span>
             </span>
           </div>
         )}

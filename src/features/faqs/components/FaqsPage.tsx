@@ -16,7 +16,7 @@ interface FaqsPageProps {
   onEditFaq: (id: string) => void;
 }
 
-type FilterTab = 'all' | FaqStatus;
+type FilterTab = 'all' | FaqStatus | 'stale';
 
 export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
   const role          = useAuthStore(selectUserRole);
@@ -26,9 +26,10 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
   const [confirmDelete, setConfirmDelete] = useState<FaqListItem | null>(null);
 
   const filterPayload = useMemo(() => ({
-    status: tab === 'all' ? undefined : tab,
-    q:      search.trim() || undefined,
-    perPage: 50,
+    status:    tab === 'stale' || tab === 'all' ? undefined : tab,
+    staleOnly: tab === 'stale' ? true : undefined,
+    q:         search.trim() || undefined,
+    perPage:   50,
   }), [tab, search]);
 
   const { items, loading, setFilters, remove } = useFaqs(filterPayload);
@@ -40,6 +41,7 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
     all:       items.length,
     published: items.filter(f => f.status === 'published').length,
     draft:     items.filter(f => f.status === 'draft').length,
+    stale:     items.filter(f => f.is_stale).length,
   }), [items]);
 
   return (
@@ -79,6 +81,7 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
               { id: 'all',       label: 'Toutes',     count: counts.all },
               { id: 'published', label: 'Publiées',   count: counts.published },
               { id: 'draft',     label: 'Brouillons', count: counts.draft },
+              { id: 'stale',     label: 'À réviser',  count: counts.stale },
             ] as const).map(t => (
               <button
                 key={t.id}
@@ -132,6 +135,11 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
                     <StatusBadge status={faq.status === 'published' ? 'published' : 'draft'} />
                     {faq.visibility === 'public' && (
                       <span className="badge badge--info" title="Visible publiquement">Public</span>
+                    )}
+                    {faq.is_stale && (
+                      <span className="badge badge--warning" title="Dernière révision il y a plus de 6 mois">
+                        À réviser
+                      </span>
                     )}
                     {faq.category_name && (
                       <span className="faq-row__category">{faq.category_name}</span>
