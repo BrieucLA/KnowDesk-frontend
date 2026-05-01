@@ -18,13 +18,12 @@ export function ApiKeysSection() {
   const handleCreate = useCallback(async () => {
     if (!name.trim()) return;
     setCreating(true);
-    try {
-      await createKey(name.trim());
+    const ok = await createKey(name.trim());
+    if (ok) {
       setName('');
       setShowCreate(false);
-    } catch { /* silencieux */ } finally {
-      setCreating(false);
     }
+    setCreating(false);
   }, [name, createKey]);
 
   const handleCopy = useCallback(() => {

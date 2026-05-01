@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { apiClient } from '../../../shared/lib/apiClient';
+import { apiClient, ApiError } from '../../../shared/lib/apiClient';
 import { useToast }  from '../../../shared/lib/useToast';
 
 export interface ApiKey {
@@ -22,24 +22,38 @@ export function useApiKeys() {
     try {
       const data = await apiClient.get<ApiKey[]>('/api-keys');
       setKeys(data);
-    } catch { /* silencieux */ } finally {
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'Impossible de charger les clés API.');
+    } finally {
       setLoading(false);
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => { load(); }, [load]);
 
-  const createKey = useCallback(async (name: string) => {
-    const data = await apiClient.post<ApiKey & { key: string }>('/api-keys', { name });
-    setKeys(prev => [data, ...prev]);
-    setNewKey(data.key);
-    toast.success('Clé API créée.');
+  const createKey = useCallback(async (name: string): Promise<boolean> => {
+    try {
+      const data = await apiClient.post<ApiKey & { key: string }>('/api-keys', { name });
+      setKeys(prev => [data, ...prev]);
+      setNewKey(data.key);
+      toast.success('Clé API créée.');
+      return true;
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'Création impossible.');
+      return false;
+    }
   }, [toast]);
 
-  const revokeKey = useCallback(async (id: string) => {
-    await apiClient.delete(`/api-keys/${id}`);
-    setKeys(prev => prev.filter(k => k.id !== id));
-    toast.success('Clé révoquée.');
+  const revokeKey = useCallback(async (id: string): Promise<boolean> => {
+    try {
+      await apiClient.delete(`/api-keys/${id}`);
+      setKeys(prev => prev.filter(k => k.id !== id));
+      toast.success('Clé révoquée.');
+      return true;
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'Révocation impossible.');
+      return false;
+    }
   }, [toast]);
 
   return { keys, loading, newKey, setNewKey, createKey, revokeKey };

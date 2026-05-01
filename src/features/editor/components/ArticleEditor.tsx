@@ -5,7 +5,7 @@ import { useAutoSave }    from '../hooks/useAutoSave';
 import { Input }          from '../../../shared/components/ui/Input';
 import { Button }         from '../../../shared/components/ui/Button';
 import { useToast } from '../../../shared/lib/useToast';
-import { apiClient }      from '../../../shared/lib/apiClient';
+import { apiClient, ApiError } from '../../../shared/lib/apiClient';
 import type { EditorFormState, EditorErrors } from '../types';
 import { useArticleVersions } from '../hooks/useArticleVersions';
 import { VersionsPanel }      from './VersionsPanel';
@@ -65,18 +65,19 @@ export function ArticleEditor({ articleId, onSaved, onCancel }: ArticleEditorPro
     });
     setCurrentArticleId(article.id);
     return article.id;
-  } catch {
+  } catch (err) {
+    toast.error(err instanceof ApiError ? err.message : 'Impossible de créer l\'article.');
     return null;
   }
-}, [currentArticleId, form]);
+}, [currentArticleId, form, toast]);
   const versions = articleId ? useArticleVersions(articleId) : null;
 
   // Charger les catégories
   useEffect(() => {
     apiClient.get<Category[]>('/categories')
       .then(setCategories)
-      .catch(console.error);
-  }, []);
+      .catch(err => toast.error(err instanceof ApiError ? err.message : 'Impossible de charger les catégories.'));
+  }, [toast]);
 
   // Charger l'article existant en mode édition
   useEffect(() => {
@@ -93,8 +94,8 @@ export function ArticleEditor({ articleId, onSaved, onCancel }: ArticleEditorPro
           tags,
         });
       })
-      .catch(console.error);
-  }, [articleId]);
+      .catch(err => toast.error(err instanceof ApiError ? err.message : 'Impossible de charger l\'article.'));
+  }, [articleId, toast]);
 
   /** Persiste les tags si — et seulement si — ils ont changé depuis le dernier save. */
   const syncTagsIfChanged = useCallback(async (id: string, tags: string[]): Promise<void> => {
@@ -105,9 +106,9 @@ export function ArticleEditor({ articleId, onSaved, onCancel }: ArticleEditorPro
       const res = await tagsApi.setForArticle(id, tags);
       lastSavedTagsRef.current = res.tags;
     } catch (err) {
-      console.warn('PUT /tags failed:', err);
+      toast.error(err instanceof ApiError ? err.message : 'Sauvegarde des tags impossible.');
     }
-  }, []);
+  }, [toast]);
 
   // Autosave — uniquement en mode édition
   const { saveStatus, lastSavedAt, saveNow } = useAutoSave({
@@ -166,7 +167,7 @@ export function ArticleEditor({ articleId, onSaved, onCancel }: ArticleEditorPro
         toast.success("Brouillon sauvegardé."); onSaved(article.id);
       }
     } catch (err) {
-      setErrors({ general: err instanceof Error ? err.message : 'Erreur lors de la sauvegarde.' } as any);
+      toast.error(err instanceof ApiError ? err.message : 'Sauvegarde du brouillon impossible.');
     } finally {
       setIsSavingDraft(false);
     }
@@ -204,11 +205,11 @@ if (!isEdit) {
       await apiClient.put(`/articles/${id}/publish`, { summary: 'Publication' });
       toast.success("Article publié avec succès !"); onSaved(id!);
     } catch (err) {
-      setErrors({ general: err instanceof Error ? err.message : 'Erreur lors de la publication.' } as any);
+      toast.error(err instanceof ApiError ? err.message : 'Publication impossible.');
     } finally {
       setIsPublishing(false);
     }
-  }, [form, isEdit, articleId, onSaved]);
+  }, [form, isEdit, articleId, onSaved, syncTagsIfChanged, toast]);
 
   const flatCats = flattenCategories(categories);
 

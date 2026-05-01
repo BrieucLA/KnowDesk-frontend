@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useId } from 'react';
-import { apiClient }    from '../../../shared/lib/apiClient';
+import { apiClient, ApiError } from '../../../shared/lib/apiClient';
+import { useToast }     from '../../../shared/lib/useToast';
 import { Button }       from '../../../shared/components/ui/Button';
 import { Input }        from '../../../shared/components/ui/Input';
 import {
@@ -151,12 +152,13 @@ function SectionNotifications() {
   const [prefs,  setPrefs]  = useState<NotifPreferences>(MOCK_NOTIF_PREFS);
   const [saving, setSaving] = useState(false);
   const [saved,  setSaved]  = useState(false);
+  const toast = useToast();
 
   // Charger les préférences réelles
   useEffect(() => {
     apiClient.get<NotifPreferences>('/notifications/preferences')
       .then(setPrefs)
-      .catch(() => {/* utilise les defaults */});
+      .catch(() => {/* utilise les defaults — pas critique */});
   }, []);
 
   const toggle = useCallback((key: keyof NotifPreferences) => {
@@ -171,11 +173,11 @@ function SectionNotifications() {
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
-      console.error('Notif prefs error:', err);
+      toast.error(err instanceof ApiError ? err.message : 'Sauvegarde des préférences impossible.');
     } finally {
       setSaving(false);
     }
-  }, [prefs]);
+  }, [prefs, toast]);
 
   return (
     <section className="settings-section" aria-labelledby="notif-title">

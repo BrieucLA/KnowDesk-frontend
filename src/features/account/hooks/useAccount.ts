@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { apiClient } from '../../../shared/lib/apiClient';
+import { apiClient, ApiError } from '../../../shared/lib/apiClient';
 import { useToast }  from '../../../shared/lib/useToast';
 import type { AccountProfile } from '../types';
 
@@ -11,9 +11,9 @@ export function useAccount() {
   useEffect(() => {
     apiClient.get<AccountProfile>('/account')
       .then(setProfile)
-      .catch(err => console.warn('[useAccount] load failed:', (err as Error)?.message ?? err))
+      .catch(err => toast.error(err instanceof ApiError ? err.message : 'Impossible de charger votre profil.'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [toast]);
 
   const updateProfile = useCallback(async (data: {
     firstName?: string; lastName?: string;

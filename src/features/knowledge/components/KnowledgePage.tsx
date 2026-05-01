@@ -7,7 +7,8 @@ import { Modal }            from '../../../shared/components/ui/Modal';
 import { Button }           from '../../../shared/components/ui/Button';
 import { Input }            from '../../../shared/components/ui/Input';
 import { knowledgeApi } from '../api/knowledgeApi';
-import { apiClient }    from '../../../shared/lib/apiClient';
+import { apiClient, ApiError } from '../../../shared/lib/apiClient';
+import { useToast }     from '../../../shared/lib/useToast';
 import { tagsApi, type OrgTag } from '../../articles/api/tagsApi';
 
 import { useAuthStore, selectUserRole } from '../../../store/authStore';
@@ -28,6 +29,7 @@ interface KnowledgePageProps {
 export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: KnowledgePageProps) {
   const role    = useAuthStore(selectUserRole);
   const isAdmin = role === 'admin' || role === 'manager';
+  const toast   = useToast();
 
   const [categories,     setCategories]     = useState<Category[]>([]);
   const [articles,       setArticles]       = useState<ArticleListItem[]>([]);
@@ -79,8 +81,11 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
         })));
         setLoadingArticles(false);
       })
-      .catch(() => setLoadingArticles(false));
-  }, [selectedCatId, activeTags]);
+      .catch(err => {
+        toast.error(err instanceof ApiError ? err.message : 'Impossible de charger les articles.');
+        setLoadingArticles(false);
+      });
+  }, [selectedCatId, activeTags, toast]);
 
   const toggleTag = useCallback((tag: string) => {
     setActiveTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
@@ -104,17 +109,17 @@ const handleCreateCategory = useCallback(async () => {
     await apiClient.post('/categories', { name: newCatName.trim() });
     setNewCatName('');
     setShowNewCategory(false);
-    // Recharger les catégories
+    toast.success('Catégorie créée.');
     knowledgeApi.getCategories().then(cats => {
       setCategories(cats);
       if (cats.length > 0 && !selectedCatId) setSelectedCatId(cats[0].id);
     });
   } catch (err) {
-    console.error('Erreur création catégorie:', err);
+    toast.error(err instanceof ApiError ? err.message : 'Création de la catégorie impossible.');
   } finally {
     setNewCatLoading(false);
   }
-}, [newCatName, selectedCatId]);
+}, [newCatName, selectedCatId, toast]);
 
 
   return (
