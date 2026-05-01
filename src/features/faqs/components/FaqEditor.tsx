@@ -4,6 +4,8 @@ import { Button }       from '../../../shared/components/ui/Button';
 import { Input }        from '../../../shared/components/ui/Input';
 import { Skeleton }     from '../../../shared/components/ui/Skeleton';
 import { TagsInput }    from '../../articles/components/TagsInput';
+import { FaqHelpfulButtons } from './FaqHelpfulButtons';
+import { formatRelative }    from '../../../shared/lib/formatDate';
 import { apiClient, ApiError } from '../../../shared/lib/apiClient';
 import { useToast }     from '../../../shared/lib/useToast';
 import { cn }           from '../../../shared/lib/cn';
@@ -125,6 +127,28 @@ export function FaqEditor({ faqId, initialQuestion, onSaved, onCancel }: FaqEdit
       </div>
 
       <div className="faq-editor__body">
+        {faq && (faq.views > 0 || (faq.helpful_yes + faq.helpful_no) > 0) && (
+          <div className="faq-editor__stats">
+            <span className="faq-editor__stat">
+              <span className="faq-editor__stat-label">Vues</span>
+              <span className="faq-editor__stat-value">{faq.views}</span>
+            </span>
+            <span className="faq-editor__stat">
+              <span className="faq-editor__stat-label">Score helpful</span>
+              <FaqHelpfulButtons
+                faqId={faq.id}
+                helpfulYes={faq.helpful_yes}
+                helpfulNo={faq.helpful_no}
+                readOnly
+              />
+            </span>
+            <span className="faq-editor__stat">
+              <span className="faq-editor__stat-label">Mise à jour</span>
+              <span className="faq-editor__stat-value">{formatRelative(faq.updated_at)}</span>
+            </span>
+          </div>
+        )}
+
         <Input
           id="faq-question"
           label="Question"

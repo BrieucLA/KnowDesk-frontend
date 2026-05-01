@@ -1,6 +1,7 @@
 import React from 'react';
-import { Button }            from '../../../shared/components/ui/Button';
-import { sanitizeHighlight } from '../../../shared/lib/sanitize';
+import { Button }              from '../../../shared/components/ui/Button';
+import { sanitizeHighlight }   from '../../../shared/lib/sanitize';
+import { FaqHelpfulButtons }   from '../../faqs/components/FaqHelpfulButtons';
 import type { SearchResult } from '../types';
 
 interface FaqResultExpansionProps {
@@ -15,6 +16,10 @@ interface FaqResultExpansionProps {
  * cherche une réponse à coller dans son chat / email. On affiche donc
  * la réponse complète in-line + un bouton de copie en 1 clic, plutôt
  * que naviguer vers une page dédiée.
+ *
+ * Note : les compteurs helpful sont initialisés à 0 ici parce que le
+ * payload SearchResult ne les transporte pas (gain de bande passante).
+ * Le composant FaqHelpfulButtons sync les vrais compteurs après le 1er vote.
  */
 export function FaqResultExpansion({ result, onCopy }: FaqResultExpansionProps) {
   return (
@@ -26,6 +31,13 @@ export function FaqResultExpansion({ result, onCopy }: FaqResultExpansionProps) 
         />
       </div>
       <div className="faq-result-expansion__actions">
+        <FaqHelpfulButtons
+          faqId={result.id}
+          helpfulYes={0}
+          helpfulNo={0}
+          size="compact"
+        />
+        <div className="faq-result-expansion__actions-spacer" />
         <Button
           variant="primary"
           size="sm"

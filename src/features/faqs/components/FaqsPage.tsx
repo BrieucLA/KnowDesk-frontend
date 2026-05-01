@@ -6,6 +6,7 @@ import { Skeleton }       from '../../../shared/components/ui/Skeleton';
 import { EmptyState }     from '../../../shared/components/ui/EmptyState';
 import { StatusBadge }    from '../../../shared/components/ui/StatusBadge';
 import { ConfirmDialog }  from '../../../shared/components/ui/ConfirmDialog';
+import { FaqHelpfulButtons } from './FaqHelpfulButtons';
 import { formatRelative } from '../../../shared/lib/formatDate';
 import { useAuthStore, selectUserRole } from '../../../store/authStore';
 import type { FaqListItem, FaqStatus } from '../types';
@@ -139,6 +140,17 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
                   <h3 className="faq-row__question">{faq.question}</h3>
                   <div className="faq-row__meta">
                     <span>{faq.views} vue{faq.views === 1 ? '' : 's'}</span>
+                    {(faq.helpful_yes + faq.helpful_no) > 0 && (
+                      <>
+                        <span>·</span>
+                        <FaqHelpfulButtons
+                          faqId={faq.id}
+                          helpfulYes={faq.helpful_yes}
+                          helpfulNo={faq.helpful_no}
+                          readOnly
+                        />
+                      </>
+                    )}
                     <span>·</span>
                     <span>Mise à jour {formatRelative(faq.updated_at)}</span>
                     {faq.tags.length > 0 && (
