@@ -6,7 +6,7 @@ import { formatRelative }  from '../../../shared/lib/formatDate';
 export function SuperadminApp() {
   const {
     session, orgs, loading, error, loginErr,
-    login, logout, disableOrg, enableOrg,
+    login, logout, disableOrg, enableOrg, impersonate,
   } = useSuperadmin();
 
   const [email,    setEmail]    = useState('');
@@ -132,18 +132,26 @@ export function SuperadminApp() {
                         }
                       </td>
                       <td>
-                        {org.disabled_at ? (
-                          <Button variant="ghost" size="sm"
-                            onClick={() => setConfirm({ orgId: org.id, action: 'enable' })}>
-                            Réactiver
-                          </Button>
-                        ) : (
-                          <Button variant="ghost" size="sm"
-                            onClick={() => setConfirm({ orgId: org.id, action: 'disable' })}>
-                            Désactiver
-                          </Button>
-                        )}
-                      </td>
+  <div style={{ display: 'flex', gap: 4 }}>
+    {org.disabled_at ? (
+      <Button variant="ghost" size="sm"
+        onClick={() => setConfirm({ orgId: org.id, action: 'enable' })}>
+        Réactiver
+      </Button>
+    ) : (
+      <>
+        <Button variant="ghost" size="sm"
+          onClick={() => setConfirm({ orgId: org.id, action: 'disable' })}>
+          Désactiver
+        </Button>
+        <Button variant="primary" size="sm"
+          onClick={() => impersonate(org.id, org.name)}>
+          Accéder
+        </Button>
+      </>
+    )}
+  </div>
+</td>
                     </tr>
                   ))}
                 </tbody>
@@ -162,6 +170,7 @@ export function SuperadminApp() {
                 {confirm.action === 'disable' ? 'Désactiver l\'espace' : 'Réactiver l\'espace'}
               </h2>
               <button type="button" className="modal__close" onClick={() => setConfirm(null)}>×</button>
+              <Button variant="ghost" size="sm" onClick={() => impersonate(org.id, org.name)}>Accéder</Button>
             </div>
             <div className="modal__body">
               <p style={{ marginBottom: 20, color: 'var(--neutral-600)', fontSize: 14 }}>

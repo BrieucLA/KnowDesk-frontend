@@ -6,9 +6,11 @@ interface AuthState {
   session:        AuthSession | null;
   isLoaded:       boolean;
   onboardingDone: boolean;
+  impersonating:  { orgName: string; saToken: string } | null;
   setSession:        (session: AuthSession) => void;
   clearSession:      () => void;
   setOnboardingDone: () => void;
+  setImpersonating:  (data: { orgName: string; saToken: string } | null) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -17,19 +19,18 @@ export const useAuthStore = create<AuthState>()(
       session:        null,
       isLoaded:       false,
       onboardingDone: false,
+      impersonating:  null,
 
       setSession: (session) => set({
         session,
         isLoaded:       true,
-        // Lire le flag depuis la session si disponible
         onboardingDone: session.user.onboardingDone ?? get().onboardingDone,
       }),
 
-      clearSession: () => set({ session: null, isLoaded: true, onboardingDone: false }),
+      clearSession: () => set({ session: null, isLoaded: true, onboardingDone: false, impersonating: null }),
 
       setOnboardingDone: () => {
         set({ onboardingDone: true });
-        // Persister côté serveur
         const token = get().session?.accessToken;
         if (token) {
           const base = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api/v1';
@@ -42,6 +43,8 @@ export const useAuthStore = create<AuthState>()(
           }).catch(() => {});
         }
       },
+
+      setImpersonating: (data) => set({ impersonating: data }),
     }),
     {
       name:    'knowdesk-auth',

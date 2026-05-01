@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { SuperadminSession, OrgRow } from '../types';
+import { useAuthStore } from '../../../store/authStore';
 
 const SA_TOKEN_KEY = 'sa_token';
 
@@ -23,11 +24,17 @@ async function saFetch<T>(path: string, token: string, options?: RequestInit): P
 }
 
 export function useSuperadmin() {
-  const [session,  setSession]  = useState<SuperadminSession | null>(null);
+  const [session,  setSession]  = useState<SuperadminSession | null>(() => {
+    const token = getSavedToken();
+    return token ? { accessToken: token, superadmin: { id: '', email: '', firstName: null, lastName: null } } : null;
+  });
   const [orgs,     setOrgs]     = useState<OrgRow[]>([]);
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState('');
   const [loginErr, setLoginErr] = useState('');
+
+  const setImpersonating = useAuthStore(s => s.setImpersonating);
+  const setSessionStore  = useAuthStore(s => s.setSession);
 
   const login = useCallback(async (email: string, password: string) => {
     setLoginErr('');
@@ -82,6 +89,27 @@ export function useSuperadmin() {
     setOrgs(prev => prev.map(o => o.id === orgId ? { ...o, disabled_at: null } : o));
   }, [session]);
 
+  const impersonate = useCallback(async (orgId: string, orgName: string) => {
+    if (!session) return;
+    try {
+      const data = await saFetch<{
+        accessToken: string;
+        org:  { id: string; name: string };
+        user: { id: string; email: string; role: string };
+      }>(`/impersonate/${orgId}`, session.accessToken, { method: 'POST' });
+
+      setImpersonating({ orgName, saToken: session.accessToken });
+      setSessionStore({
+        accessToken:  data.accessToken,
+        user:         { id: data.user.id, email: data.user.email, role: 'admin', onboardingDone: true },
+        organization: { id: data.org.id, name: data.org.name },
+      });
+      window.location.href = '/';
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur.');
+    }
+  }, [session, setImpersonating, setSessionStore]);
+
   // Recharge les orgs quand la session est établie
   useEffect(() => {
     if (session?.accessToken) loadOrgs(session.accessToken);
@@ -89,6 +117,6 @@ export function useSuperadmin() {
 
   return {
     session, orgs, loading, error, loginErr,
-    login, logout, loadOrgs, disableOrg, enableOrg,
+    login, logout, loadOrgs, disableOrg, enableOrg, impersonate,
   };
 }

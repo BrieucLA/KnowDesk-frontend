@@ -18,6 +18,7 @@ import { MembersPage }      from './features/members/components/MembersPage';
 import { SettingsPage }     from './features/settings/components/SettingsPage';
 import { SearchBar }        from './features/search/components/SearchBar';
 import { AppLayout }        from './shared/components/layout/AppLayout';
+import { ImpersonateBanner } from './shared/components/ui/ImpersonateBanner';
 import { NetworkErrorBanner } from './shared/components/ui/NetworkErrorBanner';
 import { ToastContainer }   from './shared/components/ui/ToastContainer';
 import { ProtectedRoute }   from './router/ProtectedRoute';
@@ -54,12 +55,13 @@ type View =
   | { screen: 'account' };
 
 export function App() {
+
+
   const isLoggedIn        = useAuthStore(selectIsLoggedIn);
   const setSession        = useAuthStore(s => s.setSession);
   const role              = useAuthStore(selectUserRole);
   const onboardingDone    = useAuthStore(s => s.onboardingDone);
   const setOnboardingDone = useAuthStore(s => s.setOnboardingDone);
-
   const [view, setView] = useState<View>({ screen: 'dashboard' });
   const [helpOpen, setHelpOpen] = useState(false);
   
@@ -130,11 +132,20 @@ if (isAcceptInvitation && invitationToken) {
   );
 }
 
-  if (!isLoggedIn) return <LoginPage onLoginSuccess={setSession} />;
+
+if (!isLoggedIn) {
+  return (
+    <>
+      <ImpersonateBanner />
+      <LoginPage onLoginSuccess={setSession} />
+    </>
+  );
+}
   if (needsOnboarding) return <OnboardingPage onComplete={setOnboardingDone} />;
 
   return (
     <>
+      <ImpersonateBanner />
       <ProtectedRoute>
         <AppLayout
           onHelp={() => setHelpOpen(true)}
@@ -212,6 +223,7 @@ if (isAcceptInvitation && invitationToken) {
     currentScreen={view.screen}
   />
 )}
+
       <NetworkErrorBanner />
       <ToastContainer />
     </>
