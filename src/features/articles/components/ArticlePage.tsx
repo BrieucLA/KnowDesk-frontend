@@ -121,6 +121,13 @@ if (state.status === 'error') {
             Mis à jour {formatRelative(article.updatedAt)}
           </time>
         </p>
+        {article.tags && article.tags.length > 0 && (
+          <div className="article-page__tags" aria-label="Tags de l'article">
+            {article.tags.map(tag => (
+              <span key={tag} className="chip chip--readonly">{tag}</span>
+            ))}
+          </div>
+        )}
         {isOlderThan(article.updatedAt, 90) && (
           <div className="article-page__stale-warning" role="note">
             Cet article n'a pas été vérifié depuis plus de 90 jours.

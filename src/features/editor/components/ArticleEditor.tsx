@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useId } from 'react';
+import React, { useState, useCallback, useEffect, useId, useRef } from 'react';
 import { RichTextEditor } from './RichTextEditor';
 import { SaveIndicator }  from './SaveIndicator';
 import { useAutoSave }    from '../hooks/useAutoSave';
@@ -9,6 +9,8 @@ import { apiClient }      from '../../../shared/lib/apiClient';
 import type { EditorFormState, EditorErrors } from '../types';
 import { useArticleVersions } from '../hooks/useArticleVersions';
 import { VersionsPanel }      from './VersionsPanel';
+import { TagsInput } from '../../articles/components/TagsInput';
+import { tagsApi }   from '../../articles/api/tagsApi';
 
 interface ArticleEditorProps {
   articleId?: string;
@@ -43,8 +45,11 @@ export function ArticleEditor({ articleId, onSaved, onCancel }: ArticleEditorPro
   const titleId = useId();
 
   const [form, setForm] = useState<EditorFormState>({
-    title: '', categoryId: '', content: '', status: 'draft',
+    title: '', categoryId: '', content: '', status: 'draft', tags: [],
   });
+  // Snapshot des tags présents en DB après le dernier save réussi.
+  // Sert à n'envoyer PUT /tags que si la liste a vraiment changé.
+  const lastSavedTagsRef = useRef<string[]>([]);
   const [categories,   setCategories]   = useState<Category[]>([]);
   const [errors,       setErrors]       = useState<EditorErrors>({});
   const [isPublishing, setIsPublishing] = useState(false);
@@ -78,15 +83,31 @@ export function ArticleEditor({ articleId, onSaved, onCancel }: ArticleEditorPro
     if (!articleId) return;
     apiClient.get<any>(`/articles/${articleId}`)
       .then(article => {
+        const tags = Array.isArray(article.tags) ? article.tags : [];
+        lastSavedTagsRef.current = tags;
         setForm({
           title:      article.title ?? '',
           categoryId: article.category_id ?? '',
           content:    typeof article.content === 'string' ? article.content : (article.content?.html ?? article.content?.text ?? ''),
           status:     article.status,
+          tags,
         });
       })
       .catch(console.error);
   }, [articleId]);
+
+  /** Persiste les tags si — et seulement si — ils ont changé depuis le dernier save. */
+  const syncTagsIfChanged = useCallback(async (id: string, tags: string[]): Promise<void> => {
+    const sortedNext = [...tags].map(t => t.trim()).filter(Boolean).sort();
+    const sortedPrev = [...lastSavedTagsRef.current].sort();
+    if (sortedNext.length === sortedPrev.length && sortedNext.every((t, i) => t === sortedPrev[i])) return;
+    try {
+      const res = await tagsApi.setForArticle(id, tags);
+      lastSavedTagsRef.current = res.tags;
+    } catch (err) {
+      console.warn('PUT /tags failed:', err);
+    }
+  }, []);
 
   // Autosave — uniquement en mode édition
   const { saveStatus, lastSavedAt, saveNow } = useAutoSave({
@@ -99,6 +120,7 @@ export function ArticleEditor({ articleId, onSaved, onCancel }: ArticleEditorPro
         content:    { html: data.content },
         categoryId: data.categoryId || undefined,
       });
+      await syncTagsIfChanged(articleId, data.tags);
     },
   });
 
@@ -132,6 +154,7 @@ export function ArticleEditor({ articleId, onSaved, onCancel }: ArticleEditorPro
           content:    { html: form.content },
           categoryId: form.categoryId || undefined,
         });
+        await syncTagsIfChanged(articleId!, form.tags);
         toast.success("Brouillon sauvegardé."); onSaved(articleId!);
       } else {
         const article = await apiClient.post<any>('/articles', {
@@ -139,6 +162,7 @@ export function ArticleEditor({ articleId, onSaved, onCancel }: ArticleEditorPro
           content:    { html: form.content },
           categoryId: form.categoryId || undefined,
         });
+        await syncTagsIfChanged(article.id, form.tags);
         toast.success("Brouillon sauvegardé."); onSaved(article.id);
       }
     } catch (err) {
@@ -146,7 +170,7 @@ export function ArticleEditor({ articleId, onSaved, onCancel }: ArticleEditorPro
     } finally {
       setIsSavingDraft(false);
     }
-  }, [form, isEdit, articleId, onSaved]);
+  }, [form, isEdit, articleId, onSaved, syncTagsIfChanged, toast]);
 
   const handlePublish = useCallback(async () => {
     const errs = validateForm(form);
@@ -164,6 +188,7 @@ if (!isEdit) {
     categoryId: form.categoryId || undefined,
     status:     'published',
   });
+  await syncTagsIfChanged(article.id, form.tags);
   toast.success('Article publié avec succès !');
   onSaved(article.id);
   return;
@@ -173,6 +198,7 @@ if (!isEdit) {
           content:    { html: form.content },
           categoryId: form.categoryId || undefined,
         });
+        await syncTagsIfChanged(articleId!, form.tags);
       }
 
       await apiClient.put(`/articles/${id}/publish`, { summary: 'Publication' });
@@ -236,6 +262,14 @@ if (!isEdit) {
               ))}
             </select>
             {errors.categoryId && <p className="field-error">{errors.categoryId}</p>}
+          </div>
+          <div className="field">
+            <label className="field-label">Tags</label>
+            <TagsInput
+              value={form.tags}
+              onChange={tags => updateField('tags', tags)}
+            />
+            <p className="field-hint">10 tags max. Entrée ou virgule pour valider chaque tag.</p>
           </div>
         </div>
 

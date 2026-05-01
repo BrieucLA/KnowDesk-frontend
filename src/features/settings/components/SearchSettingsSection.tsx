@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
-import { Button }   from '../../../shared/components/ui/Button';
-import { Skeleton } from '../../../shared/components/ui/Skeleton';
+import { Button }     from '../../../shared/components/ui/Button';
+import { Skeleton }   from '../../../shared/components/ui/Skeleton';
+import { ChipsInput } from '../../../shared/components/ui/ChipsInput';
 import { useSynonyms } from '../hooks/useSynonyms';
 import type { Synonym } from '../types';
 
@@ -190,53 +191,3 @@ function CreateSynonymModal({
   );
 }
 
-// ── ChipsInput — édition multi-valeurs ─────────────────────────
-
-function ChipsInput({
-  value, onChange, placeholder,
-}: {
-  value:        string[];
-  onChange:     (next: string[]) => void;
-  placeholder?: string;
-}) {
-  const [draft, setDraft] = useState('');
-
-  const commit = () => {
-    const t = draft.trim();
-    if (!t) return;
-    if (!value.includes(t)) onChange([...value, t]);
-    setDraft('');
-  };
-
-  return (
-    <div className="chips-input">
-      {value.map(chip => (
-        <span key={chip} className="chip">
-          {chip}
-          <button
-            type="button"
-            className="chip__remove"
-            onClick={() => onChange(value.filter(v => v !== chip))}
-            aria-label={`Retirer ${chip}`}
-          >×</button>
-        </span>
-      ))}
-      <input
-        type="text"
-        className="chips-input__field"
-        value={draft}
-        placeholder={value.length === 0 ? placeholder : ''}
-        onChange={e => setDraft(e.target.value)}
-        onKeyDown={e => {
-          if (e.key === 'Enter' || e.key === ',') {
-            e.preventDefault();
-            commit();
-          } else if (e.key === 'Backspace' && draft === '' && value.length > 0) {
-            onChange(value.slice(0, -1));
-          }
-        }}
-        onBlur={commit}
-      />
-    </div>
-  );
-}

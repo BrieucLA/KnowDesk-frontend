@@ -20,6 +20,7 @@ export interface Article {
   updatedAt:   string;
   createdAt:   string;
   faqs:        ArticleFaq[];
+  tags?:       string[];     // display_names ; absent si l'API n'a pas hydraté
 }
 
 export interface ArticleFaq {
@@ -38,4 +39,5 @@ export interface ArticleListItem {
   version:      number;
   authorName:   string;
   updatedAt:    string;
+  tags?:        string[];
 }

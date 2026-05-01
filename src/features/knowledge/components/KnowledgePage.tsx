@@ -5,6 +5,7 @@ import { StatusBadge }      from '../../../shared/components/ui/StatusBadge';
 import { Skeleton }         from '../../../shared/components/ui/Skeleton';
 import { knowledgeApi } from '../api/knowledgeApi';
 import { apiClient }    from '../../../shared/lib/apiClient';
+import { tagsApi, type OrgTag } from '../../articles/api/tagsApi';
 
 import { useAuthStore, selectUserRole } from '../../../store/authStore';
 import { formatRelative }   from '../../../shared/lib/formatDate';
@@ -34,6 +35,13 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
   const [newCatName,       setNewCatName]       = useState('');
   const [newCatLoading,    setNewCatLoading]    = useState(false);
   const [filter,           setFilter]         = useState<'all' | 'published' | 'draft'>('all');
+  const [orgTags,        setOrgTags]        = useState<OrgTag[]>([]);
+  const [activeTags,     setActiveTags]     = useState<string[]>([]);
+
+  // Charger les tags de l'org pour les chips de filtre
+  useEffect(() => {
+    tagsApi.list().then(setOrgTags).catch(() => setOrgTags([]));
+  }, []);
 
   // Load categories on mount
   useEffect(() => {
@@ -46,13 +54,14 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
       });
   }, []);
 
-  // Load articles when category changes
+  // Load articles when category or tag filter changes
   useEffect(() => {
     setLoadingArticles(true);
-    const path = selectedCatId
-      ? `/articles?categoryId=${selectedCatId}&perPage=50`
-      : '/articles?perPage=50';
-    apiClient.get<any[]>(path)
+    const params = new URLSearchParams();
+    params.set('perPage', '50');
+    if (selectedCatId)        params.set('categoryId', selectedCatId);
+    if (activeTags.length > 0) params.set('tags', activeTags.join(','));
+    apiClient.get<any[]>(`/articles?${params.toString()}`)
       .then(data => {
         setArticles(data.map((a: any) => ({
           id:           a.id,
@@ -63,11 +72,16 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
           version:      a.version,
           authorName:   a.author_email ?? '',
           updatedAt:    a.updated_at,
+          tags:         Array.isArray(a.tags) ? a.tags : [],
         })));
         setLoadingArticles(false);
       })
       .catch(() => setLoadingArticles(false));
-  }, [selectedCatId]);
+  }, [selectedCatId, activeTags]);
+
+  const toggleTag = useCallback((tag: string) => {
+    setActiveTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
+  }, []);
 
   const handleCategorySelect = useCallback((cat: Category) => {
     setSelectedCatId(cat.id);
@@ -142,7 +156,7 @@ const handleCreateCategory = useCallback(async () => {
         )}
 
         {/* Filter tabs */}
-        {!loadingArticles && articles.length > 0 && (
+        {!loadingArticles && (
           <div className="knowledge-page__filters" role="tablist" aria-label="Filtrer les articles">
             {(['all', 'published', 'draft'] as const).map(f => (
               <button
@@ -155,6 +169,36 @@ const handleCreateCategory = useCallback(async () => {
                 {f === 'all' ? 'Tous' : f === 'published' ? 'Publiés' : 'Brouillons'}
               </button>
             ))}
+          </div>
+        )}
+
+        {/* Tag filter chips */}
+        {orgTags.length > 0 && (
+          <div className="knowledge-page__tag-filter" aria-label="Filtrer par tag">
+            {orgTags.map(t => {
+              const active = activeTags.includes(t.display_name);
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => toggleTag(t.display_name)}
+                  className={`chip chip--toggle ${active ? 'chip--toggle-on' : ''}`}
+                  aria-pressed={active}
+                >
+                  {t.display_name}
+                  <span className="chip__count" aria-hidden="true">{t.articles_count}</span>
+                </button>
+              );
+            })}
+            {activeTags.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setActiveTags([])}
+                className="knowledge-page__tag-filter-clear"
+              >
+                Effacer
+              </button>
+            )}
           </div>
         )}
 

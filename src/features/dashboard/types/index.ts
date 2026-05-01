@@ -15,6 +15,7 @@ export interface RecentArticle {
   updatedAt: string; // ISO string
   version:   number;
   authorName: string;
+  tags?:     string[];
 }
 
 export interface ActivityItem {

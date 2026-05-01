@@ -23,6 +23,13 @@ export function ArticleRow({ article, onClick }: ArticleRowProps) {
         <span className="article-row__meta">
           {article.category} · v{article.version} · {article.authorName}
         </span>
+        {article.tags && article.tags.length > 0 && (
+          <div className="article-row__tags">
+            {article.tags.map(tag => (
+              <span key={tag} className="chip chip--readonly">{tag}</span>
+            ))}
+          </div>
+        )}
       </div>
       <div className="article-row__right">
         <StatusBadge status={article.status} />
