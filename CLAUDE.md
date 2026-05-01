@@ -228,17 +228,17 @@ Conséquence : **le navigateur voit toutes les requêtes comme same-origin**, ce
 ### Refacto à venir
 - **Retirer le fallback Bearer** dans `auth.middleware` une fois que tous les clients utilisent les cookies (~1 sprint après stabilisation de la Phase 1). Retirer aussi `accessToken` du retour JSON de `auth.controller` et du type `AuthSession` côté frontend.
 - **React Router v6** côté frontend : sortir du routing par `useState<View>` dans `App.tsx`, autoriser le deep-linking (`/articles/:id`, etc.).
+- **Refacto-B frontend** : composant `<Modal>` partagé (5+ modales dupliquées), hook `useApi` générique (~7 hooks de fetch redupliqués), CSS par feature au lieu de `sprintN.css`, adapter de réponse typé.
 - **Custom domain** (`app.knowdesk.fr` + `api.knowdesk.fr`) : remplacer le proxy Vercel par des sous-domaines de la même TLD+1, pour éviter le hop supplémentaire et avoir des cookies natifs sans rewrite.
-- **Tests** : zéro test aujourd'hui ; vitest installé. Cibler les chemins critiques (auth, multi-tenancy, invitations, tags fusion).
+- **Tests frontend** : zéro test côté frontend ; vitest installé. Cibler ArticleEditor (sauvegarde + tags), TagsInput (autocomplete), AnalyticsPage, ProtectedRoute. Côté backend, **31 tests passants** (auth + multi-tenancy + permissions) couvrent les chemins critiques.
 
 ### Import de documents (plan rédigé)
 - MVP : import PDF/DOCX → article
 - V2 : import PPTX, import en lot
 
 ### Infrastructure
-- Rate limiting Redis en production
 - Sentry DSN configuré
-- Tests automatisés
+- Tests automatisés frontend
 - CI/CD GitHub Actions
 
 ## Cloudflare R2
