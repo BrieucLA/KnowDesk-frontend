@@ -11,7 +11,7 @@ export function useAccount() {
   useEffect(() => {
     apiClient.get<AccountProfile>('/account')
       .then(setProfile)
-      .catch(() => {})
+      .catch(err => console.warn('[useAccount] load failed:', (err as Error)?.message ?? err))
       .finally(() => setLoading(false));
   }, []);
 

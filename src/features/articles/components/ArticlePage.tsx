@@ -8,6 +8,7 @@ import { useArticle }           from '../hooks/useArticle';
 import { apiClient }           from '../../../shared/lib/apiClient';
 import { useToast }            from '../../../shared/lib/useToast';
 import { trackEvent }           from '../../../shared/lib/trackEvent';
+import { sanitizeArticleHtml }  from '../../../shared/lib/sanitize';
 import { useAuthStore, selectUserRole } from '../../../store/authStore';
 import { formatRelative }       from '../../../shared/lib/formatDate';
 
@@ -144,7 +145,7 @@ if (state.status === 'error') {
       {/* Article body */}
 <div
   className="article-page__body article-content"
-  dangerouslySetInnerHTML={{ __html: article.content }}
+  dangerouslySetInnerHTML={{ __html: sanitizeArticleHtml(article.content) }}
   onClick={e => {
     const target = (e.target as HTMLElement).closest('a');
     if (!target) return;

@@ -40,7 +40,7 @@ export const useAuthStore = create<AuthState>()(
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${token}`,
             },
-          }).catch(() => {});
+          }).catch(err => console.warn('[authStore] onboarding-done failed:', err?.message ?? err));
         }
       },
 

@@ -36,7 +36,10 @@ export function LinkModal({ onInsert, onClose, selectedText }: LinkModalProps) {
         });
         const data = await res.json();
         setResults((data.data ?? []).slice(0, 8));
-      } catch { setResults([]); }
+      } catch (err) {
+        console.warn('[LinkModal] internal article search failed:', (err as Error)?.message ?? err);
+        setResults([]);
+      }
       setSearching(false);
     }, 300);
     return () => clearTimeout(t);

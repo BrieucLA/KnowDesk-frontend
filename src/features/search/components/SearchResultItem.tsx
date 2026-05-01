@@ -1,6 +1,7 @@
 import React from 'react';
 import { cn }             from '../../../shared/lib/cn';
 import { formatRelative } from '../../../shared/lib/formatDate';
+import { sanitizeHighlight } from '../../../shared/lib/sanitize';
 import type { SearchResult } from '../types';
 
 const TYPE_CONFIG = {
@@ -30,15 +31,16 @@ export function SearchResultItem({ result, isActive, onClick, id }: SearchResult
       onMouseEnter={e => (e.currentTarget as HTMLElement).closest('ul')?.setAttribute('data-mouse', 'true')}
     >
       <div className="search-result__main">
-        {/* title and excerpt may contain <mark> tags from Meilisearch highlighting —
-            safe : Meilisearch HTML-escapes user content before inserting the highlight tags. */}
+        {/* title/excerpt contain <mark> tags from Meilisearch highlighting.
+            Meilisearch already HTML-escapes user content before inserting them,
+            but we sanitize here as a defense-in-depth — only <mark> survives. */}
         <span
           className="search-result__title"
-          dangerouslySetInnerHTML={{ __html: result.title }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHighlight(result.title) }}
         />
         <p
           className="search-result__excerpt"
-          dangerouslySetInnerHTML={{ __html: result.excerpt }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHighlight(result.excerpt) }}
         />
       </div>
       <div className="search-result__meta">
