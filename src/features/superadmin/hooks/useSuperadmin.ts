@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { SuperadminSession, OrgRow } from '../types';
+import type { OrgPlan } from '../../../shared/types';
 import { useAuthStore } from '../../../store/authStore';
 
 const SA_TOKEN_KEY = 'sa_token';
@@ -98,17 +99,26 @@ export function useSuperadmin() {
         user: { id: string; email: string; role: string };
       }>(`/impersonate/${orgId}`, session.accessToken, { method: 'POST' });
 
+      // Le backend ne renvoie que { id, name } sur impersonate ; on complète slug/plan
+      // depuis la liste superadmin déjà chargée pour respecter le type Organization.
+      const known = orgs.find(o => o.id === data.org.id);
+
       setImpersonating({ orgName, saToken: session.accessToken });
       setSessionStore({
         accessToken:  data.accessToken,
         user:         { id: data.user.id, email: data.user.email, role: 'admin', onboardingDone: true },
-        organization: { id: data.org.id, name: data.org.name },
+        organization: {
+          id:   data.org.id,
+          name: data.org.name,
+          slug: known?.slug ?? '',
+          plan: (known?.plan as OrgPlan | undefined) ?? 'free',
+        },
       });
       window.location.href = '/';
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur.');
     }
-  }, [session, setImpersonating, setSessionStore]);
+  }, [session, orgs, setImpersonating, setSessionStore]);
 
   // Recharge les orgs quand la session est établie
   useEffect(() => {

@@ -170,7 +170,6 @@ export function SuperadminApp() {
                 {confirm.action === 'disable' ? 'Désactiver l\'espace' : 'Réactiver l\'espace'}
               </h2>
               <button type="button" className="modal__close" onClick={() => setConfirm(null)}>×</button>
-              <Button variant="ghost" size="sm" onClick={() => impersonate(org.id, org.name)}>Accéder</Button>
             </div>
             <div className="modal__body">
               <p style={{ marginBottom: 20, color: 'var(--neutral-600)', fontSize: 14 }}>
