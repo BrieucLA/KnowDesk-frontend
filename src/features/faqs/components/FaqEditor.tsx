@@ -6,6 +6,7 @@ import { Input }        from '../../../shared/components/ui/Input';
 import { Skeleton }     from '../../../shared/components/ui/Skeleton';
 import { TagsInput }    from '../../articles/components/TagsInput';
 import { FaqHelpfulButtons } from './FaqHelpfulButtons';
+import { FaqHistoryPanel }   from './FaqHistoryPanel';
 import { formatRelative }    from '../../../shared/lib/formatDate';
 import { apiClient, ApiError } from '../../../shared/lib/apiClient';
 import { useToast }     from '../../../shared/lib/useToast';
@@ -231,6 +232,8 @@ export function FaqEditor({ faqId, initialQuestion, onSaved, onCancel }: FaqEdit
           <TagsInput value={tags} onChange={setLocalTags} max={10} />
           <p className="field-helper">Tapez Entrée ou virgule après chaque tag (max 10).</p>
         </div>
+
+        {faqId && <FaqHistoryPanel faqId={faqId} />}
 
         <div className="field">
           <label className="field-label">Visibilité</label>

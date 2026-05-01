@@ -43,3 +43,25 @@ export interface FaqInput {
   linkedArticleId?: string | null;
   tags?:            string[];
 }
+
+export interface FaqHistoryActor {
+  id:        string;
+  email:     string | null;
+  firstName: string | null;
+  lastName:  string | null;
+}
+
+export interface FaqHistoryEntry {
+  id:        string;
+  action:    'faq.updated' | 'faq.deleted';
+  createdAt: string;
+  actor:     FaqHistoryActor | null;
+}
+
+export interface FaqHistory {
+  creation: {
+    createdAt: string;
+    actorId:   string | null;
+  };
+  entries: FaqHistoryEntry[];
+}

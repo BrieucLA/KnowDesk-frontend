@@ -1,5 +1,5 @@
 import { apiClient } from '../../../shared/lib/apiClient';
-import type { FaqDetail, FaqListItem, FaqListFilters, FaqInput } from '../types';
+import type { FaqDetail, FaqListItem, FaqListFilters, FaqInput, FaqHistory } from '../types';
 
 function buildQuery(filters: FaqListFilters): string {
   const p = new URLSearchParams();
@@ -37,4 +37,7 @@ export const faqsApi = {
 
   markReviewed: (id: string) =>
     apiClient.post<FaqDetail>(`/faqs/${id}/mark-reviewed`, {}),
+
+  getHistory: (id: string) =>
+    apiClient.get<FaqHistory>(`/faqs/${id}/history`),
 };
