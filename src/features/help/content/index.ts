@@ -13,6 +13,47 @@ export interface HelpSection {
 
 export const HELP_CONTENT: HelpSection[] = [
   {
+    id:    'whats-new',
+    title: 'Nouveautés',
+    icon:  '✨',
+    articles: [
+      {
+        id:    'release-notes',
+        title: 'Quoi de neuf récemment ?',
+        content: `
+## Quoi de neuf récemment ?
+
+Cette page récapitule les fonctionnalités livrées sur les dernières semaines. Elle se met à jour à chaque release.
+
+### Mai 2026
+
+**📊 Analytics**
+Une nouvelle page **Analytics** est disponible pour les admins et managers. Elle réunit en un coup d'œil :
+- Inventaire (publiés, brouillons, tags, processus)
+- Activité de l'équipe (DAU / 7 jours / 30 jours)
+- Articles à mettre à jour, brouillons orphelins, articles sans tag
+- Top contributeurs, couverture par catégorie
+- Articles les plus / les moins consultés
+- Top recherches et **recherches sans résultat** (gold mine éditoriale)
+
+→ Voir la section **📊 Analytics**.
+
+**🏷️ Tags libres sur les articles**
+Tu peux désormais ajouter jusqu'à **10 tags** sur un article depuis l'éditeur, avec auto-complétion sur les tags déjà utilisés. Le filtre tag est intégré à la liste des articles, et les admins disposent d'une page **Paramètres → Tags** pour renommer ou supprimer en masse.
+
+→ Voir **📄 Articles → Ajouter des tags** et **⚙️ Paramètres → Gérer les tags**.
+
+**🔍 Recherche intelligente**
+La barre de recherche (raccourci \`Cmd+K\`) tolère désormais les fautes de frappe : *rembousement* retrouve *remboursement*, *livrazon* retrouve *Livraisons*. Les admins peuvent définir des **synonymes propres à leur organisation** dans **Paramètres → Recherche**.
+
+→ Voir la section **🔍 Recherche**.
+
+> 💡 **Astuce** : Pour ne rater aucune nouveauté, garde un œil sur cette section après chaque mise à jour de KnowDesk.
+        `.trim(),
+      },
+    ],
+  },
+  {
     id:    'getting-started',
     title: 'Premiers pas',
     icon:  '🚀',
@@ -468,6 +509,275 @@ Un processus en **Brouillon** n'est pas visible par les conseillers. Pour le ren
 Une fois publié, le processus apparaît dans l'onglet **Processus** de la Base de connaissance — et il devient cherchable depuis la barre de recherche globale (Cmd+K).
 
 > 💡 **Astuce** : Utilise l'aperçu conseiller pour tester tous les chemins possibles avant de publier.
+        `.trim(),
+      },
+    ],
+  },
+  {
+    id:    'advisors',
+    title: 'Conseillers',
+    icon:  '🎧',
+    articles: [
+      {
+        id:    'find-info',
+        title: 'Trouver une info pendant un appel',
+        content: `
+## Trouver une info pendant un appel
+
+Quand tu es en ligne avec un client, chaque seconde compte. KnowDesk est conçu pour t'apporter la bonne réponse en quelques touches.
+
+**Le réflexe : Cmd+K**
+Depuis n'importe quelle page, appuie sur \`Cmd+K\` (Mac) ou \`Ctrl+K\` (Windows / Linux). La barre de recherche s'ouvre directement, prête à recevoir ta requête.
+
+**Ne te casse pas la tête sur l'orthographe**
+La recherche est **tolérante aux fautes** : *rembousement*, *livrazon*, *anulation* — tout ça fonctionne. Tape ce qui te vient à l'esprit.
+
+**Tape court**
+Souvent un seul mot suffit (*remboursement*, *retour*, *colis*). Plus tu tapes long, plus tu réduis tes chances de tomber sur le bon article.
+
+**Navigue au clavier**
+- \`↑\` \`↓\` parcours les résultats
+- \`Entrée\` ouvre le résultat sélectionné
+- \`Échap\` ferme la barre
+
+**Articles vs Processus guidés**
+Chaque résultat est étiqueté **Article** ou **Processus**. Si la situation est complexe (un cas client qui dépend de plusieurs critères), privilégie un **Processus guidé** — il te conduit étape par étape vers la bonne réponse.
+
+> 💡 **Astuce** : Si tu cherches souvent un terme qui ne donne rien, signale-le à ton manager. Il a un radar dédié dans Analytics et peut faire créer l'article manquant.
+        `.trim(),
+      },
+      {
+        id:    'follow-tree',
+        title: 'Suivre un processus guidé efficacement',
+        content: `
+## Suivre un processus guidé efficacement
+
+Un **processus guidé** est un arbre de questions et réponses qui te conduit à la marche à suivre adaptée au cas du client.
+
+**Ouvrir un processus**
+- Depuis la barre de recherche (\`Cmd+K\`) — un badge **Processus** distingue les arbres des articles
+- Depuis la **Base de connaissance** → onglet **Processus guidés**
+
+**Pendant l'appel**
+1. Lis la question affichée
+2. Demande au client l'information correspondante (ex. *« L'achat date de moins de 30 jours ? »*)
+3. Clique sur la réponse correspondante
+4. Continue jusqu'à atteindre une **conclusion** — c'est ta marche à suivre
+
+**Bon à savoir**
+- Tu peux **revenir en arrière** à tout moment si tu t'es trompé de branche
+- Certains nœuds renvoient vers un **article** complémentaire — un clic suffit pour l'ouvrir dans un autre onglet
+- Si une étape n'est pas claire, signale-le (voir l'article *Signaler une info incorrecte*)
+
+> 💡 **Astuce** : En appel, garde le processus ouvert dans un onglet séparé pour ne pas perdre le fil de ta conversation client.
+        `.trim(),
+      },
+      {
+        id:    'report-issue',
+        title: 'Signaler une info incorrecte',
+        content: `
+## Signaler une info incorrecte
+
+Si tu remarques une erreur dans un article — une procédure obsolète, une information fausse, un lien cassé — tu peux le faire remonter à tes managers.
+
+**Comment signaler**
+1. Ouvre l'article concerné
+2. Tout en bas de l'article, clique sur **Signaler une information incorrecte**
+3. Précise ce qui te semble incorrect
+
+Le signalement est envoyé aux admins et managers de ton organisation. Ils pourront vérifier et mettre à jour l'article.
+
+**Pourquoi c'est important**
+Tu es **en première ligne** : tu détectes les contenus dépassés bien avant les managers. Chaque signalement améliore la base pour toute l'équipe.
+
+> 💡 **Astuce** : Tu peux signaler aussi les processus guidés. Si une branche t'a mené à une mauvaise réponse, dis-le — c'est précieux pour ajuster l'arbre.
+        `.trim(),
+      },
+      {
+        id:    'advisor-notifications',
+        title: 'Gérer ses notifications',
+        content: `
+## Gérer ses notifications
+
+Tu reçois une notification quand un événement t'intéresse — par exemple, un article que tu utilises souvent vient d'être mis à jour.
+
+**Consulter le panneau notifications**
+Clique sur l'icône **🔔** en bas du menu de gauche. Le compteur rouge t'indique le nombre de notifications non lues.
+
+**Marquer comme lues**
+- Clique sur une notification individuelle pour la marquer comme lue
+- Clique sur **Tout marquer comme lu** en haut du panneau pour tout vider d'un coup
+
+**Personnaliser**
+Va dans **Paramètres → Notifications** pour activer ou désactiver chaque type :
+- **Article publié** : un nouvel article a été mis en ligne
+- **Nouveau membre** : quelqu'un vient de rejoindre l'équipe
+
+> 💡 **Astuce** : Si tu reçois trop de notifications, désactive **Nouveau membre** et garde uniquement **Article publié** — c'est ce qui impacte le plus ton quotidien.
+        `.trim(),
+      },
+    ],
+  },
+  {
+    id:    'use-cases',
+    title: 'Cas d\'usage',
+    icon:  '💼',
+    articles: [
+      {
+        id:    'seasonal-campaign',
+        title: 'Préparer une campagne saisonnière',
+        content: `
+## Préparer une campagne saisonnière (Black Friday, Soldes, fêtes…)
+
+Les opérations saisonnières apportent leur lot de questions clients spécifiques. Voici comment les gérer en quelques heures.
+
+**Étape 1 — Crée un tag dédié**
+Dans l'éditeur de chaque article concerné par l'opération, ajoute un tag clair : *Black Friday 2026*, *Soldes hiver*, *Noël 2026*.
+
+**Étape 2 — Identifie les contenus à adapter**
+Regarde tes articles de référence (politique de remboursement, délais de livraison, conditions d'éligibilité…) et clone ceux qui changent le temps de l'opération.
+
+**Étape 3 — Crée un processus guidé "FAQ campagne"**
+Un arbre dédié à l'opération : qualification du cas → réponse adaptée. Bien plus rapide que de taper la question à chaque appel pour le conseiller.
+
+**Étape 4 — Communique à l'équipe**
+Publie un article de synthèse avec le tag de la campagne et les liens internes vers les processus et articles utiles. Les conseillers reçoivent une notification dans leur panneau **🔔**.
+
+**Étape 5 — Pendant l'opération, surveille Analytics**
+Utilise la carte **Top recherches** pour repérer les sujets émergents et la carte **Recherches sans résultat** pour combler les manques en cours d'opération.
+
+**Étape 6 — Après l'opération**
+Une fois la campagne terminée :
+- Va dans **Paramètres → Tags**
+- Supprime le tag de la campagne — les articles ne sont pas supprimés, ils perdent simplement le tag
+
+> 💡 **Astuce** : Garde une catégorie *Saisonniers / Archives* pour ranger les articles spécifiques à une opération passée si tu veux les retrouver plus tard.
+        `.trim(),
+      },
+      {
+        id:    'measure-impact',
+        title: 'Mesurer l\'impact d\'un nouveau contenu',
+        content: `
+## Mesurer l'impact d'un nouveau contenu
+
+Tu viens de publier un article ou un processus guidé important — comment savoir s'il sert ?
+
+**Avant de publier**
+Note la situation de référence dans **Analytics** :
+- Combien de **recherches sans résultat** sur le sujet ?
+- Le sujet apparaît-il dans le **Top recherches** ?
+
+**Publie + tag dédié**
+Crée le contenu, et taggue-le avec un tag explicite (ex. *V1 procédure facturation*). Cela te permettra de retrouver tes articles "expérience" plus tard.
+
+**Une semaine après**
+Va dans **Analytics → Articles les plus consultés**. Si ton article apparaît dans le top, il rencontre son public.
+
+**Trois semaines après**
+- L'article est-il toujours dans le top consulté ? → réussi, garde-le tel quel
+- L'article est-il dans **Articles peu consultés** (≤1 vue) ? → soit le sujet n'intéresse personne, soit le titre n'est pas découvrable. Vérifie avec **Top recherches** si les conseillers cherchent le sujet sans le trouver
+- Les **recherches sans résultat** sur le sujet ont-elles diminué ? → oui, ton article est bien indexé et trouvé
+
+**Si l'article ne trouve pas son public**
+- Renomme-le avec des mots plus proches du vocabulaire des conseillers
+- Ajoute des **synonymes** (Paramètres → Recherche) pour relier le titre à des termes alternatifs
+- Place-le dans une catégorie plus visible
+
+> 💡 **Astuce** : Garde une routine d'analyse mensuelle dans Analytics. Cinq minutes par mois suffisent à orienter la maintenance éditoriale.
+        `.trim(),
+      },
+      {
+        id:    'find-gaps',
+        title: 'Identifier les sujets manquants',
+        content: `
+## Identifier les sujets manquants
+
+La meilleure base de connaissance est celle qui répond aux **vraies** questions des conseillers — pas celle que les managers imaginent.
+
+**La carte qui change tout : Recherches sans résultat**
+Va dans **Analytics → Recherches sans résultat**. Cette liste contient les requêtes que tes conseillers ont tapées et qui n'ont rien retourné. Chaque ligne est une **opportunité éditoriale**.
+
+**Comment exploiter la liste**
+1. Trie mentalement les requêtes par fréquence (les plus fréquentes en haut)
+2. Pour chaque ligne, demande-toi :
+   - **C'est un sujet métier qu'on devrait couvrir ?** → crée un article
+   - **C'est un sujet déjà couvert sous un autre nom ?** → ajoute un **synonyme** (Paramètres → Recherche) pour relier les deux termes
+   - **C'est une faute de frappe ou un terme rare ?** → ignore
+
+**Combine avec Top recherches**
+Si une requête apparaît à la fois dans **Top recherches** ET ramène peu de résultats pertinents, c'est un signal fort : l'équipe cherche, mais ne trouve pas vraiment ce qu'elle veut. Crée du contenu plus précis.
+
+**Routine mensuelle**
+Réserve 30 minutes par mois pour parcourir ces deux cartes et créer ou ajuster les articles correspondants. C'est probablement le meilleur ROI éditorial que tu puisses faire.
+
+> 💡 **Astuce** : Les recherches sans résultat sont conservées **30 jours** dans Analytics et **90 jours** dans la base brute. Plus tu agis vite, plus tu captes les tendances émergentes.
+        `.trim(),
+      },
+      {
+        id:    'delegate-maintenance',
+        title: 'Déléguer la maintenance à un manager',
+        content: `
+## Déléguer la maintenance à un manager
+
+Si tu es admin, tu n'es pas obligé(e) de tout faire seul(e). Le rôle **Manager** est conçu pour partager la charge de maintenance.
+
+**Ce qu'un manager peut faire**
+- Créer, publier, modifier, archiver des articles et processus guidés
+- Inviter et désactiver des conseillers
+- Consulter Analytics
+
+**Ce qu'un manager ne peut PAS faire (réservé admin)**
+- Gérer les **synonymes** (Paramètres → Recherche)
+- Gérer les **tags** au niveau organisation (rename, suppression — Paramètres → Tags)
+- Gérer la facturation
+- Désactiver l'organisation
+
+**Promouvoir quelqu'un manager**
+1. Va dans **Équipe**
+2. Trouve le membre dans la liste
+3. Change son rôle pour **Manager**
+
+**Bonne pratique de répartition**
+- Les **conseillers** repèrent les contenus à corriger (via *Signaler une information incorrecte*)
+- Les **managers** créent et maintiennent au quotidien — ils ouvrent **Analytics** chaque semaine
+- L'**admin** garde le contrôle du vocabulaire (synonymes, tags) et de la stratégie
+
+> 💡 **Astuce** : Définis avec ton manager un rendez-vous hebdomadaire de 15 min sur la page Analytics. Une routine simple maintient la base à jour sans effort héroïque.
+        `.trim(),
+      },
+      {
+        id:    'build-vocabulary',
+        title: 'Construire un dictionnaire métier',
+        content: `
+## Construire un dictionnaire métier (synonymes)
+
+Chaque organisation a son **vocabulaire**. Ton équipe parle peut-être de *clôture* alors que tes clients disent *résiliation*. KnowDesk te laisse cartographier ces équivalences pour que la recherche fonctionne dans les deux sens.
+
+**Cas typiques où un synonyme est utile**
+- **Vocabulaire client vs interne** : *avoir* (client) ↔ *bon de remboursement* (interne)
+- **Acronymes** : *SAV* ↔ *Service après-vente*
+- **Synonymes courants** : *annulation* ↔ *résiliation* ↔ *clôture*
+- **Noms de produits** : nom officiel ↔ surnom interne
+- **Anglicismes** : *refund* ↔ *remboursement*
+
+**Comment t'y prendre**
+1. Pendant une semaine, garde un œil sur **Analytics → Recherches sans résultat**
+2. Note les requêtes qui ressemblent à des termes déjà couverts dans la base mais avec un mot différent
+3. Va dans **Paramètres → Recherche → Ajouter un synonyme**
+4. Saisis le **terme** principal (le mot officiel ou interne) et les **synonymes** (les mots alternatifs entendus)
+
+**Exemple concret**
+
+| Terme principal | Synonymes |
+|---|---|
+| annulation | résiliation, clôture |
+| SAV | service après-vente, support technique |
+| remboursement | refund, avoir |
+
+**Bidirectionnel automatique**
+Tu n'as pas besoin de saisir chaque sens. Si tu déclares *annulation* ↔ *résiliation*, une recherche sur l'un retrouve les contenus de l'autre.
+
+> 💡 **Astuce** : Le dictionnaire se construit mieux par **petites touches au fil de l'eau** que par une grande session "tout d'un coup". Ajoute un synonyme dès que tu repères une vraie équivalence métier.
         `.trim(),
       },
     ],
