@@ -2,8 +2,16 @@ export type SettingsSection =
   | 'general'
   | 'notifications'
   | 'api'
+  | 'search'
   | 'billing'
   | 'danger';
+
+export interface Synonym {
+  id:         string;
+  term:       string;
+  synonyms:   string[];
+  updated_at: string;
+}
 
 export interface OrgSettings {
   name:      string;

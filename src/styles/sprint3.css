@@ -380,12 +380,16 @@
   border-radius: 50%; animation: spin .7s linear infinite;
 }
 .search-bar__error {
-  margin-top: 6px; padding: 10px 14px;
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+  padding: 10px 14px; z-index: 50;
   background: var(--color-danger-bg); border: 1px solid var(--color-danger-border);
   border-radius: var(--radius-md); font-size: 13px; color: var(--color-danger);
 }
 .search-bar__empty {
-  margin-top: 6px; padding: 20px 14px; text-align: center;
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+  padding: 20px 14px; text-align: center; z-index: 50;
+  background: var(--neutral-0); border: 1.5px solid var(--neutral-200);
+  border-radius: var(--radius-lg); box-shadow: 0 8px 24px rgba(0,0,0,.08);
 }
 .search-bar__empty p { font-size: 14px; color: var(--neutral-700); }
 .search-bar__empty-hint { font-size: 12px; color: var(--neutral-400); margin-top: 4px; }

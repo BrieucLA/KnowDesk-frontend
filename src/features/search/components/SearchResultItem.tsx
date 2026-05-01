@@ -30,10 +30,12 @@ export function SearchResultItem({ result, isActive, onClick, id }: SearchResult
       onMouseEnter={e => (e.currentTarget as HTMLElement).closest('ul')?.setAttribute('data-mouse', 'true')}
     >
       <div className="search-result__main">
-        <span className="search-result__title">
-          {result.title}
-        </span>
-        {/* excerpt may contain <mark> tags — safe, server-controlled */}
+        {/* title and excerpt may contain <mark> tags from Meilisearch highlighting —
+            safe : Meilisearch HTML-escapes user content before inserting the highlight tags. */}
+        <span
+          className="search-result__title"
+          dangerouslySetInnerHTML={{ __html: result.title }}
+        />
         <p
           className="search-result__excerpt"
           dangerouslySetInnerHTML={{ __html: result.excerpt }}

@@ -8,6 +8,7 @@ import {
 } from '../api/settings.mock';
 import { useAuthStore }    from '../../../store/authStore';
 import { ApiKeysSection } from './ApiKeysSection';
+import { SearchSettingsSection } from './SearchSettingsSection';
 import type { SettingsSection, NotifPreferences } from '../types';
 
 interface SettingsPageProps {
@@ -16,6 +17,8 @@ interface SettingsPageProps {
 
 export function SettingsPage({ initialSection = 'general' }: SettingsPageProps) {
   const [activeSection, setActiveSection] = useState<SettingsSection>(initialSection);
+  const role = useAuthStore(s => s.session?.user.role ?? null);
+  const visibleSections = SECTIONS.filter(s => !s.adminOnly || role === 'admin');
 
   return (
     <div className="settings-page">
@@ -23,7 +26,7 @@ export function SettingsPage({ initialSection = 'general' }: SettingsPageProps) 
         <h1 className="settings-page__title">Paramètres</h1>
         <nav aria-label="Sections des paramètres">
           <ul className="settings-nav" role="list">
-            {SECTIONS.map(s => (
+            {visibleSections.map(s => (
               <li key={s.id}>
                 <button
                   type="button"
@@ -43,6 +46,7 @@ export function SettingsPage({ initialSection = 'general' }: SettingsPageProps) 
         {activeSection === 'general'       && <SectionGeneral />}
         {activeSection === 'notifications' && <SectionNotifications />}
         {activeSection === 'api' && <ApiKeysSection />}
+        {activeSection === 'search'        && <SearchSettingsSection />}
         {activeSection === 'billing'       && <SectionBilling />}
         {activeSection === 'danger'        && <SectionDanger />}
       </div>
@@ -50,10 +54,11 @@ export function SettingsPage({ initialSection = 'general' }: SettingsPageProps) 
   );
 }
 
-const SECTIONS = [
+const SECTIONS: { id: SettingsSection; label: string; adminOnly?: boolean }[] = [
   { id: 'general',       label: 'Général'        },
   { id: 'notifications', label: 'Notifications'  },
-  { id: 'api', label: 'API' },
+  { id: 'api',           label: 'API'            },
+  { id: 'search',        label: 'Recherche', adminOnly: true },
   { id: 'billing',       label: 'Facturation'    },
   { id: 'danger',        label: 'Zone de danger' },
 ];
