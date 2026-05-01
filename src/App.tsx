@@ -16,6 +16,7 @@ import { ApiDocsApp }     from './features/apidocs/components/ApiDocsApp';
 import { NotFoundPage } from './shared/components/ui/NotFoundPage';
 import { MembersPage }      from './features/members/components/MembersPage';
 import { SettingsPage }     from './features/settings/components/SettingsPage';
+import { AnalyticsPage }    from './features/analytics/components/AnalyticsPage';
 import { SearchBar }        from './features/search/components/SearchBar';
 import { AppLayout }        from './shared/components/layout/AppLayout';
 import { ImpersonateBanner } from './shared/components/ui/ImpersonateBanner';
@@ -37,6 +38,7 @@ type Screen =
   | 'tree'
   | 'editor'
   | 'members'
+  | 'analytics'
   | 'settings'
   | 'trees'
   | 'tree-editor'
@@ -49,6 +51,7 @@ type View =
   | { screen: 'tree';     treeId: string;    from: Screen }
   | { screen: 'editor';   articleId?: string; from: Screen }
   | { screen: 'members'  }
+  | { screen: 'analytics' }
   | { screen: 'settings'; section?: string  }
   | { screen: 'trees' }
   | { screen: 'tree-editor'; treeId: string }
@@ -104,10 +107,11 @@ export function App() {
     view.screen === 'knowledge' || view.screen === 'article' ||
     view.screen === 'tree'      || view.screen === 'editor'
       ? 'knowledge'
-    : view.screen === 'members'  ? 'team'
-    : view.screen === 'settings' ? 'settings'
+    : view.screen === 'members'   ? 'team'
+    : view.screen === 'analytics' ? 'analytics'
+    : view.screen === 'settings'  ? 'settings'
     : 'dashboard'
-  ) as 'dashboard' | 'search' | 'knowledge' | 'team' | 'settings';
+  ) as 'dashboard' | 'search' | 'knowledge' | 'team' | 'analytics' | 'settings';
 
 // Mode superadmin — accessible via ?superadmin dans l'URL
 if (window.location.search.includes('superadmin')) {
@@ -154,6 +158,7 @@ if (!isLoggedIn) {
             if (route === 'dashboard') go({ screen: 'dashboard' });
             if (route === 'knowledge') go({ screen: 'knowledge' });
             if (route === 'team')      go({ screen: 'members'   });
+            if (route === 'analytics') go({ screen: 'analytics' });
             if (route === 'settings')  go({ screen: 'settings'  });
           if (route === 'trees')     go({ screen: 'trees'     });
           if (route === 'account')   go({ screen: 'account'   });
@@ -196,6 +201,9 @@ if (!isLoggedIn) {
             />
           )}
           {view.screen === 'members'  && <MembersPage />}
+          {view.screen === 'analytics' && (
+            <AnalyticsPage onOpenArticle={id => go({ screen: 'article', articleId: id, from: 'analytics' })} />
+          )}
           {view.screen === 'settings' && <SettingsPage />}
           {view.screen === 'trees' && (
   <TreesPage
@@ -212,7 +220,7 @@ if (!isLoggedIn) {
   />
 )}
 {view.screen === 'account' && <AccountPage />}
-{!(['dashboard','knowledge','article','tree','editor','members','settings','trees','tree-editor','account'] as string[]).includes(view.screen) && (
+{!(['dashboard','knowledge','article','tree','editor','members','analytics','settings','trees','tree-editor','account'] as string[]).includes(view.screen) && (
   <NotFoundPage onBack={() => go({ screen: 'dashboard' })} />
 )}
         </AppLayout>

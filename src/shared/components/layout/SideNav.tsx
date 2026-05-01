@@ -4,7 +4,7 @@ import { useAuthStore, selectUserRole } from '../../../store/authStore';
 import { useNotifications } from '../../../features/notifications/hooks/useNotifications';
 import { NotificationPanel } from '../../../features/notifications/components/NotificationPanel';
 
-export type NavRoute = 'dashboard' | 'search' | 'knowledge' | 'trees' | 'team' | 'settings' | 'account';
+export type NavRoute = 'dashboard' | 'search' | 'knowledge' | 'trees' | 'team' | 'analytics' | 'settings' | 'account';
 
 interface NavItem {
   id:        NavRoute;
@@ -21,10 +21,11 @@ interface SideNavProps {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: 'dashboard', label: 'Accueil',   href: '/',          icon: <HomeIcon /> },
-  { id: 'knowledge', label: 'Base',      href: '/knowledge', icon: <BookIcon /> },
-  { id: 'trees',     label: 'Processus', href: '/trees',     icon: <TreeIcon /> },
-  { id: 'team',      label: 'Équipe',    href: '/team',      icon: <TeamIcon />, adminOnly: true },
+  { id: 'dashboard', label: 'Accueil',   href: '/',           icon: <HomeIcon /> },
+  { id: 'knowledge', label: 'Base',      href: '/knowledge',  icon: <BookIcon /> },
+  { id: 'trees',     label: 'Processus', href: '/trees',      icon: <TreeIcon /> },
+  { id: 'team',      label: 'Équipe',    href: '/team',       icon: <TeamIcon />,  adminOnly: true },
+  { id: 'analytics', label: 'Analytics', href: '/analytics',  icon: <ChartIcon />, adminOnly: true },
 ];
 
 const BOTTOM_ITEMS: NavItem[] = [
@@ -253,6 +254,17 @@ function UserIcon() {
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
       <circle cx="9" cy="6" r="3" stroke="currentColor" strokeWidth="1.4" fill="none"/>
       <path d="M2 16c0-3 3.1-5 7-5s7 2 7 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none"/>
+    </svg>
+  );
+}
+
+function ChartIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <path d="M2 16h14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+      <rect x="3"  y="9"  width="2.5" height="6" stroke="currentColor" strokeWidth="1.4" fill="none"/>
+      <rect x="7.5"  y="5"  width="2.5" height="10" stroke="currentColor" strokeWidth="1.4" fill="none"/>
+      <rect x="12" y="2"  width="2.5" height="13" stroke="currentColor" strokeWidth="1.4" fill="none"/>
     </svg>
   );
 }
