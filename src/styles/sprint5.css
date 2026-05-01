@@ -1147,6 +1147,21 @@
 }
 .apidoc-code--response { background: #1E293B; }
 
+.apidoc-code-block { position: relative; }
+.apidoc-code-block__copy {
+  position: absolute; top: 18px; right: 12px;
+  background: rgba(255, 255, 255, 0.08); color: #E5E7EB;
+  border: 1px solid rgba(255, 255, 255, 0.12); border-radius: var(--radius-sm);
+  padding: 4px 10px; font-size: 11px; font-family: var(--font-ui);
+  cursor: pointer; transition: all var(--t-fast); opacity: 0;
+}
+.apidoc-code-block:hover .apidoc-code-block__copy,
+.apidoc-code-block__copy:focus-visible { opacity: 1; }
+.apidoc-code-block__copy:hover { background: rgba(255, 255, 255, 0.15); }
+.apidoc-code-block__copy:focus-visible {
+  outline: 2px solid var(--brand-500); outline-offset: 2px;
+}
+
 .apidoc-endpoint { border: 1px solid var(--neutral-200); border-radius: var(--radius-lg); margin-bottom: 12px; overflow: hidden; }
 .apidoc-endpoint--open { border-color: var(--brand-300); }
 .apidoc-endpoint__header {
