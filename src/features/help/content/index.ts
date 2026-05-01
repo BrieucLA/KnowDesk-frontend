@@ -68,11 +68,13 @@ KnowDesk propose 3 niveaux d'accès :
 - Accès complet à toutes les fonctionnalités
 - Gère les membres, les paramètres et la facturation
 - Crée, modifie et supprime tous les contenus
+- Accède à Analytics et à la gestion des tags / synonymes
 
 **Manager**
 - Crée et publie des articles et processus guidés
 - Invite et gère les conseillers
-- Ne peut pas accéder aux paramètres de facturation
+- Accède à Analytics
+- Ne peut pas gérer les paramètres avancés (tags, synonymes, facturation)
 
 **Conseiller**
 - Consulte et recherche dans la base de connaissance
@@ -130,7 +132,7 @@ Pour créer un article :
 - Sois concis : un article = un sujet
 - Ajoute des exemples concrets quand c'est possible
 
-> 💡 **Astuce** : L'éditeur sauvegarde automatiquement ton travail toutes les 30 secondes. Tu ne perdras jamais une modification.
+> 💡 **Astuce** : L'éditeur sauvegarde automatiquement ton travail au fil de la frappe. Tu ne perdras jamais une modification, et le statut de sauvegarde est affiché en haut de l'écran.
         `.trim(),
       },
       {
@@ -152,7 +154,102 @@ Pense à tes catégories comme des dossiers. Quelques exemples :
 - Par type de demande : *FAQ*, *Procédures*, *Scripts*
 - Par produit : *Produit A*, *Produit B*
 
-> 💡 **Astuce** : Ne crée pas trop de catégories au départ. Commence simple et réorganise au fur et à mesure que ta base grandit.
+> 💡 **Astuce** : Une catégorie est unique par article. Pour des classements transversaux (saisonnalité, statut éditorial…), utilise plutôt les **tags**.
+        `.trim(),
+      },
+      {
+        id:    'add-tags',
+        title: 'Ajouter des tags à un article',
+        content: `
+## Ajouter des tags à un article
+
+Les tags complètent la catégorie en permettant un classement transversal — un article peut porter plusieurs tags.
+
+**Tagger depuis l'éditeur**
+1. Ouvre un article (ou crée-en un nouveau)
+2. Sous le sélecteur de catégorie, tu trouves le champ **Tags**
+3. Tape le début d'un tag — KnowDesk te propose les tags déjà utilisés dans ton organisation
+4. Valide avec **Entrée** ou une **virgule**
+5. Pour retirer un tag, clique sur le ✕ à côté
+
+**Combien de tags ?**
+- 10 tags maximum par article
+- 200 tags maximum par organisation
+
+**Bonnes pratiques**
+- Évite les doublons de sens (« remboursement » et « refund » → un seul)
+- Préfère des tags courts et stables
+- Pour des opérations courtes (Black Friday, Soldes 2026), utilise un tag dédié — tu pourras le supprimer une fois l'opération passée
+
+> 💡 **Astuce** : Les tags sont normalisés automatiquement. \`Black Friday\`, \`black friday\` et \`BLACK FRIDAY\` deviennent un seul tag, avec la première casse saisie comme nom affiché.
+        `.trim(),
+      },
+      {
+        id:    'filter-by-tag',
+        title: 'Filtrer la liste par tag',
+        content: `
+## Filtrer la liste par tag
+
+Tu peux croiser plusieurs tags pour retrouver rapidement un sous-ensemble d'articles.
+
+**Comment filtrer**
+1. Va dans **Base de connaissance**
+2. Sous les onglets **Tous / Publiés / Brouillons**, une rangée de chips affiche les tags de l'organisation avec leur nombre d'articles
+3. Clique sur un tag pour l'activer (il devient bleu)
+4. Clique sur d'autres tags pour combiner — c'est un filtre **ET** : seuls les articles qui portent **tous** les tags sélectionnés apparaissent
+5. Clique sur **Effacer** pour retirer le filtre
+
+Le filtre tag se combine avec le filtre catégorie de la sidebar et le filtre statut. Tu peux par exemple voir uniquement les *brouillons* taggés *Black Friday* dans la catégorie *Facturation*.
+
+> 💡 **Astuce** : Pour une recherche par tag depuis n'importe quelle page, utilise plutôt la barre de recherche globale (\`Cmd+K\`) — voir la section **Recherche**.
+        `.trim(),
+      },
+      {
+        id:    'insert-image',
+        title: 'Insérer une image dans un article',
+        content: `
+## Insérer une image dans un article
+
+L'éditeur accepte les images directement collées ou glissées-déposées.
+
+**Trois manières d'insérer**
+1. **Coller** : copie une image depuis ton presse-papiers et fais \`Cmd+V\` (\`Ctrl+V\`) dans l'éditeur
+2. **Glisser-déposer** : fais glisser un fichier image depuis ton bureau directement dans la zone de contenu
+3. **Bouton image** : clique sur l'icône image dans la barre d'outils de l'éditeur
+
+L'image est uploadée automatiquement et apparaît à l'endroit du curseur. Tu peux ensuite cliquer dessus pour la redimensionner ou la supprimer.
+
+**Limites**
+- Formats acceptés : PNG, JPG, GIF, WebP
+- Taille maximale : 5 Mo par image
+
+> ⚠️ **Attention** : Les images sont stockées de façon permanente liée à l'article. Si tu supprimes l'article, ses images ne sont plus accessibles publiquement.
+
+> 💡 **Astuce** : Compresse tes captures d'écran avant import — un article qui charge vite est un article qui sert.
+        `.trim(),
+      },
+      {
+        id:    'insert-link',
+        title: 'Insérer un lien (interne ou externe)',
+        content: `
+## Insérer un lien (interne ou externe)
+
+Tu peux pointer vers une URL externe ou vers un autre article de ta base.
+
+**Lien externe**
+1. Sélectionne le texte qui doit devenir un lien
+2. Clique sur l'icône lien dans la barre d'outils (ou \`Cmd+K\`)
+3. Colle l'URL et valide
+
+**Lien vers un autre article (interne)**
+1. Sélectionne le texte
+2. Clique sur l'icône lien
+3. Tape le titre de l'article cible — KnowDesk propose les articles correspondants
+4. Clique sur l'article voulu
+
+Quand un conseiller clique sur un lien interne dans la fiche article, il navigue directement vers l'article cible sans quitter KnowDesk.
+
+> 💡 **Astuce** : Les liens internes sont précieux pour relier les articles connexes — un article *Politique de remboursement* peut pointer vers *Procédure de retour*.
         `.trim(),
       },
       {
@@ -195,10 +292,89 @@ KnowDesk conserve l'historique de toutes les versions publiées de tes articles.
 **Restaurer une version**
 1. Dans le panneau Historique, trouve la version souhaitée
 2. Clique sur **Restaurer**
-3. Le contenu de l'éditeur est remplacé par cette version
-4. Clique sur **Mettre à jour** pour publier la version restaurée
+3. Le contenu de l'éditeur est remplacé par cette version, et l'article repasse en brouillon
+4. Vérifie le contenu, puis clique sur **Publier** pour rendre la version restaurée disponible aux conseillers
 
-> 💡 **Astuce** : La restauration ne publie pas automatiquement — tu peux vérifier le contenu avant de le remettre en ligne.
+> 💡 **Astuce** : La restauration ne publie pas automatiquement — tu peux relire et ajuster avant de remettre en ligne.
+        `.trim(),
+      },
+    ],
+  },
+  {
+    id:    'search',
+    title: 'Recherche',
+    icon:  '🔍',
+    articles: [
+      {
+        id:    'search-basics',
+        title: 'Rechercher dans la base',
+        content: `
+## Rechercher dans la base
+
+KnowDesk dispose d'une recherche **tolérante aux fautes** qui couvre articles, processus guidés et leurs tags.
+
+**Lancer une recherche**
+- Clique sur la barre de recherche en haut de l'écran
+- **Raccourci clavier** : appuie sur \`Cmd+K\` (Mac) ou \`Ctrl+K\` (Windows / Linux) depuis n'importe quelle page
+
+**Tolérance aux fautes**
+Tu n'as pas besoin de taper le mot exact. \`rembousement\` retrouve *remboursement*, \`livrazon\` retrouve *Livraisons*. La recherche corrige automatiquement les fautes courantes.
+
+**Ce qui est cherché**
+La recherche couvre, pour chaque article ou processus publié :
+- Le titre
+- Le contenu textuel (avec extraits surlignés dans les résultats)
+- La catégorie
+- Les tags
+
+**Comprendre les résultats**
+Chaque résultat affiche :
+- Un badge **Article** ou **Processus**
+- La catégorie
+- Un extrait avec les mots cherchés en surbrillance
+- La date de mise à jour
+
+**Naviguer au clavier**
+Une fois la barre ouverte, utilise \`↑\` et \`↓\` pour parcourir les résultats, \`Entrée\` pour ouvrir, \`Échap\` pour fermer.
+
+> 💡 **Astuce** : Si une recherche fréquente ne ramène rien, signale-le : c'est un signal éditorial. Côté admin/manager, ces requêtes apparaissent dans **Analytics → Recherches sans résultat**.
+        `.trim(),
+      },
+      {
+        id:    'synonyms',
+        title: 'Définir des synonymes (admin)',
+        content: `
+## Définir des synonymes propres à votre organisation
+
+Les synonymes permettent à la recherche de comprendre le vocabulaire métier de ton entreprise. Une recherche sur un terme remonte aussi les contenus utilisant ses synonymes — et vice-versa.
+
+**Quand est-ce utile ?**
+- Tes conseillers parlent de « résiliation » mais tes articles utilisent « clôture de compte »
+- Tes clients disent « remboursement » alors que ton équipe écrit « avoir »
+- Ton produit a un nom officiel et un surnom interne
+
+**Créer un synonyme**
+1. Va dans **Paramètres → Recherche** (visible uniquement aux admins)
+2. Clique sur **+ Ajouter un synonyme**
+3. Saisis le **terme** principal (ex. *annulation*)
+4. Saisis un ou plusieurs **synonymes** (ex. *résiliation*, *clôture*) — Entrée ou virgule pour valider chaque chip
+5. Clique sur **Créer**
+
+**Comportement bidirectionnel**
+La relation est automatiquement réciproque. Si tu déclares *annulation* ↔ *résiliation* :
+- Une recherche sur *annulation* remonte aussi les articles contenant *résiliation*
+- Une recherche sur *résiliation* remonte aussi les articles contenant *annulation*
+
+Tu n'as pas à saisir les deux sens.
+
+**Modifier ou supprimer**
+Sur chaque ligne de la liste :
+- **Modifier** : ajuste la liste des synonymes (le terme principal n'est pas modifiable — supprime et recrée si besoin)
+- **Supprimer** : retire le synonyme. Le cache des recherches est invalidé immédiatement.
+
+> ⚠️ **Attention** : Les synonymes sont **scopés à ton organisation**. Aucune autre organisation KnowDesk ne voit ni n'utilise tes synonymes.
+
+> 💡 **Astuce** : Construis ton dictionnaire au fur et à mesure des cas observés. Inutile de tout définir d'un coup.
         `.trim(),
       },
     ],
@@ -289,7 +465,7 @@ Un processus en **Brouillon** n'est pas visible par les conseillers. Pour le ren
 2. Navigue dans l'arbre pour t'assurer que tous les chemins mènent à une conclusion
 3. Clique sur **Publier** en haut à droite
 
-Une fois publié, le processus apparaît dans l'onglet **Processus** de la Base de connaissance.
+Une fois publié, le processus apparaît dans l'onglet **Processus** de la Base de connaissance — et il devient cherchable depuis la barre de recherche globale (Cmd+K).
 
 > 💡 **Astuce** : Utilise l'aperçu conseiller pour tester tous les chemins possibles avant de publier.
         `.trim(),
@@ -333,7 +509,7 @@ Dans la liste des membres, trouve le collaborateur avec le statut *Invitation en
 
 **Les rôles disponibles**
 - **Admin** : accès complet
-- **Manager** : création de contenu + gestion des conseillers
+- **Manager** : création de contenu + gestion des conseillers + Analytics
 - **Conseiller** : consultation uniquement
 
 > ⚠️ **Attention** : Tu ne peux pas rétrograder le dernier admin de l'espace.
@@ -361,6 +537,52 @@ Le membre ne peut plus se connecter immédiatement. Tu peux le réactiver à tou
     ],
   },
   {
+    id:    'analytics',
+    title: 'Analytics',
+    icon:  '📊',
+    articles: [
+      {
+        id:    'analytics-overview',
+        title: 'Lire le tableau Analytics',
+        content: `
+## Lire le tableau Analytics
+
+La page **Analytics** te donne une vue d'ensemble de la santé éditoriale de ta base. Elle est visible aux **admins** et **managers**.
+
+**Accéder à Analytics**
+Clique sur l'icône Analytics (graphique en barres) dans le menu de gauche.
+
+**Rangée du haut — Inventaire et engagement**
+- **Articles publiés / brouillons / archivés** : photographie globale de ton stock
+- **Tags** et **Processus guidés** : volumétrie associée
+- **Actifs aujourd'hui / 7 jours / 30 jours** : utilisateurs distincts ayant consulté un article ou fait une recherche
+
+**Cartes orientées action**
+Toutes les listes sont **cliquables** : un clic ouvre directement l'article concerné, le bouton **← Retour** te ramène sur Analytics.
+
+- **Articles les plus consultés** — Top 10 sur 30 jours
+- **Articles peu consultés** — Articles publiés depuis plus de 30 jours et lus au plus une fois sur la fenêtre. Candidats à mise à jour ou retrait
+- **Top recherches** — Requêtes les plus fréquentes
+- **Recherches sans résultat** — Requêtes qui n'ont rien retourné. **Gold mine éditoriale** : autant de sujets à couvrir
+- **Articles à vérifier** — Publiés mais sans mise à jour depuis plus de 90 jours
+- **Brouillons orphelins** — Drafts qui dorment depuis plus de 30 jours
+- **Articles sans tag** — À tagger pour améliorer leur retrouvabilité
+- **Top contributeurs** — Auteurs les plus actifs (total et 30 derniers jours)
+- **Couverture par catégorie** — Identifie les catégories sous-documentées
+- **Tags utilisés** et **Tags inutilisés** — Hygiène du vocabulaire
+
+**Fenêtre temporelle**
+Les indicateurs basés sur l'activité (vues, recherches, engagement) couvrent les **30 derniers jours**. Les indicateurs structurels (articles à vérifier, tags inutilisés…) reflètent l'état actuel.
+
+**Confidentialité**
+Aucune donnée individuelle d'utilisation par conseiller n'est exposée. Les statistiques d'engagement sont **agrégées par organisation**. Les événements bruts sont automatiquement purgés après **90 jours**.
+
+> 💡 **Astuce** : La carte **Recherches sans résultat** est probablement la plus actionnable. Chaque requête infructueuse est un sujet que tes conseillers cherchent et que ta base ne couvre pas — c'est le meilleur indicateur pour orienter ta création de contenu.
+        `.trim(),
+      },
+    ],
+  },
+  {
     id:    'settings',
     title: 'Paramètres',
     icon:  '⚙️',
@@ -381,6 +603,38 @@ Configure les événements qui déclenchent un email :
 - **Article mis à jour** : reçois un email quand un article est publié ou modifié
 - **Nouveau membre** : reçois un email quand quelqu'un rejoint l'espace
 - **Résumé hebdomadaire** : reçois chaque semaine un récapitulatif de l'activité
+        `.trim(),
+      },
+      {
+        id:    'manage-tags',
+        title: 'Gérer les tags (admin)',
+        content: `
+## Gérer les tags de votre organisation
+
+Les tags se créent automatiquement quand un contributeur en saisit dans l'éditeur. Cette page (visible aux **admins** uniquement) sert à faire le ménage et à uniformiser le vocabulaire.
+
+**Accéder à la gestion**
+Va dans **Paramètres → Tags**.
+
+**Lire la liste**
+Chaque ligne montre :
+- Le **nom** affiché du tag
+- Le **nombre d'articles** qui l'utilisent
+
+**Renommer un tag**
+1. Clique sur **Renommer** sur la ligne du tag
+2. Saisis le nouveau nom dans la modale
+3. Clique sur **Enregistrer**
+
+Le nouveau nom se propage immédiatement à tous les articles qui portaient ce tag — y compris dans la fiche article et les filtres.
+
+**Cas particulier — fusion automatique**
+Si tu renommes un tag avec un nom déjà utilisé par un autre tag (insensible à la casse), KnowDesk **fusionne** les deux : tous les articles taggés avec l'ancien deviennent taggés avec le tag cible. C'est utile pour nettoyer les doublons (\`remboursement\` et \`Remboursement\`).
+
+**Supprimer un tag**
+Clique sur **Supprimer**. Une confirmation rappelle combien d'articles seront impactés. Les articles ne sont **pas** supprimés — ils perdent simplement ce tag.
+
+> 💡 **Astuce** : Utilise la page **Analytics** pour repérer les tags inutilisés et nettoyer.
         `.trim(),
       },
       {

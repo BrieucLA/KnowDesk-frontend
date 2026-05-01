@@ -17,6 +17,7 @@ const SCREEN_TO_SECTION: Record<string, string> = {
   'tree-editor':'trees',
   tree:         'trees',
   members:      'team',
+  analytics:    'analytics',
   settings:     'settings',
   account:      'settings',
 };
