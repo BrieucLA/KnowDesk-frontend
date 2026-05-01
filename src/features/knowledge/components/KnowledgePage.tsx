@@ -3,6 +3,9 @@ import { CategoryTree }     from './CategoryTree';
 import { EmptyState }       from '../../../shared/components/ui/EmptyState';
 import { StatusBadge }      from '../../../shared/components/ui/StatusBadge';
 import { Skeleton }         from '../../../shared/components/ui/Skeleton';
+import { Modal }            from '../../../shared/components/ui/Modal';
+import { Button }           from '../../../shared/components/ui/Button';
+import { Input }            from '../../../shared/components/ui/Input';
 import { knowledgeApi } from '../api/knowledgeApi';
 import { apiClient }    from '../../../shared/lib/apiClient';
 import { tagsApi, type OrgTag } from '../../articles/api/tagsApi';
@@ -277,44 +280,34 @@ const handleCreateCategory = useCallback(async () => {
 
       </main>
       {/* Modale nouvelle catégorie */}
-{showNewCategory && (
-  <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setShowNewCategory(false); }}>
-    <div className="modal">
-      <div className="modal__header">
-        <h2 className="modal__title">Nouvelle catégorie</h2>
-        <button type="button" className="modal__close" onClick={() => setShowNewCategory(false)} aria-label="Fermer">×</button>
-      </div>
-      <div className="modal__body">
-        <div className="field">
-          <label htmlFor="new-cat-name" className="field-label">Nom de la catégorie</label>
-          <input
+      {showNewCategory && (
+        <Modal
+          title="Nouvelle catégorie"
+          onClose={() => setShowNewCategory(false)}
+          asForm
+          onSubmit={handleCreateCategory}
+          footer={
+            <>
+              <Button type="button" variant="ghost" size="md" onClick={() => setShowNewCategory(false)}>
+                Annuler
+              </Button>
+              <Button type="submit" variant="primary" size="md" loading={newCatLoading} disabled={!newCatName.trim()}>
+                Créer
+              </Button>
+            </>
+          }
+        >
+          <Input
             id="new-cat-name"
             type="text"
-            className="field-input"
+            label="Nom de la catégorie"
             placeholder="ex. Livraisons"
             value={newCatName}
             autoFocus
             onChange={e => setNewCatName(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') handleCreateCategory(); }}
           />
-        </div>
-        <div className="modal__actions">
-          <button type="button" className="btn btn-ghost btn-md" onClick={() => setShowNewCategory(false)}>
-            Annuler
-          </button>
-          <button
-            type="button"
-            className="btn btn-primary btn-md"
-            onClick={handleCreateCategory}
-            disabled={!newCatName.trim() || newCatLoading}
-          >
-            {newCatLoading ? 'Création...' : 'Créer'}
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+        </Modal>
+      )}
     </div>
   );
 }

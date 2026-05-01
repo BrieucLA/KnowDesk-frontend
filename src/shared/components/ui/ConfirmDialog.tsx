@@ -1,4 +1,5 @@
-import React, { useEffect, useId } from 'react';
+import React from 'react';
+import { Modal }  from './Modal';
 import { Button } from './Button';
 
 interface ConfirmDialogProps {
@@ -22,40 +23,27 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
-  const titleId = useId();
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onCancel(); };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [onCancel]);
-
   return (
-    <div
-      className="modal-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={titleId}
-      onClick={e => { if (e.target === e.currentTarget) onCancel(); }}
+    <Modal
+      title={title}
+      size="sm"
+      className="confirm-dialog"
+      onClose={onCancel}
+      showCloseButton={false}
+      closeOnBackdrop={!loading}
+      closeOnEscape={!loading}
+      footer={
+        <>
+          <Button variant="ghost" size="md" onClick={onCancel} disabled={loading} autoFocus>
+            {cancelLabel}
+          </Button>
+          <Button variant={variant} size="md" loading={loading} onClick={onConfirm}>
+            {confirmLabel}
+          </Button>
+        </>
+      }
     >
-      <div className="modal confirm-dialog">
-        <div className="modal__header">
-          <h2 id={titleId} className="modal__title">{title}</h2>
-        </div>
-        <div className="modal__body">
-          {description && (
-            <p className="confirm-dialog__desc">{description}</p>
-          )}
-          <div className="modal__actions">
-            <Button variant="ghost" size="md" onClick={onCancel} disabled={loading}>
-              {cancelLabel}
-            </Button>
-            <Button variant={variant} size="md" loading={loading} onClick={onConfirm}>
-              {confirmLabel}
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
+      {description && <p className="confirm-dialog__desc">{description}</p>}
+    </Modal>
   );
 }

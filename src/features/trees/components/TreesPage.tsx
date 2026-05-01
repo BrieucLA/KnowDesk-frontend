@@ -1,6 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { useTrees }    from '../hooks/useTrees';
 import { Button }      from '../../../shared/components/ui/Button';
+import { Input }       from '../../../shared/components/ui/Input';
+import { Modal }       from '../../../shared/components/ui/Modal';
 import { StatusBadge } from '../../../shared/components/ui/StatusBadge';
 import { EmptyState }  from '../../../shared/components/ui/EmptyState';
 import { Skeleton }    from '../../../shared/components/ui/Skeleton';
@@ -51,36 +53,32 @@ export function TreesPage({ onOpenTree, onEditTree, onPreviewTree }: TreesPagePr
 
       {/* Modale de création */}
       {showCreate && (
-        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setShowCreate(false); }}>
-          <div className="modal">
-            <div className="modal__header">
-              <h2 className="modal__title">Nouveau processus</h2>
-              <button type="button" className="modal__close" onClick={() => setShowCreate(false)}>×</button>
-            </div>
-            <div className="modal__body">
-              <div className="field">
-                <label htmlFor="tree-title" className="field-label">Titre du processus</label>
-                <input
-                  id="tree-title"
-                  type="text"
-                  className="field-input"
-                  placeholder="ex. Processus de remboursement"
-                  value={newTitle}
-                  onChange={e => setNewTitle(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') handleCreate(); }}
-                  autoFocus
-                />
-              </div>
-              <div className="modal__actions">
-                <Button variant="ghost"   size="md" onClick={() => setShowCreate(false)}>Annuler</Button>
-                <Button variant="primary" size="md" loading={creating} onClick={handleCreate}
-                  disabled={!newTitle.trim()}>
-                  Créer
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <Modal
+          title="Nouveau processus"
+          onClose={() => setShowCreate(false)}
+          asForm
+          onSubmit={handleCreate}
+          footer={
+            <>
+              <Button type="button" variant="ghost" size="md" onClick={() => setShowCreate(false)}>
+                Annuler
+              </Button>
+              <Button type="submit" variant="primary" size="md" loading={creating} disabled={!newTitle.trim()}>
+                Créer
+              </Button>
+            </>
+          }
+        >
+          <Input
+            id="tree-title"
+            type="text"
+            label="Titre du processus"
+            placeholder="ex. Processus de remboursement"
+            value={newTitle}
+            onChange={e => setNewTitle(e.target.value)}
+            autoFocus
+          />
+        </Modal>
       )}
 
       {/* Liste */}

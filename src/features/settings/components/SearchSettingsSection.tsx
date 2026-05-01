@@ -1,8 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { Button }        from '../../../shared/components/ui/Button';
+import { Input }         from '../../../shared/components/ui/Input';
 import { Skeleton }      from '../../../shared/components/ui/Skeleton';
 import { ChipsInput }    from '../../../shared/components/ui/ChipsInput';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
+import { Modal }         from '../../../shared/components/ui/Modal';
 import { useSynonyms }   from '../hooks/useSynonyms';
 import type { Synonym }  from '../types';
 
@@ -144,7 +146,7 @@ function CreateSynonymModal({
   const [saving,   setSaving]   = useState(false);
 
   const trimmed = term.trim();
-  const duplicate = trimmed && existingTerms.includes(trimmed.toLowerCase());
+  const duplicate = trimmed.length > 0 && existingTerms.includes(trimmed.toLowerCase());
   const canSubmit = trimmed.length > 0 && chips.length > 0 && !duplicate;
 
   const submit = async () => {
@@ -155,50 +157,39 @@ function CreateSynonymModal({
   };
 
   return (
-    <div
-      className="modal-overlay"
-      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="syn-modal-title"
+    <Modal
+      title="Nouveau synonyme"
+      onClose={onClose}
+      asForm
+      onSubmit={submit}
+      footer={
+        <>
+          <Button type="button" variant="ghost" size="md" onClick={onClose}>Annuler</Button>
+          <Button type="submit" variant="primary" size="md" loading={saving} disabled={!canSubmit}>
+            Créer
+          </Button>
+        </>
+      }
     >
-      <div className="modal">
-        <div className="modal__header">
-          <h2 id="syn-modal-title" className="modal__title">Nouveau synonyme</h2>
-          <button type="button" className="modal__close" onClick={onClose} aria-label="Fermer">×</button>
-        </div>
-        <div className="modal__body">
-          <div className="field">
-            <label htmlFor="syn-term" className="field-label">Terme</label>
-            <input
-              id="syn-term"
-              type="text"
-              className={`field-input ${duplicate ? 'field-input--error' : ''}`}
-              placeholder="annulation"
-              value={term}
-              onChange={e => setTerm(e.target.value)}
-              autoFocus
-            />
-            {duplicate && <p className="field-error">Un synonyme existe déjà pour ce terme.</p>}
-          </div>
+      <Input
+        id="syn-term"
+        type="text"
+        label="Terme"
+        placeholder="annulation"
+        value={term}
+        error={duplicate ? 'Un synonyme existe déjà pour ce terme.' : undefined}
+        onChange={e => setTerm(e.target.value)}
+        autoFocus
+      />
 
-          <div className="field">
-            <label className="field-label">Synonymes</label>
-            <ChipsInput value={chips} onChange={setChips} placeholder="résiliation, clôture…" />
-            <p className="field-hint">
-              Tapez Entrée ou virgule après chaque synonyme. La relation est bidirectionnelle.
-            </p>
-          </div>
-
-          <div className="modal__actions">
-            <Button variant="ghost"   size="md" onClick={onClose}>Annuler</Button>
-            <Button variant="primary" size="md" loading={saving} disabled={!canSubmit} onClick={submit}>
-              Créer
-            </Button>
-          </div>
-        </div>
+      <div className="field">
+        <label className="field-label">Synonymes</label>
+        <ChipsInput value={chips} onChange={setChips} placeholder="résiliation, clôture…" />
+        <p className="field-hint">
+          Tapez Entrée ou virgule après chaque synonyme. La relation est bidirectionnelle.
+        </p>
       </div>
-    </div>
+    </Modal>
   );
 }
 

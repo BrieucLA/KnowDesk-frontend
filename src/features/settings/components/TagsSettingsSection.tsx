@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Button }         from '../../../shared/components/ui/Button';
 import { Input }          from '../../../shared/components/ui/Input';
+import { Modal }          from '../../../shared/components/ui/Modal';
 import { Skeleton }       from '../../../shared/components/ui/Skeleton';
 import { ConfirmDialog }  from '../../../shared/components/ui/ConfirmDialog';
 import { useTags }        from '../hooks/useTags';
@@ -113,37 +114,29 @@ function RenameTagModal({
   }, [canSubmit, trimmed, onSave]);
 
   return (
-    <div
-      className="modal-overlay"
-      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="rename-tag-title"
+    <Modal
+      title="Renommer le tag"
+      onClose={onClose}
+      asForm
+      onSubmit={submit}
+      footer={
+        <>
+          <Button type="button" variant="ghost" size="md" onClick={onClose}>Annuler</Button>
+          <Button type="submit" variant="primary" size="md" loading={saving} disabled={!canSubmit}>
+            Enregistrer
+          </Button>
+        </>
+      }
     >
-      <div className="modal">
-        <div className="modal__header">
-          <h2 id="rename-tag-title" className="modal__title">Renommer le tag</h2>
-          <button type="button" className="modal__close" onClick={onClose} aria-label="Fermer">×</button>
-        </div>
-        <div className="modal__body">
-          <Input
-            id="rename-input"
-            type="text"
-            label="Nouveau nom"
-            helperText="Tous les articles taggés afficheront le nouveau nom. Si un tag avec ce nom existe déjà (insensible à la casse), les deux seront fusionnés."
-            value={value}
-            onChange={e => setValue(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') submit(); }}
-            autoFocus
-          />
-          <div className="modal__actions">
-            <Button variant="ghost"   size="md" onClick={onClose}>Annuler</Button>
-            <Button variant="primary" size="md" loading={saving} disabled={!canSubmit} onClick={submit}>
-              Enregistrer
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
+      <Input
+        id="rename-input"
+        type="text"
+        label="Nouveau nom"
+        helperText="Tous les articles taggés afficheront le nouveau nom. Si un tag avec ce nom existe déjà (insensible à la casse), les deux seront fusionnés."
+        value={value}
+        onChange={e => setValue(e.target.value)}
+        autoFocus
+      />
+    </Modal>
   );
 }

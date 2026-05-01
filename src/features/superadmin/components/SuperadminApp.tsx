@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useSuperadmin }   from '../hooks/useSuperadmin';
 import { Button }          from '../../../shared/components/ui/Button';
+import { ConfirmDialog }   from '../../../shared/components/ui/ConfirmDialog';
 import { formatRelative }  from '../../../shared/lib/formatDate';
 
 export function SuperadminApp() {
@@ -163,37 +164,22 @@ export function SuperadminApp() {
 
       {/* Modal de confirmation */}
       {confirm && (
-        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setConfirm(null); }}>
-          <div className="modal">
-            <div className="modal__header">
-              <h2 className="modal__title">
-                {confirm.action === 'disable' ? 'Désactiver l\'espace' : 'Réactiver l\'espace'}
-              </h2>
-              <button type="button" className="modal__close" onClick={() => setConfirm(null)}>×</button>
-            </div>
-            <div className="modal__body">
-              <p style={{ marginBottom: 20, color: 'var(--neutral-600)', fontSize: 14 }}>
-                {confirm.action === 'disable'
-                  ? 'Les utilisateurs de cet espace ne pourront plus se connecter.'
-                  : 'Les utilisateurs de cet espace pourront à nouveau se connecter.'
-                }
-              </p>
-              <div className="modal__actions">
-                <Button variant="ghost" size="md" onClick={() => setConfirm(null)}>Annuler</Button>
-                <Button
-                  variant="primary" size="md"
-                  onClick={async () => {
-                    if (confirm.action === 'disable') await disableOrg(confirm.orgId);
-                    else await enableOrg(confirm.orgId);
-                    setConfirm(null);
-                  }}
-                >
-                  Confirmer
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          title={confirm.action === 'disable' ? 'Désactiver l\'espace' : 'Réactiver l\'espace'}
+          description={
+            confirm.action === 'disable'
+              ? 'Les utilisateurs de cet espace ne pourront plus se connecter.'
+              : 'Les utilisateurs de cet espace pourront à nouveau se connecter.'
+          }
+          confirmLabel={confirm.action === 'disable' ? 'Désactiver' : 'Réactiver'}
+          variant={confirm.action === 'disable' ? 'danger' : 'primary'}
+          onConfirm={async () => {
+            if (confirm.action === 'disable') await disableOrg(confirm.orgId);
+            else await enableOrg(confirm.orgId);
+            setConfirm(null);
+          }}
+          onCancel={() => setConfirm(null)}
+        />
       )}
     </div>
   );

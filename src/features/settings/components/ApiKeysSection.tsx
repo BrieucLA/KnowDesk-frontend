@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useApiKeys }       from '../hooks/useApiKeys';
 import { Button }           from '../../../shared/components/ui/Button';
 import { Input }            from '../../../shared/components/ui/Input';
+import { Modal }            from '../../../shared/components/ui/Modal';
 import { Skeleton }         from '../../../shared/components/ui/Skeleton';
 import { ConfirmDialog }    from '../../../shared/components/ui/ConfirmDialog';
 import { formatRelative }   from '../../../shared/lib/formatDate';
@@ -59,33 +60,33 @@ export function ApiKeysSection() {
       </div>
 
       {showCreate && (
-        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setShowCreate(false); }}>
-          <div className="modal">
-            <div className="modal__header">
-              <h2 className="modal__title">Nouvelle clé API</h2>
-              <button type="button" className="modal__close" onClick={() => setShowCreate(false)}>×</button>
-            </div>
-            <div className="modal__body">
-              <Input
-                id="key-name"
-                type="text"
-                label="Nom de la clé"
-                placeholder="ex. Intégration Hubicus"
-                helperText="Donnez un nom descriptif pour identifier cette clé."
-                value={name}
-                onChange={e => setName(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') handleCreate(); }}
-                autoFocus
-              />
-              <div className="modal__actions">
-                <Button variant="ghost"   size="md" onClick={() => setShowCreate(false)}>Annuler</Button>
-                <Button variant="primary" size="md" loading={creating} onClick={handleCreate} disabled={!name.trim()}>
-                  Créer
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <Modal
+          title="Nouvelle clé API"
+          onClose={() => setShowCreate(false)}
+          asForm
+          onSubmit={handleCreate}
+          footer={
+            <>
+              <Button type="button" variant="ghost" size="md" onClick={() => setShowCreate(false)}>
+                Annuler
+              </Button>
+              <Button type="submit" variant="primary" size="md" loading={creating} disabled={!name.trim()}>
+                Créer
+              </Button>
+            </>
+          }
+        >
+          <Input
+            id="key-name"
+            type="text"
+            label="Nom de la clé"
+            placeholder="ex. Intégration Hubicus"
+            helperText="Donnez un nom descriptif pour identifier cette clé."
+            value={name}
+            onChange={e => setName(e.target.value)}
+            autoFocus
+          />
+        </Modal>
       )}
 
       {newKey && (

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button }     from '../../../shared/components/ui/Button';
 import { Input }      from '../../../shared/components/ui/Input';
+import { Modal }      from '../../../shared/components/ui/Modal';
 import { apiClient }  from '../../../shared/lib/apiClient';
 
 interface LinkModalProps {
@@ -56,105 +57,104 @@ export function LinkModal({ onInsert, onClose, selectedText }: LinkModalProps) {
   }, [tab, url, text, selectedArt, onInsert]);
 
   return (
-    <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal">
-        <div className="modal__header">
-          <h2 className="modal__title">Insérer un lien</h2>
-          <button type="button" className="modal__close" onClick={onClose}>×</button>
-        </div>
-        <div className="modal__body">
-          {/* Tabs */}
-          <div className="link-modal__tabs">
-            <button
-              type="button"
-              className={`link-modal__tab ${tab === 'external' ? 'link-modal__tab--active' : ''}`}
-              onClick={() => setTab('external')}
-            >
-              🔗 Lien externe
-            </button>
-            <button
-              type="button"
-              className={`link-modal__tab ${tab === 'internal' ? 'link-modal__tab--active' : ''}`}
-              onClick={() => setTab('internal')}
-            >
-              📄 Article KnowDesk
-            </button>
-          </div>
-
-          {tab === 'external' ? (
-            <>
-              <Input
-                id="link-url"
-                type="url"
-                label="URL"
-                placeholder="https://exemple.fr"
-                value={url}
-                onChange={e => { setUrl(e.target.value); setUrlError(''); }}
-                error={urlError}
-                autoFocus
-              />
-              <Input
-                id="link-text"
-                type="text"
-                label="Texte affiché (optionnel)"
-                placeholder={url}
-                value={text}
-                onChange={e => setText(e.target.value)}
-              />
-            </>
-          ) : (
-            <>
-              <Input
-                id="link-search"
-                type="search"
-                label="Rechercher un article"
-                placeholder="Titre de l'article…"
-                value={query}
-                onChange={e => { setQuery(e.target.value); setSelectedArt(null); }}
-                autoFocus
-              />
-              {searching && <p className="link-modal__searching">Recherche…</p>}
-              {results.length > 0 && (
-                <ul className="link-modal__results">
-                  {results.map(a => (
-                    <li key={a.id}>
-                      <button
-                        type="button"
-                        className={`link-modal__result ${selectedArt?.id === a.id ? 'link-modal__result--selected' : ''}`}
-                        onClick={() => { setSelectedArt(a); setText(text || a.title); }}
-                      >
-                        {a.title}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {selectedArt && (
-                <p className="link-modal__selected">✓ Sélectionné : <strong>{selectedArt.title}</strong></p>
-              )}
-              <Input
-                id="link-text-internal"
-                type="text"
-                label="Texte affiché (optionnel)"
-                placeholder={selectedArt?.title ?? 'Texte du lien'}
-                value={text}
-                onChange={e => setText(e.target.value)}
-              />
-            </>
-          )}
-
-          <div className="modal__actions">
-            <Button variant="ghost"   size="md" onClick={onClose}>Annuler</Button>
-            <Button
-              variant="primary" size="md"
-              onClick={handleInsert}
-              disabled={tab === 'external' ? !url || url === 'https://' : !selectedArt}
-            >
-              Insérer
-            </Button>
-          </div>
-        </div>
+    <Modal
+      title="Insérer un lien"
+      onClose={onClose}
+      size="lg"
+      asForm
+      onSubmit={handleInsert}
+      footer={
+        <>
+          <Button type="button" variant="ghost" size="md" onClick={onClose}>Annuler</Button>
+          <Button
+            type="submit"
+            variant="primary" size="md"
+            disabled={tab === 'external' ? !url || url === 'https://' : !selectedArt}
+          >
+            Insérer
+          </Button>
+        </>
+      }
+    >
+      {/* Tabs */}
+      <div className="link-modal__tabs">
+        <button
+          type="button"
+          className={`link-modal__tab ${tab === 'external' ? 'link-modal__tab--active' : ''}`}
+          onClick={() => setTab('external')}
+        >
+          🔗 Lien externe
+        </button>
+        <button
+          type="button"
+          className={`link-modal__tab ${tab === 'internal' ? 'link-modal__tab--active' : ''}`}
+          onClick={() => setTab('internal')}
+        >
+          📄 Article KnowDesk
+        </button>
       </div>
-    </div>
+
+      {tab === 'external' ? (
+        <>
+          <Input
+            id="link-url"
+            type="url"
+            label="URL"
+            placeholder="https://exemple.fr"
+            value={url}
+            onChange={e => { setUrl(e.target.value); setUrlError(''); }}
+            error={urlError}
+            autoFocus
+          />
+          <Input
+            id="link-text"
+            type="text"
+            label="Texte affiché (optionnel)"
+            placeholder={url}
+            value={text}
+            onChange={e => setText(e.target.value)}
+          />
+        </>
+      ) : (
+        <>
+          <Input
+            id="link-search"
+            type="search"
+            label="Rechercher un article"
+            placeholder="Titre de l'article…"
+            value={query}
+            onChange={e => { setQuery(e.target.value); setSelectedArt(null); }}
+            autoFocus
+          />
+          {searching && <p className="link-modal__searching">Recherche…</p>}
+          {results.length > 0 && (
+            <ul className="link-modal__results">
+              {results.map(a => (
+                <li key={a.id}>
+                  <button
+                    type="button"
+                    className={`link-modal__result ${selectedArt?.id === a.id ? 'link-modal__result--selected' : ''}`}
+                    onClick={() => { setSelectedArt(a); setText(text || a.title); }}
+                  >
+                    {a.title}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {selectedArt && (
+            <p className="link-modal__selected">✓ Sélectionné : <strong>{selectedArt.title}</strong></p>
+          )}
+          <Input
+            id="link-text-internal"
+            type="text"
+            label="Texte affiché (optionnel)"
+            placeholder={selectedArt?.title ?? 'Texte du lien'}
+            value={text}
+            onChange={e => setText(e.target.value)}
+          />
+        </>
+      )}
+    </Modal>
   );
 }
