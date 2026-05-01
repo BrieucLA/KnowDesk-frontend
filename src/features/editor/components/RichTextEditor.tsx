@@ -1,6 +1,5 @@
 import React, { useRef, useCallback, useEffect, useState } from 'react';
 import { LinkModal }    from './LinkModal';
-import { useAuthStore } from '../../../store/authStore';
 
 interface RichTextEditorProps {
   value:          string;
@@ -21,11 +20,6 @@ export function RichTextEditor({
   const prevValueRef  = useRef('');
   const savedRangeRef = useRef<Range | null>(null);
   const [showLinkModal, setShowLinkModal] = useState(false);
-  const session = useAuthStore(s => s.session);
-
-  useEffect(() => {
-    (window as any).__knowdesk_token = session?.accessToken ?? '';
-  }, [session?.accessToken]);
 
   useEffect(() => {
     if (!editorRef.current) return;
@@ -108,10 +102,8 @@ export function RichTextEditor({
     let id = articleId;
     if (!id && onBeforeImageUpload) {
       id = (await onBeforeImageUpload()) ?? undefined;
-      }
-      if (!id) return;
-  const token    = session?.accessToken ?? '';
-  const base     = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api/v1';
+    }
+    if (!id) return;
     const formData = new FormData();
     formData.append('image', file);
 
@@ -125,10 +117,12 @@ export function RichTextEditor({
     }
 
     try {
-      const res  = await fetch(`${base}/articles/${id}/images`, {
-        method:  'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body:    formData,
+      // FormData ne passe pas par apiClient (Content-Type multipart auto-géré).
+      // Cookie HTTP-only envoyé via credentials:include.
+      const res  = await fetch(`/api/v1/articles/${id}/images`, {
+        method:      'POST',
+        credentials: 'include',
+        body:        formData,
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error?.message ?? 'Erreur upload');
@@ -141,7 +135,7 @@ export function RichTextEditor({
       placeholder.replaceWith(document.createTextNode('[Erreur chargement image]'));
     }
     handleInput();
-  }, [articleId, session?.accessToken, handleInput, onBeforeImageUpload]);
+  }, [articleId, handleInput, onBeforeImageUpload]);
 
   const handleImageClick = useCallback(() => {
     const input    = document.createElement('input');

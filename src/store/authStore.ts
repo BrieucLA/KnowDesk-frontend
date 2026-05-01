@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { AuthSession } from '../features/auth/types';
+import { apiClient } from '../shared/lib/apiClient';
 
 interface AuthState {
   session:        AuthSession | null;
@@ -31,17 +32,10 @@ export const useAuthStore = create<AuthState>()(
 
       setOnboardingDone: () => {
         set({ onboardingDone: true });
-        const token = get().session?.accessToken;
-        if (token) {
-          const base = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api/v1';
-          fetch(`${base}/account/onboarding-done`, {
-            method:  'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
-            },
-          }).catch(err => console.warn('[authStore] onboarding-done failed:', err?.message ?? err));
-        }
+        // Cookie HTTP-only envoyé automatiquement par apiClient — credentials:include.
+        apiClient
+          .post('/account/onboarding-done', {})
+          .catch(err => console.warn('[authStore] onboarding-done failed:', (err as Error)?.message ?? err));
       },
 
       setImpersonating: (data) => set({ impersonating: data }),

@@ -185,9 +185,9 @@ R2_PUBLIC_URL=https://pub-2e6d152f4911496d8b20b31c2fe6aa28.r2.dev
 
 ## Variables d'environnement Vercel (frontend)
 
-```
-VITE_API_URL=https://knowdesk-production.up.railway.app/api/v1
-```
+Aucune variable d'env requise côté Vercel. Le frontend appelle l'API en chemin relatif (`/api/v1`, `/public/v1`) ; un rewrite Vercel défini dans `vercel.json` proxie ces chemins vers Railway. En dev, Vite (`vite.config.ts`) proxie vers `http://localhost:3001`.
+
+Conséquence : **le navigateur voit toutes les requêtes comme same-origin**, ce qui permet l'usage de cookies HTTP-only `sameSite=lax` pour transporter l'access token (cf. backend `auth.controller.ts`).
 
 ## Roadmap — État actuel (mai 2026)
 
@@ -224,6 +224,12 @@ VITE_API_URL=https://knowdesk-production.up.railway.app/api/v1
 - Processus guidés enrichis — variables, conditions
 - Workflow de validation du contenu
 - Centre d'aide V2 (Sprint Help-D) — ouvrir l'article pertinent depuis le contexte (pas la section), footer feedback 👍/👎 sur chaque article (tracké via la table events), parseur markdown standard avec support des images, indexation Meilisearch dédiée si l'aide grossit au-delà de ~50 articles.
+
+### Refacto à venir
+- **Retirer le fallback Bearer** dans `auth.middleware` une fois que tous les clients utilisent les cookies (~1 sprint après stabilisation de la Phase 1). Retirer aussi `accessToken` du retour JSON de `auth.controller` et du type `AuthSession` côté frontend.
+- **React Router v6** côté frontend : sortir du routing par `useState<View>` dans `App.tsx`, autoriser le deep-linking (`/articles/:id`, etc.).
+- **Custom domain** (`app.knowdesk.fr` + `api.knowdesk.fr`) : remplacer le proxy Vercel par des sous-domaines de la même TLD+1, pour éviter le hop supplémentaire et avoir des cookies natifs sans rewrite.
+- **Tests** : zéro test aujourd'hui ; vitest installé. Cibler les chemins critiques (auth, multi-tenancy, invitations, tags fusion).
 
 ### Import de documents (plan rédigé)
 - MVP : import PDF/DOCX → article

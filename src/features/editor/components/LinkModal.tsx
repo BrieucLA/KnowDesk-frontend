@@ -29,10 +29,8 @@ export function LinkModal({ onInsert, onClose, selectedText }: LinkModalProps) {
     const t = setTimeout(async () => {
       setSearching(true);
       try {
-        const base = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api/v1';
-        const token = (window as any).__knowdesk_token ?? '';
-        const res = await fetch(`${base}/articles?status=published&q=${encodeURIComponent(query)}`, {
-          headers: { Authorization: `Bearer ${token}` },
+        const res = await fetch(`/api/v1/articles?status=published&q=${encodeURIComponent(query)}`, {
+          credentials: 'include',
         });
         const data = await res.json();
         setResults((data.data ?? []).slice(0, 8));
