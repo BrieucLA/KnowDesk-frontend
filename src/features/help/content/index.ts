@@ -102,7 +102,7 @@ Configure quels événements déclenchent une notification :
 - Résumé hebdomadaire
 
 **Mon compte**
-Depuis l'icône **Mon compte**, tu peux modifier ton prénom, nom, adresse email et mot de passe.
+Depuis l'icône **Mon compte** (initiales en bas du menu), tu peux modifier ton prénom, nom, adresse email et mot de passe.
         `.trim(),
       },
     ],
@@ -525,11 +525,10 @@ Désactiver un membre lui retire l'accès à KnowDesk sans supprimer son compte 
 
 1. Va dans **Équipe**
 2. Trouve le membre dans la liste
-3. Clique sur le menu **⋯** à droite de son nom
-4. Sélectionne **Désactiver**
-5. Confirme l'action
+3. Clique sur le bouton **Désactiver** dans la colonne *Actions*, à droite de la ligne
+4. Confirme l'action
 
-Le membre ne peut plus se connecter immédiatement. Tu peux le réactiver à tout moment depuis la même liste.
+Le membre ne peut plus se connecter immédiatement. Tu peux le réactiver à tout moment depuis la même liste — le bouton **Désactiver** est remplacé par **Réactiver** sur les lignes des membres désactivés.
 
 > 💡 **Astuce** : Préfère la désactivation à la suppression — tu conserves ainsi l'historique des contributions du membre.
         `.trim(),
@@ -598,11 +597,12 @@ Accède aux paramètres depuis l'icône **⚙️** en bas du menu de gauche.
 **Nom de l'organisation**
 Le nom affiché dans l'interface et dans les emails envoyés à tes collaborateurs. Modifie-le et clique sur **Enregistrer**.
 
-**Notifications email**
-Configure les événements qui déclenchent un email :
-- **Article mis à jour** : reçois un email quand un article est publié ou modifié
-- **Nouveau membre** : reçois un email quand quelqu'un rejoint l'espace
-- **Résumé hebdomadaire** : reçois chaque semaine un récapitulatif de l'activité
+**Notifications**
+Configure les événements qui déclenchent une notification dans le panneau **🔔** en bas du menu de gauche :
+- **Article publié** : un nouvel article a été mis en ligne par ton équipe
+- **Nouveau membre** : quelqu'un vient de rejoindre l'espace
+
+> 💡 **Astuce** : Clique sur l'icône cloche **🔔** dans la barre de gauche pour ouvrir le panneau et marquer les notifications comme lues.
         `.trim(),
       },
       {
@@ -659,7 +659,7 @@ Saisis tes nouvelles informations et clique sur **Enregistrer**.
 2. Saisis et confirme ton nouveau mot de passe (8 caractères minimum)
 3. Clique sur **Changer le mot de passe**
 
-Tu es automatiquement déconnecté après un changement d'email ou de mot de passe.
+> ⚠️ **Attention** : Pour ta sécurité, **toutes tes sessions actives sont invalidées** après un changement de mot de passe ou la confirmation d'un changement d'email. Tu seras redirigé vers la page de connexion à ta prochaine action.
         `.trim(),
       },
 {
