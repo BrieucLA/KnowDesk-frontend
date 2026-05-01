@@ -54,11 +54,16 @@ export function useToastList() {
 }
 
 // ── Hook pour les composants qui envoient des toasts ──────────
+// Instance stable au niveau du module — sans ça, chaque appel à useToast()
+// retournerait un nouvel objet, ce qui cassait les useEffect ayant `toast`
+// en deps (re-fire à chaque render → boucle de fetch).
+const toastApi = {
+  success: (msg: string) => bus.add(msg, 'success', 4000),
+  error:   (msg: string) => bus.add(msg, 'error',   6000),
+  warning: (msg: string) => bus.add(msg, 'warning', 5000),
+  info:    (msg: string) => bus.add(msg, 'info',    4000),
+};
+
 export function useToast() {
-  return {
-    success: (msg: string) => bus.add(msg, 'success', 4000),
-    error:   (msg: string) => bus.add(msg, 'error',   6000),
-    warning: (msg: string) => bus.add(msg, 'warning', 5000),
-    info:    (msg: string) => bus.add(msg, 'info',    4000),
-  };
+  return toastApi;
 }
