@@ -247,6 +247,27 @@ Conséquence : **le navigateur voit toutes les requêtes comme same-origin**, ce
 - **Hook `useApi` générique** côté frontend (~7 hooks de fetch redupliqués) : pattern uniforme loading/error/data, intégration apiClient, retour typé.
 - **Custom domain** (`app.knowdesk.fr` + `api.knowdesk.fr`) : remplacer le proxy Vercel par des sous-domaines de la même TLD+1, pour éviter le hop supplémentaire et avoir des cookies natifs sans rewrite.
 - **Tests frontend** : zéro test côté frontend ; vitest installé. Cibler ArticleEditor (sauvegarde + tags), TagsInput (autocomplete), AnalyticsPage, ProtectedRoute, le bridge router. Côté backend, **65 tests passants** (auth + multi-tenancy + permissions + FAQs) couvrent les chemins critiques.
+- **Multilingue FR + EN** (~5-7 sprints au total, à challenger) — projet ambitieux mis en backlog. Découpé en 4 phases :
+  - **Phase 1 — i18n UI** (~2-3 sprints) : `react-i18next` ou équivalent, extraction des ~600-800 strings hardcodées, 2 fichiers `fr.json`/`en.json`, setting `language` user (default depuis `navigator.language`), templates emails Resend par langue, aide en ligne (53 articles markdown) traduite **manuellement** par humain (qualité prime).
+  - **Phase 2 — Articles avec langue déclarée** (~1 sprint) : champ `language` sur `articles` et `faqs` (default `fr` pour l'existant), détection auto au save (LLM court) avec override, filtre dans liste/search, bandeau « Cet article est en anglais » sans traduction encore.
+  - **Phase 3 — Traduction à la volée** (~1-2 sprints) : moteur DeepL recommandé (qualité industrielle FR↔EN, ~20€/mois pour 500k chars) ou OpenAI/Anthropic avec prompt dédié. **LibreTranslate à éviter** sauf budget zéro (qualité insuffisante pour du contenu support client = risque légal). Cache DB obligatoire (table `article_translations` avec invalidation au `version` de l'article). Bandeau « Traduit automatiquement • Voir l'original ».
+  - **Phase 4 — Recherche multilingue** (~1-2 sprints, à challenger) : 3 options — traduire la query au runtime, indexer les traductions Meilisearch, ou embeddings multilingues. Choix selon volume d'articles cross-lang à ce moment.
+  
+  **Questions structurantes à trancher avant de démarrer** :
+  - Persona n°1 : org FR avec clients EN ? Équipes internationales bilingues ? Belges/Suisses multi-officielles ?
+  - Article = 1 langue ou plusieurs versions par langue (modèle data radicalement différent) ?
+  - L'admin org peut-il imposer la langue par défaut ?
+  - Qualité ou vitesse pour la trad UI (humaine vs auto-LLM) ?
+  - Moteur de traduction : qui choisit, qui paie ?
+  - Latence acceptable à la volée (DeepL ~200ms vs OpenAI 1-3s — change l'UX) ?
+  - FAQs P2 (export web) et P3 (chatbot) : traduction dans le scope ?
+  
+  **Risques identifiés** :
+  - Traduction fautive sur de la « politique de remboursement » = litige client / risque légal — qui assume ?
+  - Recherche multilingue mal foutue = frustration immédiate du conseiller bilingue
+  - Coût LLM non maîtrisé sans cache DB (× N consultations)
+  - I18n UI sous-estimée : ~600-800 strings dispersées, ~3-5j de mécanique + 1 sprint trad
+
 - **SearchBar — Tags as results** (~3h, à challenger) : nouvelle section *« 🏷 Tags »* dans le dropdown (entre Articles et Processus). Endpoint `/api/v1/search/tags?q=...` qui matche sur les tags de l'org, retour `{ id, displayName, articlesCount, faqsCount }`. UI : chips compactes (pas des items pleine largeur), clic → `navigate('/knowledge?tags=<name>')` + ferme le dropdown. Valeur attendue : raccourci puissant pour les conseillers qui pensent en thématiques plutôt qu'en titres. Pas urgent — à valider après quelques semaines d'usage des sections.
 - **FAQs P2 — Export web public** (~1 sprint) : visibility=public déjà en DB. Endpoint `/public/v1/faqs?visibility=public` à exposer, widget JS embed (`<script src="...">`) avec customisation visuelle, page hébergée optionnelle (`faq.knowdesk.fr/{org-slug}`), Schema.org FAQPage JSON-LD pour le SEO. À déclencher une fois l'adoption interne validée (helpful score moyen > 60% sur les FAQs publiques).
 - **FAQs P3 — Chatbot** (~2 sprints) : endpoint conversational `/public/v1/chat`, widget chat embarquable, semantic match sur les FAQs publiques (Meilisearch + reranking ou embeddings type OpenAI), fallback escalation vers humain. Boucle d'apprentissage : conversations sans réponse satisfaisante → suggestions de FAQs côté admin. À gater derrière un seuil quantitatif (≥ 50 FAQs publiques helpful > 70%) — un chatbot médiocre est pire que pas de chatbot.
