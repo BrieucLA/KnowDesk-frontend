@@ -27,6 +27,21 @@ Cette page récapitule les fonctionnalités livrées sur les dernières semaines
 
 ### Mai 2026
 
+**❓ FAQs éditables**
+Un nouvel onglet **FAQs** est disponible dans la barre de gauche. Une FAQ, c'est une réponse courte (1-3 phrases) prête à coller dans un chat ou un email — différent d'un article qui décrit une procédure complète.
+
+Ce qui change pour les conseillers :
+- Cmd+K → tape un mot → la FAQ remonte **en premier** dans les résultats avec un badge violet
+- Clic sur la FAQ → la réponse complète apparaît + bouton **Copier la réponse**
+- Vote 👍 / 👎 inline pour signaler les bonnes réponses (et les mauvaises)
+
+Ce qui change pour les admins :
+- Page Analytics : nouvelle bannière ambre **« 📝 FAQs à créer »** qui suggère automatiquement les questions cherchées sans résultat (≥ 3 fois en 7 jours)
+- Tab **À réviser** dans la liste : les FAQs publiées depuis plus de 6 mois sans modification sont signalées
+- Historique des modifications visible dans l'éditeur
+
+→ Voir la section **❓ FAQs**.
+
 **📊 Analytics**
 Une nouvelle page **Analytics** est disponible pour les admins et managers. Elle réunit en un coup d'œil :
 - Inventaire (publiés, brouillons, tags, processus)
@@ -342,6 +357,194 @@ KnowDesk conserve l'historique de toutes les versions publiées de tes articles.
     ],
   },
   {
+    id:    'faqs',
+    title: 'FAQs',
+    icon:  '❓',
+    articles: [
+      {
+        id:    'what-is-faq',
+        title: 'Qu\'est-ce qu\'une FAQ ?',
+        content: `
+## Qu'est-ce qu'une FAQ ?
+
+Une **FAQ** est une question fréquente avec une réponse courte, prête à être copiée-collée dans un chat ou un email client. C'est différent d'un article :
+
+| | FAQ | Article |
+|---|---|---|
+| **Format** | Question + réponse | Titre + contenu HTML libre |
+| **Longueur idéale** | 1 à 3 phrases | Aussi long que nécessaire |
+| **Cas d'usage** | « Délai de livraison ? » | « Procédure complète de retour produit » |
+| **Action** | Copier-coller la réponse | Lire et appliquer |
+| **Mise à jour** | Rare (la réponse change peu) | Régulière (procédures évoluent) |
+
+**Quand créer une FAQ plutôt qu'un article ?**
+
+Si tu peux répondre en moins de 3 phrases, c'est une FAQ. Si tu as besoin de plusieurs paragraphes, d'images ou de listes à puces, c'est un article.
+
+**Exemples de bonnes FAQs** :
+- *Délai de livraison standard ?* → 3 à 5 jours ouvrés en France métropolitaine, 7 à 10 jours pour les DOM-TOM.
+- *Comment annuler une commande ?* → Connecte-toi à ton compte, va dans Mes commandes, clique sur Annuler dans les 24h suivant l'achat.
+- *Politique de retour ?* → Retour gratuit dans les 30 jours via le portail client.
+
+**Exemples qui ne sont PAS des FAQs** :
+- ❌ *Comment configurer son compte* → c'est un guide → article
+- ❌ *Procédure de réclamation pour produit défectueux* → multi-étapes → article ou processus guidé
+
+> 💡 **Astuce** : Une FAQ peut **renvoyer vers un article** complet via le champ « Article lié ». Idéal pour les cas où la réponse courte suffit dans 80% des cas, mais où certains clients ont besoin de plus de détails.
+        `.trim(),
+      },
+      {
+        id:    'create-faq',
+        title: 'Créer une FAQ',
+        content: `
+## Créer une FAQ
+
+**Réservé aux rôles Admin et Manager.**
+
+**Deux points d'entrée :**
+
+1. **Manuel** : depuis l'onglet **❓ FAQs** dans le menu de gauche, clique sur **+ Nouvelle FAQ**
+2. **Suggéré automatiquement** : sur la page **Analytics**, la bannière ambre **📝 FAQs à créer** affiche les recherches qui ont retourné zéro résultat dans les 7 derniers jours (au moins 3 fois). Clique sur **Créer une FAQ** sur une suggestion : l'éditeur s'ouvre avec la question pré-remplie.
+
+**Champs de l'éditeur :**
+
+- **Question** (obligatoire, 200 caractères max) — formulée comme un client la poserait
+- **Réponse** (obligatoire, 2000 caractères max — mais vise 500 max idéalement). Au-delà, envisage plutôt un article complet.
+- **Catégorie** — réutilise l'arborescence existante
+- **Tags** — jusqu'à 10, mêmes tags que sur les articles
+- **Article lié** (optionnel) — pour les clients qui veulent plus de détails
+- **Visibilité** :
+  - *Interne* (défaut) — visible par ton équipe seulement
+  - *Public* — préparé pour l'export web public (à venir)
+
+**Bonnes pratiques de rédaction :**
+
+- ✅ Va à l'essentiel — 1 à 3 phrases
+- ✅ Pose la question comme un client la poserait, pas comme un agent (« Comment retourner un produit ? » plutôt que « Procédure de retour »)
+- ✅ Reste cohérent dans le ton — tutoyer ou vouvoyer, mais une seule règle pour toutes les FAQs publiques
+- ✅ Évite le jargon technique interne
+- ❌ Ne mets pas de noms de personnes ou de raccourcis internes
+- ❌ Évite les conditionnels lourds (« cela dépend si… »). Si la réponse est conditionnelle, fais plusieurs FAQs ou renvoie vers un article.
+
+**Statut Brouillon vs Publié :**
+
+Une FAQ en *brouillon* est invisible des conseillers. Elle n'apparaît dans la search bar qu'une fois **publiée**. Tu peux la dépublier à tout moment.
+
+> 💡 **Astuce** : Avant de publier, demande-toi : *« Est-ce que je collerais cette réponse telle quelle dans un chat client ? »*. Si non, retravaille-la.
+        `.trim(),
+      },
+      {
+        id:    'find-faq',
+        title: 'Trouver une FAQ rapidement',
+        content: `
+## Trouver une FAQ rapidement (pour conseillers)
+
+C'est le cas d'usage principal de KnowDesk : tu es en ligne avec un client, tu as **3 secondes** pour répondre.
+
+**Le bon réflexe :**
+
+1. **Cmd+K** (Mac) ou **Ctrl+K** (Windows / Linux) — la barre de recherche est focalisée depuis n'importe quelle page
+2. **Tape un mot-clé** — pas la phrase complète. *« remboursement »* suffit, pas besoin d'écrire *« Quelle est la politique de remboursement »*
+3. **Repère le badge violet « FAQ »** — les FAQs sont triées en premier dans les résultats
+4. **Clique sur la FAQ** — la réponse complète s'affiche en panneau bleu sous l'item
+5. **Clique sur Copier la réponse** — un toast vert te confirme que c'est dans ton presse-papier
+6. **Cmd+V dans ton chat** ou ton email client — c'est collé.
+
+**Donner ton avis :**
+
+Sous la réponse, tu peux voter :
+- 👍 si la réponse a bien aidé ton client
+- 👎 si elle est mal formulée, obsolète, ou si elle a généré une nouvelle question
+
+**Pourquoi c'est important** : ton vote remonte directement chez l'admin qui voit le score helpful sur chaque FAQ. Une FAQ avec beaucoup de 👎 sera retravaillée. Une FAQ avec beaucoup de 👍 sera conservée et peut-être exportée publiquement plus tard.
+
+> 💡 **Astuce** : Si tu cherches souvent une question pour laquelle il n'y a pas de FAQ, ne désespère pas — tes recherches sont automatiquement comptées et l'admin verra une suggestion sur sa page Analytics. Tu peux aussi en parler directement.
+
+**Si la FAQ ne suffit pas :**
+
+Si la FAQ a un **Article lié**, un lien apparaît pour ouvrir l'article complet (procédure détaillée, captures, etc.). Sinon, fais une recherche plus large pour trouver l'article correspondant.
+        `.trim(),
+      },
+      {
+        id:    'vote-faq',
+        title: 'Donner son avis sur une FAQ',
+        content: `
+## Donner son avis sur une FAQ
+
+**Disponible pour tous les rôles.**
+
+Sous chaque réponse de FAQ (depuis la search bar), tu peux voter avec un pouce :
+
+- 👍 **Cette réponse a aidé** — la formulation est claire, le client a compris, pas besoin de la retravailler
+- 👎 **Cette réponse n'a pas aidé** — formulation floue, info périmée, ou ça a généré une nouvelle question
+
+**Ce que ça change concrètement :**
+
+| Côté | Effet |
+|---|---|
+| Admin / Manager | Voit le **score helpful** (en %) sur chaque FAQ dans la liste et dans l'éditeur. Une FAQ avec un score < 60% est priorisée pour révision. |
+| Conseiller | Aide la qualité globale de la base — moins de mauvaises réponses, plus de bonnes. |
+| Toi | Tu ne peux voter qu'une fois par FAQ par session de navigation (le bouton est désactivé après ton vote). |
+
+**Anti-spam :**
+
+Le vote est conservé dans ton navigateur (localStorage). Si tu changes de navigateur ou que tu navigues en privé, tu peux re-voter — c'est assumé. Le but est de garder un signal honnête, pas de blinder une sécurité.
+
+> 💡 **Astuce** : Si tu votes 👎, c'est utile mais **encore plus utile** si tu signales aussi pourquoi à ton admin (« la FAQ X dit Y mais en réalité c'est Z »). Le pouce seul ne dit pas le pourquoi.
+        `.trim(),
+      },
+      {
+        id:    'pilot-faqs',
+        title: 'Piloter ses FAQs (admins)',
+        content: `
+## Piloter ses FAQs (admins)
+
+**Réservé aux rôles Admin et Manager.**
+
+Une fois ta FAQ publiée, son cycle de vie continue. Trois outils pour la maintenir vivante :
+
+### 1. Suggesteur automatique (page Analytics)
+
+La bannière **📝 FAQs à créer** apparaît sur la page Analytics quand au moins une recherche a retourné zéro résultat **3 fois ou plus dans les 7 derniers jours**. C'est volontairement bas pour ne rater aucun signal :
+
+- *« délai livraison Belgique »* — 12 recherches cette semaine sans résultat → tu vois la suggestion → clic « Créer une FAQ » → l'éditeur s'ouvre avec la question pré-remplie
+
+C'est ton meilleur indicateur des angles morts de ta base.
+
+### 2. FAQs à réviser (tab dans la liste)
+
+Une FAQ publiée n'a pas de date d'expiration en soi, mais **6 mois sans modification** est un signal de risque (politique qui a changé, prix qui a évolué, etc.).
+
+Le tab **À réviser** dans la liste affiche toutes les FAQs concernées. Sur chaque ligne, un badge orange « À réviser ».
+
+Quand tu ouvres une FAQ stale, une bannière ambre apparaît en haut de l'éditeur :
+- Si tu **modifies** la réponse → la date de révision est automatiquement mise à jour
+- Si tu **n'as rien à changer**, clique sur **C'est à jour** — la FAQ est marquée comme révisée sans toucher au contenu
+
+### 3. Score helpful par FAQ
+
+Chaque FAQ affiche son score (en % et nombre de votes) dans la liste et l'éditeur. Quelques règles de pilotage :
+
+- **Score > 80%** : la FAQ est solide, candidate à l'export public futur
+- **Score entre 60% et 80%** : la formulation peut être améliorée
+- **Score < 60% avec ≥ 5 votes** : à reformuler en priorité — la réponse n'aide pas
+- **Aucun vote** : neutre, pas de signal
+
+### 4. Historique des modifications
+
+Dans l'éditeur, ouvre le panneau **Historique des modifications** pour voir qui a touché la FAQ et quand. Utile pour comprendre l'évolution d'une réponse contestée ou pour retrouver le dernier auteur à contacter.
+
+> 💡 **Astuce** : Mets-toi un rappel mensuel pour passer 10 minutes sur :
+> 1. Les suggestions « FAQs à créer » sur Analytics
+> 2. Le tab « À réviser » dans la liste FAQs
+> 3. Les FAQs avec score helpful < 60%
+>
+> 30 minutes par mois suffisent à garder une base saine, et l'effet sur l'efficacité de ton équipe est immédiat.
+        `.trim(),
+      },
+    ],
+  },
+  {
     id:    'search',
     title: 'Recherche',
     icon:  '🔍',
@@ -540,10 +743,16 @@ Souvent un seul mot suffit (*remboursement*, *retour*, *colis*). Plus tu tapes l
 - \`Entrée\` ouvre le résultat sélectionné
 - \`Échap\` ferme la barre
 
-**Articles vs Processus guidés**
-Chaque résultat est étiqueté **Article** ou **Processus**. Si la situation est complexe (un cas client qui dépend de plusieurs critères), privilégie un **Processus guidé** — il te conduit étape par étape vers la bonne réponse.
+**FAQs, Articles ou Processus**
+Chaque résultat est étiqueté avec un badge :
+- **FAQ** (violet) — réponse courte prête à coller. **Toujours en haut des résultats** : c'est le format le plus rapide. Clic → la réponse complète apparaît + bouton **Copier la réponse** (1 clic = 1 collage).
+- **Article** (vert) — guide complet. Clic → ouvre l'article.
+- **Processus** (bleu) — arbre de décision. Si la situation est complexe (un cas client qui dépend de plusieurs critères), privilégie un Processus — il te conduit étape par étape vers la bonne réponse.
 
-> 💡 **Astuce** : Si tu cherches souvent un terme qui ne donne rien, signale-le à ton manager. Il a un radar dédié dans Analytics et peut faire créer l'article manquant.
+**Le bon réflexe : commence par les FAQs**
+Si une FAQ correspond à ta question, tu gagnes 30 secondes vs lire un article. Vote 👍 ou 👎 sous la réponse pour aider l'admin à piloter la qualité.
+
+> 💡 **Astuce** : Si tu cherches souvent un terme qui ne donne rien, ne désespère pas — tes recherches sont automatiquement comptées. À partir de 3 occurrences identiques en 7 jours, ton admin voit une suggestion sur sa page Analytics et peut créer la FAQ manquante en 2 minutes.
         `.trim(),
       },
       {
@@ -700,9 +909,15 @@ Va dans **Analytics → Recherches sans résultat**. Cette liste contient les re
 **Comment exploiter la liste**
 1. Trie mentalement les requêtes par fréquence (les plus fréquentes en haut)
 2. Pour chaque ligne, demande-toi :
-   - **C'est un sujet métier qu'on devrait couvrir ?** → crée un article
+   - **Réponse courte (1-3 phrases) qu'on peut figer ?** → crée une **FAQ** (le plus rapide, le plus utile pour les conseillers en ligne)
+   - **Sujet qui mérite une explication détaillée ?** → crée un article
    - **C'est un sujet déjà couvert sous un autre nom ?** → ajoute un **synonyme** (Paramètres → Recherche) pour relier les deux termes
    - **C'est une faute de frappe ou un terme rare ?** → ignore
+
+**Encore plus rapide : la bannière FAQs à créer**
+Depuis Mai 2026, en haut de la page Analytics, une bannière ambre **« 📝 FAQs à créer »** affiche automatiquement les requêtes zero-result qui ont au moins **3 occurrences sur les 7 derniers jours**. Clique sur **Créer une FAQ** : l'éditeur s'ouvre avec la question pré-remplie.
+
+C'est le chemin le plus court entre un manque détecté et une réponse en production.
 
 **Combine avec Top recherches**
 Si une requête apparaît à la fois dans **Top recherches** ET ramène peu de résultats pertinents, c'est un signal fort : l'équipe cherche, mais ne trouve pas vraiment ce qu'elle veut. Crée du contenu plus précis.
@@ -778,6 +993,62 @@ Chaque organisation a son **vocabulaire**. Ton équipe parle peut-être de *clô
 Tu n'as pas besoin de saisir chaque sens. Si tu déclares *annulation* ↔ *résiliation*, une recherche sur l'un retrouve les contenus de l'autre.
 
 > 💡 **Astuce** : Le dictionnaire se construit mieux par **petites touches au fil de l'eau** que par une grande session "tout d'un coup". Ajoute un synonyme dès que tu repères une vraie équivalence métier.
+        `.trim(),
+      },
+      {
+        id:    'industrialize-faqs',
+        title: 'Industrialiser les réponses récurrentes',
+        content: `
+## Industrialiser les réponses récurrentes
+
+Si tes conseillers passent un temps significatif à **reformuler les mêmes réponses** plusieurs fois par jour, tu as une opportunité de productivité majeure. Voici la méthode.
+
+### 1. Détecter les questions répétitives
+
+Trois sources de signal :
+
+- **Bannière « 📝 FAQs à créer »** sur Analytics — l'outil le détecte automatiquement (≥ 3 recherches zero-result en 7 jours)
+- **Top recherches** sur Analytics — les requêtes les plus fréquentes
+- **Verbatim de tes conseillers** — demande-leur les 5 questions clients qu'ils répondent le plus souvent
+
+### 2. Convertir en FAQs
+
+Pour chaque question identifiée :
+- Question formulée comme un client la pose
+- Réponse en 1 à 3 phrases, copiable telle quelle
+- Tag thématique pour la regrouper avec les FAQs similaires
+- Catégorie pour la retrouvabilité
+- Lien vers un article complet si besoin de détails
+
+Vise **20 à 50 FAQs** pour couvrir 80% des questions du quotidien — la fameuse loi de Pareto.
+
+### 3. Mesurer l'adoption
+
+Au bout d'un mois, regarde :
+
+| Indicateur | Cible | Où trouver |
+|---|---|---|
+| **Vues totales par FAQ** | > 5 / mois sur les FAQs phares | Liste FAQs (colonne « Vues ») |
+| **Score helpful moyen** | > 70% | Liste FAQs (badge X%) |
+| **% de recherches qui ouvrent une FAQ** | viser > 30% | Croisement Top recherches × Vues FAQ |
+| **Recherches sans résultat** | en baisse mois après mois | Analytics → Recherches sans résultat |
+
+### 4. Itérer
+
+- FAQ avec score < 60% (≥ 5 votes) → reformule la réponse
+- FAQ avec 0 vue après 30 jours → reformule la question (mauvais matching) ou retire-la
+- Nouvelle suggestion sur Analytics → bouton « Créer une FAQ », même flow
+
+### 5. Industrialiser à plus grande échelle (préparation P2 / P3)
+
+Quand tu as 50+ FAQs avec un helpful moyen > 70%, deux débouchés deviennent envisageables :
+
+- **Export web public** (à venir) : tes FAQs apparaissent automatiquement sur ton site client. Une seule édition, deux surfaces (interne + externe), zéro divergence.
+- **Chatbot** (à venir) : un assistant conversationnel ingère tes FAQs et répond aux clients en self-service.
+
+Ces deux briques amplifient le ROI éditorial de tes FAQs — mais elles ne fonctionnent bien qu'avec une base de qualité côté interne. C'est pourquoi P0 (création) et P1 (qualité) précèdent P2 et P3.
+
+> 💡 **Astuce** : 30 minutes par mois sur l'hygiène de tes FAQs (suggesteur, fraîcheur, votes < 60%) suffit à maintenir la base saine — et l'effet sur l'efficacité de ton équipe est immédiat. C'est probablement le meilleur ROI que tu puisses obtenir d'un outil de knowledge management.
         `.trim(),
       },
     ],
@@ -865,6 +1136,9 @@ Clique sur l'icône Analytics (graphique en barres) dans le menu de gauche.
 - **Articles publiés / brouillons / archivés** : photographie globale de ton stock
 - **Tags** et **Processus guidés** : volumétrie associée
 - **Actifs aujourd'hui / 7 jours / 30 jours** : utilisateurs distincts ayant consulté un article ou fait une recherche
+
+**Bannière ambre — 📝 FAQs à créer**
+Quand au moins une recherche zero-result a été faite **3 fois ou plus dans les 7 derniers jours**, une bannière ambre apparaît au-dessus du grid avec la liste des requêtes concernées. Chaque ligne a un bouton **Créer une FAQ** qui ouvre l'éditeur avec la question pré-remplie. C'est le moyen le plus rapide de combler les angles morts de ta base — utilise-le en priorité.
 
 **Cartes orientées action**
 Toutes les listes sont **cliquables** : un clic ouvre directement l'article concerné, le bouton **← Retour** te ramène sur Analytics.
