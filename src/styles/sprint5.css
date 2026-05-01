@@ -189,6 +189,10 @@
   border-top: 1px solid var(--neutral-100); margin-top: 4px;
 }
 
+/* ── ConfirmDialog ────────────────────────────────────────────── */
+.confirm-dialog { max-width: 380px; }
+.confirm-dialog__desc { font-size: 14px; color: var(--neutral-600); line-height: 1.5; margin: 0; }
+
 /* ── SettingsPage ─────────────────────────────────────────────── */
 .settings-page {
   display: grid; grid-template-columns: 200px 1fr; gap: 40px;
@@ -764,6 +768,7 @@
   border-radius: var(--radius-lg);
   padding: 16px;
   margin-bottom: 8px;
+  margin-left: calc(var(--tree-depth, 0) * 24px);
 }
 .tree-node--conclusion { border-color: var(--color-success, #1A6B3C); background: #F0FBF5; }
 .tree-node__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
@@ -813,9 +818,10 @@
   cursor: pointer; font-family: var(--font-ui); padding: 6px 12px;
   margin-top: 8px; display: block; width: 100%;
   transition: all var(--t-fast);
+  margin-left: calc(var(--tree-depth, 0) * 24px);
 }
 .tree-add-child:hover, .tree-add-root:hover { background: var(--brand-50); }
-.tree-add-node { margin-top: 8px; }
+.tree-add-node { margin-top: 8px; margin-left: calc(var(--tree-depth, 0) * 24px); }
 .tree-add-node__type { margin-bottom: 8px; }
 
 /* ── Versions panel ─────────────────────────────────────────── */
@@ -1224,6 +1230,7 @@
 .link-modal__result:hover { background: var(--neutral-50); border-color: var(--neutral-200); }
 .link-modal__result--selected { background: var(--brand-50); border-color: var(--brand-300); color: var(--brand-700); }
 .link-modal__selected { font-size: 13px; color: var(--neutral-500); margin-top: 8px; }
+.link-modal__searching { font-size: 13px; color: var(--neutral-400); margin: 4px 0 0; }
 
 /* Liens dans les articles */
 .article-link--external {

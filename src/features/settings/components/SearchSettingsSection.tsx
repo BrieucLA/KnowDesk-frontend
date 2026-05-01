@@ -1,13 +1,15 @@
 import React, { useState, useCallback } from 'react';
-import { Button }     from '../../../shared/components/ui/Button';
-import { Skeleton }   from '../../../shared/components/ui/Skeleton';
-import { ChipsInput } from '../../../shared/components/ui/ChipsInput';
-import { useSynonyms } from '../hooks/useSynonyms';
-import type { Synonym } from '../types';
+import { Button }        from '../../../shared/components/ui/Button';
+import { Skeleton }      from '../../../shared/components/ui/Skeleton';
+import { ChipsInput }    from '../../../shared/components/ui/ChipsInput';
+import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
+import { useSynonyms }   from '../hooks/useSynonyms';
+import type { Synonym }  from '../types';
 
 export function SearchSettingsSection() {
   const { items, loading, error, create, update, remove } = useSynonyms();
-  const [showCreate, setShowCreate] = useState(false);
+  const [showCreate,      setShowCreate]      = useState(false);
+  const [confirmDelete,   setConfirmDelete]   = useState<Synonym | null>(null);
 
   return (
     <section className="settings-section" aria-labelledby="search-title">
@@ -23,6 +25,17 @@ export function SearchSettingsSection() {
           + Ajouter un synonyme
         </Button>
       </div>
+
+      {confirmDelete && (
+        <ConfirmDialog
+          title={`Supprimer « ${confirmDelete.term} » ?`}
+          description="Ce synonyme sera supprimé de votre configuration de recherche. Cette action est irréversible."
+          confirmLabel="Supprimer"
+          variant="danger"
+          onConfirm={() => { remove(confirmDelete.id); setConfirmDelete(null); }}
+          onCancel={() => setConfirmDelete(null)}
+        />
+      )}
 
       {showCreate && (
         <CreateSynonymModal
@@ -55,9 +68,7 @@ export function SearchSettingsSection() {
               key={item.id}
               item={item}
               onSave={syn => update(item.id, syn)}
-              onDelete={() => {
-                if (confirm(`Supprimer le synonyme pour « ${item.term} » ?`)) remove(item.id);
-              }}
+              onDelete={() => setConfirmDelete(item)}
             />
           ))}
         </ul>

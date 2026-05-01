@@ -1,12 +1,15 @@
 import React, { useState, useCallback } from 'react';
-import { Button }   from '../../../shared/components/ui/Button';
-import { Skeleton } from '../../../shared/components/ui/Skeleton';
-import { useTags }  from '../hooks/useTags';
-import type { OrgTag } from '../../articles/api/tagsApi';
+import { Button }         from '../../../shared/components/ui/Button';
+import { Input }          from '../../../shared/components/ui/Input';
+import { Skeleton }       from '../../../shared/components/ui/Skeleton';
+import { ConfirmDialog }  from '../../../shared/components/ui/ConfirmDialog';
+import { useTags }        from '../hooks/useTags';
+import type { OrgTag }    from '../../articles/api/tagsApi';
 
 export function TagsSettingsSection() {
   const { items, loading, error, rename, remove } = useTags();
-  const [editing, setEditing] = useState<OrgTag | null>(null);
+  const [editing,        setEditing]       = useState<OrgTag | null>(null);
+  const [confirmDelete,  setConfirmDelete] = useState<OrgTag | null>(null);
 
   return (
     <section className="settings-section" aria-labelledby="tags-title">
@@ -20,6 +23,21 @@ export function TagsSettingsSection() {
           </p>
         </div>
       </div>
+
+      {confirmDelete && (
+        <ConfirmDialog
+          title={`Supprimer « ${confirmDelete.display_name} » ?`}
+          description={
+            confirmDelete.articles_count > 0
+              ? `Ce tag sera retiré de ${confirmDelete.articles_count} article${confirmDelete.articles_count === 1 ? '' : 's'}. Cette action est irréversible.`
+              : 'Cette action est irréversible.'
+          }
+          confirmLabel="Supprimer"
+          variant="danger"
+          onConfirm={() => { remove(confirmDelete.id); setConfirmDelete(null); }}
+          onCancel={() => setConfirmDelete(null)}
+        />
+      )}
 
       {editing && (
         <RenameTagModal
@@ -59,12 +77,7 @@ export function TagsSettingsSection() {
                 </Button>
                 <Button
                   variant="ghost" size="sm"
-                  onClick={() => {
-                    const msg = tag.articles_count > 0
-                      ? `Supprimer le tag « ${tag.display_name} » ? Il sera retiré de ${tag.articles_count} article${tag.articles_count === 1 ? '' : 's'}.`
-                      : `Supprimer le tag « ${tag.display_name} » ?`;
-                    if (confirm(msg)) remove(tag.id);
-                  }}
+                  onClick={() => setConfirmDelete(tag)}
                 >
                   Supprimer
                 </Button>
@@ -113,24 +126,16 @@ function RenameTagModal({
           <button type="button" className="modal__close" onClick={onClose} aria-label="Fermer">×</button>
         </div>
         <div className="modal__body">
-          <div className="field">
-            <label htmlFor="rename-input" className="field-label">
-              Nouveau nom
-            </label>
-            <input
-              id="rename-input"
-              type="text"
-              className="field-input"
-              value={value}
-              onChange={e => setValue(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') submit(); }}
-              autoFocus
-            />
-            <p className="field-hint">
-              Tous les articles taggés afficheront le nouveau nom. Si un tag avec ce nom
-              existe déjà (insensible à la casse), les deux seront fusionnés.
-            </p>
-          </div>
+          <Input
+            id="rename-input"
+            type="text"
+            label="Nouveau nom"
+            helperText="Tous les articles taggés afficheront le nouveau nom. Si un tag avec ce nom existe déjà (insensible à la casse), les deux seront fusionnés."
+            value={value}
+            onChange={e => setValue(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') submit(); }}
+            autoFocus
+          />
           <div className="modal__actions">
             <Button variant="ghost"   size="md" onClick={onClose}>Annuler</Button>
             <Button variant="primary" size="md" loading={saving} disabled={!canSubmit} onClick={submit}>

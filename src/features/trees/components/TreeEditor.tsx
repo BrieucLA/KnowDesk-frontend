@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useTreeEditor }  from '../hooks/useTreeEditor';
 import { Button }         from '../../../shared/components/ui/Button';
 import { Skeleton }       from '../../../shared/components/ui/Skeleton';
+import { ConfirmDialog }  from '../../../shared/components/ui/ConfirmDialog';
 import { useToast }       from '../../../shared/lib/useToast';
 import type { TreeNode, NodeAnswer } from '../types';
 
@@ -29,9 +30,10 @@ export function TreeEditor({ treeId, onBack, onPreview }: TreeEditorProps) {
   const [nodeType,       setNodeType]       = useState<'question' | 'conclusion'>('question');
   const [editingNode,    setEditingNode]    = useState<string | null>(null);
   const [nodeEditDraft,  setNodeEditDraft]  = useState('');
-  const [addingAnswer,   setAddingAnswer]   = useState<string | null>(null);
-  const [answerDraft,    setAnswerDraft]    = useState('');
-  const [publishing,     setPublishing]     = useState(false);
+  const [addingAnswer,      setAddingAnswer]      = useState<string | null>(null);
+  const [answerDraft,       setAnswerDraft]       = useState('');
+  const [publishing,        setPublishing]        = useState(false);
+  const [confirmDeleteNode, setConfirmDeleteNode] = useState<string | null>(null);
 
   const handlePublish = useCallback(async () => {
     setPublishing(true);
@@ -74,10 +76,15 @@ export function TreeEditor({ treeId, onBack, onPreview }: TreeEditorProps) {
   }, [nodeEditDraft, updateNode, toast]);
 
   const handleDeleteNode = useCallback(async (nodeId: string) => {
-    if (!confirm('Supprimer ce nœud et tous ses descendants ?')) return;
-    await deleteNode(nodeId);
+    setConfirmDeleteNode(nodeId);
+  }, []);
+
+  const confirmDeleteNodeAction = useCallback(async () => {
+    if (!confirmDeleteNode) return;
+    await deleteNode(confirmDeleteNode);
+    setConfirmDeleteNode(null);
     toast.success('Nœud supprimé.');
-  }, [deleteNode, toast]);
+  }, [confirmDeleteNode, deleteNode, toast]);
 
   const handleAddAnswer = useCallback(async (nodeId: string) => {
     if (!answerDraft.trim()) return;
@@ -116,7 +123,7 @@ export function TreeEditor({ treeId, onBack, onPreview }: TreeEditorProps) {
     }));
 
     return (
-      <div key={node.id} className={`tree-node tree-node--${node.type}`} style={{ marginLeft: depth * 24 }}>
+      <div key={node.id} className={`tree-node tree-node--${node.type}`} style={{ '--tree-depth': depth } as React.CSSProperties}>
         <div className="tree-node__header">
           <span className={`tree-node__badge tree-node__badge--${node.type}`}>
             {node.type === 'question' ? '❓ Question' : '✅ Conclusion'}
@@ -175,7 +182,7 @@ export function TreeEditor({ treeId, onBack, onPreview }: TreeEditorProps) {
                 }
                 {/* Bouton pour ajouter un nœud sous cette réponse */}
                 {addingNode?.parentAnswerId === answer.id ? (
-                  <div className="tree-add-node" style={{ marginLeft: (depth + 1) * 24 }}>
+                  <div className="tree-add-node" style={{ '--tree-depth': depth + 1 } as React.CSSProperties}>
                     <select
                       className="field-input tree-add-node__type"
                       value={nodeType}
@@ -201,7 +208,7 @@ export function TreeEditor({ treeId, onBack, onPreview }: TreeEditorProps) {
                   <button
                     type="button"
                     className="tree-add-child"
-                    style={{ marginLeft: (depth + 1) * 24 }}
+                    style={{ '--tree-depth': depth + 1 } as React.CSSProperties}
                     onClick={() => setAddingNode({ parentId: node.id, parentAnswerId: answer.id })}
                   >
                     + Ajouter un nœud
@@ -243,6 +250,17 @@ export function TreeEditor({ treeId, onBack, onPreview }: TreeEditorProps) {
   };
 
   return (
+    <>
+    {confirmDeleteNode && (
+      <ConfirmDialog
+        title="Supprimer ce nœud ?"
+        description="Ce nœud et tous ses descendants (réponses et sous-questions) seront définitivement supprimés."
+        confirmLabel="Supprimer"
+        variant="danger"
+        onConfirm={confirmDeleteNodeAction}
+        onCancel={() => setConfirmDeleteNode(null)}
+      />
+    )}
     <div className="tree-editor">
       {/* Topbar */}
       <div className="tree-editor__topbar">
@@ -334,5 +352,6 @@ export function TreeEditor({ treeId, onBack, onPreview }: TreeEditorProps) {
         )}
       </div>
     </div>
+    </>
   );
 }

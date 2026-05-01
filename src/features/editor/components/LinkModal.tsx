@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button } from '../../../shared/components/ui/Button';
-import { Input }  from '../../../shared/components/ui/Input';
+import { Button }     from '../../../shared/components/ui/Button';
+import { Input }      from '../../../shared/components/ui/Input';
+import { apiClient }  from '../../../shared/lib/apiClient';
 
 interface LinkModalProps {
   onInsert: (url: string, text: string, isInternal: boolean, articleId?: string) => void;
@@ -29,13 +30,11 @@ export function LinkModal({ onInsert, onClose, selectedText }: LinkModalProps) {
     const t = setTimeout(async () => {
       setSearching(true);
       try {
-        const res = await fetch(`/api/v1/articles?status=published&q=${encodeURIComponent(query)}`, {
-          credentials: 'include',
-        });
-        const data = await res.json();
+        const data = await apiClient.get<{ data: ArticleResult[] }>(
+          `/articles?status=published&q=${encodeURIComponent(query)}`
+        );
         setResults((data.data ?? []).slice(0, 8));
-      } catch (err) {
-        console.warn('[LinkModal] internal article search failed:', (err as Error)?.message ?? err);
+      } catch {
         setResults([]);
       }
       setSearching(false);
@@ -105,19 +104,16 @@ export function LinkModal({ onInsert, onClose, selectedText }: LinkModalProps) {
             </>
           ) : (
             <>
-              <div className="field">
-                <label htmlFor="link-search" className="field-label">Rechercher un article</label>
-                <input
-                  id="link-search"
-                  type="search"
-                  className="field-input"
-                  placeholder="Titre de l'article…"
-                  value={query}
-                  onChange={e => { setQuery(e.target.value); setSelectedArt(null); }}
-                  autoFocus
-                />
-              </div>
-              {searching && <p style={{ fontSize: 13, color: 'var(--neutral-400)' }}>Recherche…</p>}
+              <Input
+                id="link-search"
+                type="search"
+                label="Rechercher un article"
+                placeholder="Titre de l'article…"
+                value={query}
+                onChange={e => { setQuery(e.target.value); setSelectedArt(null); }}
+                autoFocus
+              />
+              {searching && <p className="link-modal__searching">Recherche…</p>}
               {results.length > 0 && (
                 <ul className="link-modal__results">
                   {results.map(a => (

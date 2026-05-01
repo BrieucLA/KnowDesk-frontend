@@ -1,15 +1,18 @@
 import React, { useState, useCallback } from 'react';
-import { useApiKeys }  from '../hooks/useApiKeys';
-import { Button }      from '../../../shared/components/ui/Button';
-import { Skeleton }    from '../../../shared/components/ui/Skeleton';
-import { formatRelative } from '../../../shared/lib/formatDate';
+import { useApiKeys }       from '../hooks/useApiKeys';
+import { Button }           from '../../../shared/components/ui/Button';
+import { Input }            from '../../../shared/components/ui/Input';
+import { Skeleton }         from '../../../shared/components/ui/Skeleton';
+import { ConfirmDialog }    from '../../../shared/components/ui/ConfirmDialog';
+import { formatRelative }   from '../../../shared/lib/formatDate';
 
 export function ApiKeysSection() {
   const { keys, loading, newKey, setNewKey, createKey, revokeKey } = useApiKeys();
-  const [showCreate, setShowCreate] = useState(false);
-  const [name,       setName]       = useState('');
-  const [creating,   setCreating]   = useState(false);
-  const [copied,     setCopied]     = useState(false);
+  const [showCreate,   setShowCreate]   = useState(false);
+  const [name,         setName]         = useState('');
+  const [creating,     setCreating]     = useState(false);
+  const [copied,       setCopied]       = useState(false);
+  const [confirmRevoke, setConfirmRevoke] = useState<{ id: string; name: string } | null>(null);
 
   const handleCreate = useCallback(async () => {
     if (!name.trim()) return;
@@ -31,6 +34,17 @@ export function ApiKeysSection() {
   }, [newKey]);
 
   return (
+    <>
+    {confirmRevoke && (
+      <ConfirmDialog
+        title={`Révoquer « ${confirmRevoke.name} » ?`}
+        description="Cette clé sera immédiatement invalidée. Les intégrations qui l'utilisent cesseront de fonctionner."
+        confirmLabel="Révoquer"
+        variant="danger"
+        onConfirm={() => { revokeKey(confirmRevoke.id); setConfirmRevoke(null); }}
+        onCancel={() => setConfirmRevoke(null)}
+      />
+    )}
     <div className="settings-section">
       <div className="settings-section__header">
         <div>
@@ -52,18 +66,17 @@ export function ApiKeysSection() {
               <button type="button" className="modal__close" onClick={() => setShowCreate(false)}>×</button>
             </div>
             <div className="modal__body">
-              <div className="field">
-                <label htmlFor="key-name" className="field-label">Nom de la clé</label>
-                <input
-                  id="key-name" type="text" className="field-input"
-                  placeholder="ex. Intégration Hubicus"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') handleCreate(); }}
-                  autoFocus
-                />
-                <p className="field-hint">Donnez un nom descriptif pour identifier cette clé.</p>
-              </div>
+              <Input
+                id="key-name"
+                type="text"
+                label="Nom de la clé"
+                placeholder="ex. Intégration Hubicus"
+                helperText="Donnez un nom descriptif pour identifier cette clé."
+                value={name}
+                onChange={e => setName(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleCreate(); }}
+                autoFocus
+              />
               <div className="modal__actions">
                 <Button variant="ghost"   size="md" onClick={() => setShowCreate(false)}>Annuler</Button>
                 <Button variant="primary" size="md" loading={creating} onClick={handleCreate} disabled={!name.trim()}>
@@ -113,11 +126,7 @@ export function ApiKeysSection() {
   </span>
   <Button
     variant="ghost" size="sm"
-    onClick={() => {
-      if (confirm(`Révoquer la clé "${key.name}" ? Cette action est irréversible.`)) {
-        revokeKey(key.id);
-      }
-    }}
+    onClick={() => setConfirmRevoke({ id: key.id, name: key.name })}
   >
     Révoquer
   </Button>
@@ -126,5 +135,6 @@ export function ApiKeysSection() {
         </ul>
       )}
     </div>
+    </>
   );
 }
