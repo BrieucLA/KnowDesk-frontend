@@ -58,11 +58,16 @@ type View =
   | { screen: 'tree-editor'; treeId: string }
   | { screen: 'account' };
 
-/** Maps URL pathname to a View (G1 routes only, returns null for unmapped paths). */
+/** Maps URL pathname to a View. Returns null for unmapped paths. */
 function pathToView(pathname: string, fallbackFrom: Screen): View | null {
   if (pathname === '/' || pathname === '')        return { screen: 'dashboard' };
   if (pathname === '/knowledge')                  return { screen: 'knowledge' };
   if (pathname === '/articles/new')               return { screen: 'editor', from: fallbackFrom };
+  if (pathname === '/members')                    return { screen: 'members' };
+  if (pathname === '/analytics')                  return { screen: 'analytics' };
+  if (pathname === '/settings')                   return { screen: 'settings' };
+  if (pathname === '/account')                    return { screen: 'account' };
+  if (pathname === '/trees')                      return { screen: 'trees' };
 
   const editMatch = pathname.match(/^\/articles\/([^/]+)\/edit$/);
   if (editMatch) return { screen: 'editor', articleId: editMatch[1], from: 'article' };
@@ -70,21 +75,31 @@ function pathToView(pathname: string, fallbackFrom: Screen): View | null {
   const articleMatch = pathname.match(/^\/articles\/([^/]+)$/);
   if (articleMatch) return { screen: 'article', articleId: articleMatch[1], from: fallbackFrom };
 
+  // /trees/:id/edit AVANT /trees/:id (sinon le second matche aussi)
+  const treeEditMatch = pathname.match(/^\/trees\/([^/]+)\/edit$/);
+  if (treeEditMatch) return { screen: 'tree-editor', treeId: treeEditMatch[1] };
+
   const treeMatch = pathname.match(/^\/trees\/([^/]+)$/);
   if (treeMatch) return { screen: 'tree', treeId: treeMatch[1], from: fallbackFrom };
 
   return null;
 }
 
-/** Maps a View back to the canonical URL pathname (G1 routes only). */
+/** Maps a View back to the canonical URL pathname. */
 function viewToPath(view: View): string | null {
   switch (view.screen) {
-    case 'dashboard': return '/';
-    case 'knowledge': return '/knowledge';
-    case 'article':   return `/articles/${view.articleId}`;
-    case 'editor':    return view.articleId ? `/articles/${view.articleId}/edit` : '/articles/new';
-    case 'tree':      return `/trees/${view.treeId}`;
-    default:          return null;  // legacy view, leave URL alone
+    case 'dashboard':   return '/';
+    case 'knowledge':   return '/knowledge';
+    case 'article':     return `/articles/${view.articleId}`;
+    case 'editor':      return view.articleId ? `/articles/${view.articleId}/edit` : '/articles/new';
+    case 'tree':        return `/trees/${view.treeId}`;
+    case 'tree-editor': return `/trees/${view.treeId}/edit`;
+    case 'trees':       return '/trees';
+    case 'members':     return '/members';
+    case 'analytics':   return '/analytics';
+    case 'settings':    return '/settings';
+    case 'account':     return '/account';
+    default:            return null;
   }
 }
 
