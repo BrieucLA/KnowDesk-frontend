@@ -209,7 +209,7 @@ function SectionNotifications() {
             onChange={() => toggle('weeklyDigest')}
           />
         </div>
-        <div className="field" style={{ maxWidth: '280px' }}>
+        <div className="field field--narrow">
           <label htmlFor="notif-channel" className="field-label">Canal préféré</label>
           <select
             id="notif-channel"

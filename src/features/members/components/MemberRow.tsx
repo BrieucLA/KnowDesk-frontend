@@ -44,11 +44,7 @@ export function MemberRow({
 
       {/* Identity */}
       <td className="member-row__cell member-row__identity">
-        <div
-          className="member-avatar"
-          aria-hidden="true"
-          style={{ opacity: member.status === 'disabled' ? 0.4 : 1 }}
-        >
+        <div className="member-avatar" aria-hidden="true">
           {initials}
         </div>
         <div className="member-row__name-wrap">

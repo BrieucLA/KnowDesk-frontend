@@ -150,6 +150,7 @@ html, body, #root {
 
 /* ── Atoms: Input / FormField ───────────────────────────────── */
 .field { display: flex; flex-direction: column; gap: 6px; }
+.field--narrow { max-width: 280px; }
 
 .field-label {
   font-size: 13px;
@@ -424,6 +425,24 @@ html, body, #root {
 
 /* Offset input padding so text doesn't go under the toggle */
 .login-form__password-wrap .field-input { padding-right: 80px; }
+
+/* RegisterForm — toggle posé après l'<Input/> et superposé sur le champ */
+.input-toggle-pw {
+  margin-top: -32px;
+  float: right;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 14px;
+  position: relative;
+  z-index: 1;
+}
+.input-toggle-pw:focus-visible {
+  outline: 2px solid var(--brand-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
 
 .login-form__forgot {
   display: flex;

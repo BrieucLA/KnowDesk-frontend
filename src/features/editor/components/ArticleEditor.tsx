@@ -237,12 +237,6 @@ if (!isEdit) {
         </div>
       </div>
 
-      {(errors as any).general && (
-        <div className="article-editor__offline" role="alert" style={{ background: 'var(--color-danger-bg)', borderColor: 'var(--color-danger-border)', color: 'var(--color-danger)' }}>
-          {(errors as any).general}
-        </div>
-      )}
-
       <div className="article-editor__body">
         <div className="article-editor__meta">
           <div className="field">

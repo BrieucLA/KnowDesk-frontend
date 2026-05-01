@@ -51,7 +51,7 @@ export function TagsSettingsSection() {
         />
       )}
 
-      {error && <p className="field-error" role="alert" style={{ marginBottom: 12 }}>{error}</p>}
+      {error && <p className="field-error settings-section__error" role="alert">{error}</p>}
 
       {loading ? (
         <div className="api-keys-list">

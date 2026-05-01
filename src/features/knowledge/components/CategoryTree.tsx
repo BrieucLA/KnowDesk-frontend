@@ -82,13 +82,12 @@ function CategoryNode({ category, selectedId, onSelect, level }: CategoryNodePro
       <div
         className={cn(
           'cat-item',
-          `cat-item--level-${level}`,
           isSelected && 'cat-item--selected',
         )}
         tabIndex={0}
         onClick={handleClick}
         onKeyDown={handleKeyDown}
-        style={{ paddingLeft: `${12 + level * 16}px` }}
+        style={{ '--cat-level': level } as React.CSSProperties}
       >
         {hasChildren && (
           <span className={cn('cat-item__chevron', isOpen && 'cat-item__chevron--open')} aria-hidden="true">

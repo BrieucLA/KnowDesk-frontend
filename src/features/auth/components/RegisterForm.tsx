@@ -69,8 +69,7 @@ export function RegisterForm({
   type="button"
   className="input-toggle-pw"
   onClick={onTogglePassword}
-  aria-label={showPassword ? 'Masquer' : 'Afficher'}
-  style={{ marginTop: '-32px', float: 'right', background: 'none', border: 'none', cursor: 'pointer' }}
+  aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
 >
   {showPassword ? '🙈' : '👁'}
 </button>

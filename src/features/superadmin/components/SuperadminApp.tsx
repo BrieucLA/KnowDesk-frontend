@@ -133,7 +133,7 @@ export function SuperadminApp() {
                         }
                       </td>
                       <td>
-  <div style={{ display: 'flex', gap: 4 }}>
+  <div className="sa-org__actions">
     {org.disabled_at ? (
       <Button variant="ghost" size="sm"
         onClick={() => setConfirm({ orgId: org.id, action: 'enable' })}>

@@ -157,7 +157,7 @@ export function MembersPage() {
                 <tr key={i} className="member-row">
                   <td className="member-row__cell member-row__identity">
                     <Skeleton className="member-sk-avatar" />
-                    <div style={{display:'flex',flexDirection:'column',gap:'4px'}}>
+                    <div className="member-row__name-skeleton">
                       <Skeleton className="member-sk-name" />
                       <Skeleton className="member-sk-email" />
                     </div>
