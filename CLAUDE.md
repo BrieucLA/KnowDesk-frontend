@@ -220,6 +220,7 @@ Conséquence : **le navigateur voit toutes les requêtes comme same-origin**, ce
 - Recherche intelligente (Meilisearch) — tolérance aux fautes, indexation articles + processus guidés, synonymes par organisation gérables dans Settings
 - Tags libres sur les articles — chips avec auto-complétion dans l'éditeur, filtre multi-tag dans la liste, affichage sur la fiche article et le dashboard, gestion admin (rename, suppression) dans Settings
 - Analytics d'utilisation — page admin/manager avec inventaire, articles à vérifier, brouillons orphelins, articles sans tag, top contributeurs, couverture par catégorie, top tags, tags inutilisés, top articles consultés, articles peu consultés, top recherches, recherches sans résultat, engagement DAU/WAU/MAU. Tracking d'événements (table events), purge cron 90 jours.
+- **FAQs éditables (P0+P1)** — entité distincte des articles, accessible via `/faqs`. CRUD admin/manager (Question 200 chars / Réponse 2000 chars), catégorisation, tags réutilisés, visibilité interne/public (préparation export web P2), lien optionnel vers un article. Indexation Meilisearch (boost « FAQ » en haut du dropdown), dans la SearchBar : clic → expansion in-line de la réponse complète + bouton **Copier la réponse** (1-clic UX conseiller). **Vote 👍/👎** par tous les rôles avec compteurs et score helpful (anti-spam localStorage). **Suggesteur** sur Analytics : bannière ambre listant les recherches sans résultat (≥ 3 occurrences sur 7j) avec bouton « Créer une FAQ » qui ouvre l'éditeur avec la question pré-remplie. **Fraîcheur** : badge `À réviser` sur les FAQs publiées > 6 mois sans modification, bannière éditeur + bouton « C'est à jour ». **Historique** : panneau collapsible dans l'éditeur (audit_logs filtrés). Cycle de vie complet : zéro-result → suggestion → création → indexation → recherche → expansion + copy → vote → fraîcheur → historique.
 - **Refacto UI/UX (axes A→E)** — `<ConfirmDialog>` (4 `confirm()` natifs remplacés), `<Modal>` partagé avec focus trap (8 modales unifiées), 2 `<input>` bruts → `<Input>`, `fetch()` direct → `apiClient`, error handling unifié (toasts partout, plus aucun silent failure côté UI), 16 styles inline → 8 (tous légitimes runtime)
 - **React Router v6** côté frontend (Phases G1+G2) — toutes les vues (`/dashboard`, `/knowledge`, `/articles/:id`, `/articles/:id/edit`, `/articles/new`, `/trees`, `/trees/:id`, `/trees/:id/edit`, `/members`, `/analytics`, `/settings`, `/account`) ont une URL canonique : deep-linking, F5 préserve l'écran, bouton Précédent fonctionnel, partage de liens. Bridge URL ↔ `useState<View>` dans `App.tsx` (cleanup vers `<Routes>` direct prévu en G3)
 - Pool PG résilient — `pool.on('error')` listener (empêche les crashs silencieux quand un client idle perd sa connexion), `max: 20`, `keepAlive`. Rate limiter skippé en `NODE_ENV=development` pour ne pas gêner le dev local
@@ -228,8 +229,8 @@ Conséquence : **le navigateur voit toutes les requêtes comme same-origin**, ce
 - Toasts sur les erreurs API
 - Stripe billing — plans, quotas, page de facturation
 
-### Issu de l'analyse Mayday — Priorité 1
-- FAQs éditables
+### Issu de l'analyse Mayday — Priorité 1 — État
+- ~~FAQs éditables~~ ✅ livré P0+P1 (cycle complet conseiller + admin). Reste **P2 export web** (visibility=public déjà préparé en DB) et **P3 chatbot** (semantic match sur les FAQs publiques) — voir backlog ci-dessous.
 
 ### Issu de l'analyse Mayday — Priorité 2
 - Mode appel en cours — suggestions contextuelles
@@ -244,7 +245,9 @@ Conséquence : **le navigateur voit toutes les requêtes comme same-origin**, ce
 - **Retirer le fallback Bearer** dans `auth.middleware` une fois que tous les clients utilisent les cookies (~1 sprint après stabilisation). Retirer aussi `accessToken` du retour JSON de `auth.controller` et du type `AuthSession` côté frontend.
 - **Hook `useApi` générique** côté frontend (~7 hooks de fetch redupliqués) : pattern uniforme loading/error/data, intégration apiClient, retour typé.
 - **Custom domain** (`app.knowdesk.fr` + `api.knowdesk.fr`) : remplacer le proxy Vercel par des sous-domaines de la même TLD+1, pour éviter le hop supplémentaire et avoir des cookies natifs sans rewrite.
-- **Tests frontend** : zéro test côté frontend ; vitest installé. Cibler ArticleEditor (sauvegarde + tags), TagsInput (autocomplete), AnalyticsPage, ProtectedRoute, le bridge router. Côté backend, **31 tests passants** (auth + multi-tenancy + permissions) couvrent les chemins critiques.
+- **Tests frontend** : zéro test côté frontend ; vitest installé. Cibler ArticleEditor (sauvegarde + tags), TagsInput (autocomplete), AnalyticsPage, ProtectedRoute, le bridge router. Côté backend, **65 tests passants** (auth + multi-tenancy + permissions + FAQs) couvrent les chemins critiques.
+- **FAQs P2 — Export web public** (~1 sprint) : visibility=public déjà en DB. Endpoint `/public/v1/faqs?visibility=public` à exposer, widget JS embed (`<script src="...">`) avec customisation visuelle, page hébergée optionnelle (`faq.knowdesk.fr/{org-slug}`), Schema.org FAQPage JSON-LD pour le SEO. À déclencher une fois l'adoption interne validée (helpful score moyen > 60% sur les FAQs publiques).
+- **FAQs P3 — Chatbot** (~2 sprints) : endpoint conversational `/public/v1/chat`, widget chat embarquable, semantic match sur les FAQs publiques (Meilisearch + reranking ou embeddings type OpenAI), fallback escalation vers humain. Boucle d'apprentissage : conversations sans réponse satisfaisante → suggestions de FAQs côté admin. À gater derrière un seuil quantitatif (≥ 50 FAQs publiques helpful > 70%) — un chatbot médiocre est pire que pas de chatbot.
 
 ### Import de documents (plan rédigé)
 - MVP : import PDF/DOCX → article
