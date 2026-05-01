@@ -1,10 +1,10 @@
-import React, { useCallback, useEffect, useId, useState } from 'react';
+import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { SearchResultItem }    from './SearchResultItem';
 import { FaqResultExpansion }  from './FaqResultExpansion';
 import { useSearch }           from '../hooks/useSearch';
 import { useAuthStore }        from '../../../store/authStore';
 import { useToast }            from '../../../shared/lib/useToast';
-import type { SearchResult }   from '../types';
+import type { SearchResult, SearchResultType }   from '../types';
 
 interface SearchBarProps {
   /** Called when user selects a result — caller handles navigation */
@@ -12,14 +12,29 @@ interface SearchBarProps {
   className?: string;
 }
 
+interface SectionDef {
+  type:  SearchResultType;
+  label: string;
+  icon:  string;
+}
+
+/** Ordre des sections dans le dropdown — les FAQs en premier (cas d'usage conseiller). */
+const SECTIONS: SectionDef[] = [
+  { type: 'faq',     label: 'FAQs',      icon: '❓' },
+  { type: 'article', label: 'Articles',  icon: '📄' },
+  { type: 'tree',    label: 'Processus', icon: '🌳' },
+];
+
 /**
  * SearchBar — the global search widget.
  *
  * Features:
  *  - Cmd+K focuses from anywhere in the app
  *  - Debounced 200ms, results under 500ms
- *  - Arrow key + Enter navigation
- *  - Shows popular articles when focused & empty
+ *  - Arrow key + Enter navigation across sections
+ *  - Sections par type (FAQs, Articles, Processus) avec headers + count
+ *  - Sections vides masquées
+ *  - Click outside ferme le dropdown sans vider la query
  *  - Full ARIA combobox pattern
  */
 export function SearchBar({ onSelect, className }: SearchBarProps) {
@@ -27,7 +42,12 @@ export function SearchBar({ onSelect, className }: SearchBarProps) {
   const listboxId  = useId();
   const resultIdPrefix = useId();
   const toast      = useToast();
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
   const [expandedFaqId, setExpandedFaqId] = useState<string | null>(null);
+  // Override local : permet de fermer le dropdown sans vider la query
+  // (click outside, Escape avec query). Reset à false au focus / au change.
+  const [dismissed, setDismissed] = useState(false);
 
   const handleSelect = useCallback((result: SearchResult) => {
     if (result.type === 'faq') {
@@ -51,28 +71,63 @@ export function SearchBar({ onSelect, className }: SearchBarProps) {
     }
   }, [toast]);
 
-  // Reset l'expansion quand la query change
-  // (évite les états zombies après nouvelle recherche)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-
   const {
     state, activeIndex, isOpen,
     inputRef, listRef,
     handleChange, handleClear, handleKeyDown, handleFocus,
   } = useSearch({ token, onSelect: handleSelect });
 
-  useEffect(() => { setExpandedFaqId(null); }, [state.query]);
+  // Reset l'expansion ET le dismissed quand la query change
+  useEffect(() => {
+    setExpandedFaqId(null);
+    setDismissed(false);
+  }, [state.query]);
+
+  // Click outside → ferme le dropdown sans vider la query.
+  // L'utilisateur peut ré-ouvrir en cliquant sur l'input (focus relance dismissed=false).
+  useEffect(() => {
+    const onMouseDown = (e: MouseEvent) => {
+      if (!wrapperRef.current) return;
+      if (wrapperRef.current.contains(e.target as Node)) return;
+      setDismissed(true);
+      setExpandedFaqId(null);
+    };
+    document.addEventListener('mousedown', onMouseDown);
+    return () => document.removeEventListener('mousedown', onMouseDown);
+  }, []);
+
+  // Wrapped focus handler : reset dismissed pour ré-afficher si on a déjà des résultats
+  const handleFocusWrapped = useCallback(() => {
+    setDismissed(false);
+    handleFocus();
+  }, [handleFocus]);
+
+  // Effective open : on respecte le dismiss tant que l'utilisateur n'a pas re-focus
+  const isOpenEffective = isOpen && !dismissed;
 
   const activeResultId = activeIndex >= 0
     ? `${resultIdPrefix}-${activeIndex}`
     : undefined;
 
+  // Groupage par type, en suivant l'ordre de SECTIONS. Les sections vides
+  // sont filtrées. L'index global (pour activeIndex / aria-activedescendant)
+  // reste sur le tableau plat state.results — sorté à l'ordre logique des
+  // sections grâce au tri TYPE_ORDER côté useSearch.
+  const grouped = useMemo(() => {
+    return SECTIONS
+      .map(section => ({
+        ...section,
+        results: state.results.filter(r => r.type === section.type),
+      }))
+      .filter(s => s.results.length > 0);
+  }, [state.results]);
+
   return (
-    <div className={`search-bar ${className ?? ''}`} role="search">
+    <div ref={wrapperRef} className={`search-bar ${className ?? ''}`} role="search">
       <div
         className="search-bar__combobox"
         role="combobox"
-        aria-expanded={isOpen}
+        aria-expanded={isOpenEffective}
         aria-haspopup="listbox"
         aria-owns={listboxId}
       >
@@ -95,7 +150,7 @@ export function SearchBar({ onSelect, className }: SearchBarProps) {
           aria-label="Rechercher dans la base de connaissance"
           onChange={e => handleChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          onFocus={handleFocus}
+          onFocus={handleFocusWrapped}
         />
 
         {/* Kbd hint — hidden when typing */}
@@ -117,12 +172,12 @@ export function SearchBar({ onSelect, className }: SearchBarProps) {
       </div>
 
       {/* Results dropdown */}
-      {isOpen && (
+      {isOpenEffective && (
         <div className="search-bar__dropdown">
-          {/* Section label */}
+          {/* Header global */}
           <p className="search-bar__dropdown-label" aria-hidden="true">
             {state.query
-              ? `${state.results.length} résultat${state.results.length > 1 ? 's' : ''}`
+              ? `${state.results.length} résultat${state.results.length > 1 ? 's' : ''} pour « ${state.query} »`
               : 'Articles populaires'}
           </p>
 
@@ -133,22 +188,39 @@ export function SearchBar({ onSelect, className }: SearchBarProps) {
             aria-label="Résultats de recherche"
             className="search-bar__results"
           >
-            {state.results.map((result, i) => (
-              <React.Fragment key={result.id}>
-                <SearchResultItem
-                  id={`${resultIdPrefix}-${i}`}
-                  result={result}
-                  isActive={i === activeIndex}
-                  onClick={handleSelect}
-                />
-                {result.type === 'faq' && expandedFaqId === result.id && (
-                  <FaqResultExpansion
-                    result={result}
-                    onCopy={handleCopyAnswer}
-                  />
-                )}
-              </React.Fragment>
-            ))}
+            {grouped.map(section => {
+              const indexedResults = section.results.map(result => ({
+                result,
+                // Position originale dans state.results plat — pour matcher activeIndex
+                globalIndex: state.results.indexOf(result),
+              }));
+              return (
+                <React.Fragment key={section.type}>
+                  {/* Header de section : non focusable, role=presentation */}
+                  <li className="search-section__header" role="presentation" aria-hidden="true">
+                    <span className="search-section__icon">{section.icon}</span>
+                    <span className="search-section__label">{section.label}</span>
+                    <span className="search-section__count">{section.results.length}</span>
+                  </li>
+                  {indexedResults.map(({ result, globalIndex }) => (
+                    <React.Fragment key={result.id}>
+                      <SearchResultItem
+                        id={`${resultIdPrefix}-${globalIndex}`}
+                        result={result}
+                        isActive={globalIndex === activeIndex}
+                        onClick={handleSelect}
+                      />
+                      {result.type === 'faq' && expandedFaqId === result.id && (
+                        <FaqResultExpansion
+                          result={result}
+                          onCopy={handleCopyAnswer}
+                        />
+                      )}
+                    </React.Fragment>
+                  ))}
+                </React.Fragment>
+              );
+            })}
           </ul>
 
           {/* Footer hint */}
@@ -161,21 +233,21 @@ export function SearchBar({ onSelect, className }: SearchBarProps) {
       )}
 
       {/* Loading indicator */}
-      {state.status === 'loading' && (
+      {state.status === 'loading' && !dismissed && (
         <div className="search-bar__loading" role="status" aria-label="Recherche en cours…">
           <div className="search-bar__spinner" aria-hidden="true" />
         </div>
       )}
 
       {/* Error */}
-      {state.status === 'error' && state.message && (
+      {state.status === 'error' && state.message && !dismissed && (
         <div className="search-bar__error" role="alert">
           {state.message}
         </div>
       )}
 
       {/* No results */}
-      {state.status === 'success' && state.query && state.results.length === 0 && (
+      {state.status === 'success' && state.query && state.results.length === 0 && !dismissed && (
         <div className="search-bar__empty" role="status">
           <p>Aucun résultat pour <strong>"{state.query}"</strong></p>
           <p className="search-bar__empty-hint">Essayez d'autres mots-clés ou consultez les catégories.</p>

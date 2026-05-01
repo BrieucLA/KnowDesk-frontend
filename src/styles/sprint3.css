@@ -368,7 +368,31 @@
   letter-spacing: .06em; color: var(--neutral-400);
   padding: 10px 14px 6px;
 }
-.search-bar__results { list-style: none; }
+.search-bar__results { list-style: none; padding: 0; margin: 0; }
+
+/* Headers de section dans le dropdown — visuels uniquement, non focusables */
+.search-section__header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px 6px;
+  font-size: 11px; font-weight: 500;
+  color: var(--neutral-500);
+  text-transform: uppercase; letter-spacing: 0.04em;
+  border-top: 1px solid var(--neutral-100);
+  background: var(--neutral-50);
+}
+/* Premier header collé au label global → pas de double border */
+.search-bar__dropdown-label + .search-bar__results .search-section__header:first-child {
+  border-top: none;
+}
+.search-section__icon { font-size: 13px; line-height: 1; }
+.search-section__label { flex: 1; }
+.search-section__count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; padding: 0 6px;
+  background: var(--neutral-200); color: var(--neutral-700);
+  border-radius: 99px; font-size: 10px; font-weight: 600;
+  letter-spacing: 0;
+}
 .search-bar__footer {
   display: flex; gap: 16px; padding: 8px 14px;
   border-top: 1px solid var(--neutral-100);
