@@ -5,6 +5,7 @@ import { useAnalytics } from '../hooks/useAnalytics';
 import type {
   AnalyticsOverview, ArticleSummary, TopContributor,
   CategoryCoverage, TopTag, UnusedTag,
+  ViewedArticle, LowViewedArticle, SearchQueryStat, Engagement,
 } from '../types';
 
 interface AnalyticsPageProps {
@@ -44,15 +45,39 @@ export function AnalyticsPage({ onOpenArticle }: AnalyticsPageProps) {
       </header>
 
       <InventoryRow inventory={data.inventory} />
+      <EngagementRow engagement={data.engagement} windowDays={data.windowDays} />
 
       <div className="analytics-grid">
-        <ArticlesToReviewCard items={data.articlesToReview} onOpen={onOpenArticle} />
+        <TopViewedCard          items={data.topViewedArticles}   windowDays={data.windowDays} onOpen={onOpenArticle} />
+        <LowViewedCard          items={data.lowViewedArticles}   windowDays={data.windowDays} onOpen={onOpenArticle} />
+        <TopSearchesCard        items={data.topSearchQueries}    windowDays={data.windowDays} />
+        <ZeroResultsCard        items={data.zeroResultsSearches} windowDays={data.windowDays} />
+        <ArticlesToReviewCard   items={data.articlesToReview}    onOpen={onOpenArticle} />
         <OrphanDraftsCard       items={data.orphanDrafts}        onOpen={onOpenArticle} />
         <NoTagsCard             items={data.articlesWithoutTags} onOpen={onOpenArticle} />
         <TopContributorsCard    items={data.topContributors}     />
         <CoverageCard           items={data.coverageByCategory}  />
         <TopTagsCard            items={data.topTags}             />
         <UnusedTagsCard         items={data.unusedTags}          />
+      </div>
+    </div>
+  );
+}
+
+function EngagementRow({ engagement, windowDays }: { engagement: Engagement; windowDays: number }) {
+  return (
+    <div className="analytics-stats analytics-stats--engagement" aria-label="Activité de l'équipe">
+      <div className="analytics-stat">
+        <span className="analytics-stat__value">{engagement.dau}</span>
+        <span className="analytics-stat__label">Actifs aujourd'hui</span>
+      </div>
+      <div className="analytics-stat">
+        <span className="analytics-stat__value">{engagement.wau}</span>
+        <span className="analytics-stat__label">Actifs sur 7 jours</span>
+      </div>
+      <div className="analytics-stat">
+        <span className="analytics-stat__value">{engagement.mau}</span>
+        <span className="analytics-stat__label">Actifs sur {windowDays} jours</span>
       </div>
     </div>
   );
@@ -255,6 +280,96 @@ function UnusedTagsCard({ items }: { items: UnusedTag[] }) {
         {items.map(t => (
           <li key={t.id}>
             <span className="chip chip--readonly">{t.displayName}</span>
+          </li>
+        ))}
+      </ul>
+    </AnalyticsCard>
+  );
+}
+
+// ── Phase 2 cards (vues + recherches) ─────────────────────────
+
+function TopViewedCard({ items, windowDays, onOpen }: { items: ViewedArticle[]; windowDays: number; onOpen: (id: string) => void }) {
+  return (
+    <AnalyticsCard
+      title="Articles les plus consultés"
+      description={`Top 10 sur ${windowDays} jours.`}
+      count={items.length}
+      emptyHint="Pas encore assez de vues — revenez après quelques jours d'activité."
+    >
+      <ul className="analytics-list">
+        {items.map(a => (
+          <li key={a.id} className="analytics-list__item">
+            <button type="button" className="analytics-list__btn" onClick={() => onOpen(a.id)}>
+              <span className="analytics-list__title">{a.title}</span>
+              <span className="analytics-list__meta">
+                {a.categoryName ?? 'Sans catégorie'} · {a.views} vue{a.views > 1 ? 's' : ''}
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </AnalyticsCard>
+  );
+}
+
+function LowViewedCard({ items, windowDays, onOpen }: { items: LowViewedArticle[]; windowDays: number; onOpen: (id: string) => void }) {
+  return (
+    <AnalyticsCard
+      title="Articles peu consultés"
+      description={`Publiés depuis plus de ${windowDays} jours et lus au plus une fois sur la fenêtre.`}
+      count={items.length}
+      emptyHint="Tous vos articles publiés trouvent leur lecteur."
+    >
+      <ul className="analytics-list">
+        {items.map(a => (
+          <li key={a.id} className="analytics-list__item">
+            <button type="button" className="analytics-list__btn" onClick={() => onOpen(a.id)}>
+              <span className="analytics-list__title">{a.title}</span>
+              <span className="analytics-list__meta">
+                {a.categoryName ?? 'Sans catégorie'} · {a.views} vue · MAJ {formatRelative(a.lastUpdated)}
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </AnalyticsCard>
+  );
+}
+
+function TopSearchesCard({ items, windowDays }: { items: SearchQueryStat[]; windowDays: number }) {
+  return (
+    <AnalyticsCard
+      title="Top recherches"
+      description={`Requêtes les plus fréquentes sur ${windowDays} jours.`}
+      count={items.length}
+      emptyHint="Pas encore de recherches enregistrées."
+    >
+      <ul className="analytics-list">
+        {items.map(s => (
+          <li key={s.query} className="analytics-list__item analytics-list__item--row">
+            <span className="analytics-list__title">{s.query}</span>
+            <span className="analytics-list__counter">{s.count}</span>
+          </li>
+        ))}
+      </ul>
+    </AnalyticsCard>
+  );
+}
+
+function ZeroResultsCard({ items, windowDays }: { items: SearchQueryStat[]; windowDays: number }) {
+  return (
+    <AnalyticsCard
+      title="Recherches sans résultat"
+      description={`Requêtes qui n'ont rien retourné sur ${windowDays} jours — opportunités éditoriales.`}
+      count={items.length}
+      emptyHint="Aucune recherche infructueuse — votre base couvre bien le besoin."
+    >
+      <ul className="analytics-list">
+        {items.map(s => (
+          <li key={s.query} className="analytics-list__item analytics-list__item--row">
+            <span className="analytics-list__title">{s.query}</span>
+            <span className="analytics-list__counter">{s.count}</span>
           </li>
         ))}
       </ul>

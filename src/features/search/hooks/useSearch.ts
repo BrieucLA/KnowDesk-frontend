@@ -1,5 +1,6 @@
 import { useReducer, useCallback, useEffect, useRef } from 'react';
 import { apiClient }          from '../../../shared/lib/apiClient';
+import { trackEvent }         from '../../../shared/lib/trackEvent';
 import type { SearchState, SearchResult } from '../types';
 
 type Action =
@@ -21,6 +22,7 @@ function reducer(state: SearchState, action: Action): SearchState {
 
 const INITIAL: SearchState = { query: '', results: [], status: 'idle' };
 const DEBOUNCE_MS = 200;
+const TRACK_DEBOUNCE_MS = 1500;   // ne consigne une recherche qu'après 1,5 s d'inactivité
 
 interface UseSearchOptions {
   token?:   string;
@@ -32,6 +34,7 @@ export function useSearch({ onSelect }: UseSearchOptions) {
   const [activeIndex, setActiveIndex] = useReducer((_: number, n: number) => n, -1);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const trackRef    = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef    = useRef<HTMLInputElement>(null);
   const listRef     = useRef<HTMLUListElement>(null);
 
@@ -54,6 +57,19 @@ export function useSearch({ onSelect }: UseSearchOptions) {
         : '/search';
       const results = await apiClient.get<SearchResult[]>(path);
       dispatch({ type: 'SUCCESS', results });
+      // Tracking analytics : on ne consigne que les recherches "intentionnelles" (avec query),
+      // après TRACK_DEBOUNCE_MS d'inactivité. Si l'utilisateur continue de taper, on annule
+      // et on reprogramme — seule la dernière query "stable" sera consignée.
+      const query = q.trim();
+      if (trackRef.current) clearTimeout(trackRef.current);
+      if (query) {
+        const count = results.length;
+        trackRef.current = setTimeout(() => {
+          trackEvent('search.query', {
+            payload: { query: query.toLowerCase(), resultsCount: count },
+          });
+        }, TRACK_DEBOUNCE_MS);
+      }
     } catch (err) {
       dispatch({
         type:    'ERROR',
@@ -75,9 +91,16 @@ export function useSearch({ onSelect }: UseSearchOptions) {
   }, [search]);
 
   const handleClear = useCallback(() => {
+    if (trackRef.current) clearTimeout(trackRef.current);
     dispatch({ type: 'CLEAR' });
     setActiveIndex(-1);
     inputRef.current?.focus();
+  }, []);
+
+  // Cleanup des timers au démontage
+  useEffect(() => () => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (trackRef.current)    clearTimeout(trackRef.current);
   }, []);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {

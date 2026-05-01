@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { ArticleVersionHistory } from './ArticleVersionHistory';
 import { ArticleFaqSection }    from './ArticleFaqSection';
 import { StatusBadge }          from '../../../shared/components/ui/StatusBadge';
@@ -7,6 +7,7 @@ import { NotFoundPage } from '../../../shared/components/ui/NotFoundPage';
 import { useArticle }           from '../hooks/useArticle';
 import { apiClient }           from '../../../shared/lib/apiClient';
 import { useToast }            from '../../../shared/lib/useToast';
+import { trackEvent }           from '../../../shared/lib/trackEvent';
 import { useAuthStore, selectUserRole } from '../../../store/authStore';
 import { formatRelative }       from '../../../shared/lib/formatDate';
 
@@ -21,6 +22,11 @@ export function ArticlePage({ articleId, onBack, onEdit }: ArticlePageProps) {
   const isAdmin = role === 'admin' || role === 'manager';
   const { state, reload } = useArticle(articleId);
   const toast = useToast();
+
+  // Tracking analytics : on consigne une vue dès qu'un article est ouvert.
+  useEffect(() => {
+    if (articleId) trackEvent('article.view', { targetType: 'article', targetId: articleId });
+  }, [articleId]);
   const handleRestore = useCallback(async (version: number) => {
     try {
       await apiClient.post(`/articles//versions/${version}/restore`, {});

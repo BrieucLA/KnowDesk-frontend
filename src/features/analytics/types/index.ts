@@ -37,6 +37,32 @@ export interface UnusedTag {
   displayName: string;
 }
 
+export interface ViewedArticle {
+  id:           string;
+  title:        string;
+  categoryName: string | null;
+  views:        number;
+}
+
+export interface LowViewedArticle {
+  id:           string;
+  title:        string;
+  lastUpdated:  string;
+  categoryName: string | null;
+  views:        number;
+}
+
+export interface SearchQueryStat {
+  query: string;
+  count: number;
+}
+
+export interface Engagement {
+  dau: number;
+  wau: number;
+  mau: number;
+}
+
 export interface AnalyticsOverview {
   inventory:           AnalyticsInventory;
   articlesToReview:    ArticleSummary[];
@@ -46,4 +72,10 @@ export interface AnalyticsOverview {
   coverageByCategory:  CategoryCoverage[];
   topTags:             TopTag[];
   unusedTags:          UnusedTag[];
+  topViewedArticles:   ViewedArticle[];
+  lowViewedArticles:   LowViewedArticle[];
+  topSearchQueries:    SearchQueryStat[];
+  zeroResultsSearches: SearchQueryStat[];
+  engagement:          Engagement;
+  windowDays:          number;
 }

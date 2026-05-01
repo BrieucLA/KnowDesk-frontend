@@ -1404,6 +1404,9 @@
   display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;
   margin-bottom: 24px;
 }
+.analytics-stats--engagement {
+  grid-template-columns: repeat(3, 1fr);
+}
 .analytics-stat {
   display: flex; flex-direction: column; gap: 4px;
   padding: 16px 18px;
