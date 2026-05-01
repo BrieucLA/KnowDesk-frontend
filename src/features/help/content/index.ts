@@ -27,6 +27,13 @@ Cette page récapitule les fonctionnalités livrées sur les dernières semaines
 
 ### Mai 2026
 
+**🔍 Barre de recherche améliorée**
+Les résultats sont désormais **regroupés par type** dans le dropdown : ❓ FAQs en premier, 📄 Articles, 🌳 Processus. Chaque section a son icône, son label et son compteur. Les sections sans résultat sont masquées pour éviter le bruit.
+
+Petit confort en plus : la barre se ferme désormais quand tu cliques en dehors, sans effacer ta requête. Tu peux la ré-ouvrir en cliquant sur l'input.
+
+→ Voir **🔍 Recherche → Rechercher dans la base**.
+
 **❓ FAQs éditables**
 Un nouvel onglet **FAQs** est disponible dans la barre de gauche. Une FAQ, c'est une réponse courte (1-3 phrases) prête à coller dans un chat ou un email — différent d'un article qui décrit une procédure complète.
 
@@ -565,23 +572,30 @@ KnowDesk dispose d'une recherche **tolérante aux fautes** qui couvre articles, 
 Tu n'as pas besoin de taper le mot exact. \`rembousement\` retrouve *remboursement*, \`livrazon\` retrouve *Livraisons*. La recherche corrige automatiquement les fautes courantes.
 
 **Ce qui est cherché**
-La recherche couvre, pour chaque article ou processus publié :
-- Le titre
-- Le contenu textuel (avec extraits surlignés dans les résultats)
+La recherche couvre, pour chaque FAQ, article ou processus publié :
+- La question (FAQ) ou le titre (article / processus)
+- La réponse (FAQ) ou le contenu textuel (avec extraits surlignés dans les résultats)
 - La catégorie
 - Les tags
 
-**Comprendre les résultats**
-Chaque résultat affiche :
-- Un badge **Article** ou **Processus**
-- La catégorie
-- Un extrait avec les mots cherchés en surbrillance
-- La date de mise à jour
+**Comprendre les résultats — sections par type**
+Les résultats sont **regroupés par type** avec un header dédié :
+- ❓ **FAQs** en premier — réponses courtes prêtes à coller. Clic → réponse complète in-line + bouton **Copier la réponse**
+- 📄 **Articles** ensuite — guides détaillés. Clic → ouvre l'article
+- 🌳 **Processus** en bas — arbres de décision pour les cas complexes
+
+Chaque section affiche un compteur. Si une section ne contient aucun résultat pour ta recherche, elle est masquée (pas de bruit).
 
 **Naviguer au clavier**
-Une fois la barre ouverte, utilise \`↑\` et \`↓\` pour parcourir les résultats, \`Entrée\` pour ouvrir, \`Échap\` pour fermer.
+- \`↑\` \`↓\` parcourent les résultats à travers les sections (les headers sont sautés automatiquement)
+- \`Entrée\` ouvre / déplie le résultat sélectionné
+- \`Échap\` ferme la barre
 
-> 💡 **Astuce** : Si une recherche fréquente ne ramène rien, signale-le : c'est un signal éditorial. Côté admin/manager, ces requêtes apparaissent dans **Analytics → Recherches sans résultat**.
+**Fermer la barre**
+- Clavier : \`Échap\`
+- Souris : clique n'importe où en dehors de la barre — le dropdown se ferme tout en gardant ta requête, tu peux la ré-ouvrir en cliquant sur l'input.
+
+> 💡 **Astuce** : Si une recherche fréquente ne ramène rien, signale-le : c'est un signal éditorial. Côté admin/manager, ces requêtes apparaissent dans **Analytics → Recherches sans résultat** et alimentent la suggestion automatique de FAQs.
         `.trim(),
       },
       {
