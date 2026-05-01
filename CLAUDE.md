@@ -210,6 +210,7 @@ VITE_API_URL=https://knowdesk-production.up.railway.app/api/v1
 - SideNav avec initiales, bouton déconnexion dans TopBar
 - Recherche intelligente (Meilisearch) — tolérance aux fautes, indexation articles + processus guidés, synonymes par organisation gérables dans Settings
 - Tags libres sur les articles — chips avec auto-complétion dans l'éditeur, filtre multi-tag dans la liste, affichage sur la fiche article et le dashboard, gestion admin (rename, suppression) dans Settings
+- Analytics d'utilisation — page admin/manager avec inventaire, articles à vérifier, brouillons orphelins, articles sans tag, top contributeurs, couverture par catégorie, top tags, tags inutilisés, top articles consultés, articles peu consultés, top recherches, recherches sans résultat, engagement DAU/WAU/MAU. Tracking d'événements (table events), purge cron 90 jours.
 
 ### Haute priorité
 - Toasts sur les erreurs API
@@ -217,7 +218,6 @@ VITE_API_URL=https://knowdesk-production.up.railway.app/api/v1
 
 ### Issu de l'analyse Mayday — Priorité 1
 - FAQs éditables
-- Analytics d'utilisation
 
 ### Issu de l'analyse Mayday — Priorité 2
 - Mode appel en cours — suggestions contextuelles
