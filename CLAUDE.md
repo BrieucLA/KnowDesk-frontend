@@ -223,6 +223,7 @@ VITE_API_URL=https://knowdesk-production.up.railway.app/api/v1
 - Mode appel en cours — suggestions contextuelles
 - Processus guidés enrichis — variables, conditions
 - Workflow de validation du contenu
+- Centre d'aide V2 (Sprint Help-D) — ouvrir l'article pertinent depuis le contexte (pas la section), footer feedback 👍/👎 sur chaque article (tracké via la table events), parseur markdown standard avec support des images, indexation Meilisearch dédiée si l'aide grossit au-delà de ~50 articles.
 
 ### Import de documents (plan rédigé)
 - MVP : import PDF/DOCX → article
