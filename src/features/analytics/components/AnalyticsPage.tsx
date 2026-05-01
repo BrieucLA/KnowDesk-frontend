@@ -1,7 +1,9 @@
-import React from 'react';
-import { Skeleton } from '../../../shared/components/ui/Skeleton';
-import { formatRelative } from '../../../shared/lib/formatDate';
-import { useAnalytics } from '../hooks/useAnalytics';
+import React, { useEffect, useState } from 'react';
+import { Skeleton }       from '../../../shared/components/ui/Skeleton';
+import { Button }          from '../../../shared/components/ui/Button';
+import { formatRelative }  from '../../../shared/lib/formatDate';
+import { useAnalytics }    from '../hooks/useAnalytics';
+import { analyticsApi, type FaqSuggestion } from '../api/analyticsApi';
 import type {
   AnalyticsOverview, ArticleSummary, TopContributor,
   CategoryCoverage, TopTag, UnusedTag,
@@ -10,9 +12,11 @@ import type {
 
 interface AnalyticsPageProps {
   onOpenArticle: (articleId: string) => void;
+  /** Optional — appelé quand l'admin clique « Créer une FAQ » sur une suggestion */
+  onCreateFaq?: (initialQuestion: string) => void;
 }
 
-export function AnalyticsPage({ onOpenArticle }: AnalyticsPageProps) {
+export function AnalyticsPage({ onOpenArticle, onCreateFaq }: AnalyticsPageProps) {
   const { data, loading, error } = useAnalytics();
 
   if (loading) {
@@ -46,6 +50,8 @@ export function AnalyticsPage({ onOpenArticle }: AnalyticsPageProps) {
 
       <InventoryRow inventory={data.inventory} />
       <EngagementRow engagement={data.engagement} windowDays={data.windowDays} />
+
+      {onCreateFaq && <FaqsToCreateBanner onCreate={onCreateFaq} />}
 
       <div className="analytics-grid">
         <TopViewedCard          items={data.topViewedArticles}   windowDays={data.windowDays} onOpen={onOpenArticle} />
@@ -374,5 +380,58 @@ function ZeroResultsCard({ items, windowDays }: { items: SearchQueryStat[]; wind
         ))}
       </ul>
     </AnalyticsCard>
+  );
+}
+
+// ── FAQs à créer (suggesteur P1) ─────────────────────────────
+
+function FaqsToCreateBanner({ onCreate }: { onCreate: (question: string) => void }) {
+  const [items,   setItems]   = useState<FaqSuggestion[] | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    analyticsApi.faqsToCreate()
+      .then(data => { if (alive) setItems(data); })
+      .catch(() => { if (alive) setItems([]); /* mode dégradé silencieux */ })
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
+  }, []);
+
+  if (loading) return null;
+  if (!items || items.length === 0) return null;
+
+  return (
+    <section className="faqs-to-create" aria-labelledby="faqs-to-create-title">
+      <header className="faqs-to-create__header">
+        <h2 id="faqs-to-create-title" className="faqs-to-create__title">
+          📝 FAQs à créer
+        </h2>
+        <p className="faqs-to-create__desc">
+          Vos conseillers ou clients ont cherché ces termes sans résultat dans les 7 derniers jours.
+          Créez une FAQ pour combler le manque.
+        </p>
+      </header>
+      <ul className="faqs-to-create__list" role="list">
+        {items.map(item => (
+          <li key={item.query} className="faqs-to-create__item">
+            <div className="faqs-to-create__main">
+              <span className="faqs-to-create__query">« {item.query} »</span>
+              <span className="faqs-to-create__meta">
+                {item.searches} recherche{item.searches > 1 ? 's' : ''}
+                {' · dernière '}{formatRelative(item.lastSeen)}
+              </span>
+            </div>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => onCreate(item.query)}
+            >
+              Créer une FAQ
+            </Button>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

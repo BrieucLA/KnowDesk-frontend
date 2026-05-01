@@ -307,7 +307,14 @@ if (!isLoggedIn) {
             />
           )}
           {view.screen === 'analytics' && (
-            <AnalyticsPage onOpenArticle={id => go({ screen: 'article', articleId: id, from: 'analytics' })} />
+            <AnalyticsPage
+              onOpenArticle={id => go({ screen: 'article', articleId: id, from: 'analytics' })}
+              onCreateFaq={question => {
+                // Navigate vers /faqs/new?question=... — le bridge URL→View va
+                // pousser screen='faq-editor', et FaqEditor lit le query param
+                navigate(`/faqs/new?question=${encodeURIComponent(question)}`);
+              }}
+            />
           )}
           {view.screen === 'settings' && <SettingsPage />}
           {view.screen === 'trees' && (

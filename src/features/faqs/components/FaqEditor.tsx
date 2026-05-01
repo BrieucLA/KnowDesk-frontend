@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { useLocation }  from 'react-router-dom';
 import { useFaq }       from '../hooks/useFaq';
 import { Button }       from '../../../shared/components/ui/Button';
 import { Input }        from '../../../shared/components/ui/Input';
@@ -40,8 +41,17 @@ const ANSWER_SOFT  = 500;
 export function FaqEditor({ faqId, initialQuestion, onSaved, onCancel }: FaqEditorProps) {
   const { faq, loading, saving, create, update, setTags } = useFaq(faqId);
   const toast = useToast();
+  const location = useLocation();
 
-  const [question,         setQuestion]         = useState(initialQuestion ?? '');
+  // Pré-remplir la question depuis le query param ?question=… (suggesteur Analytics)
+  const seededQuestion = useMemo(() => {
+    if (initialQuestion) return initialQuestion;
+    if (faqId) return '';   // mode édition — la valeur vient de l'API
+    const fromUrl = new URLSearchParams(location.search).get('question');
+    return fromUrl ?? '';
+  }, [initialQuestion, faqId, location.search]);
+
+  const [question,         setQuestion]         = useState(seededQuestion);
   const [answer,           setAnswer]           = useState('');
   const [categoryId,       setCategoryId]       = useState<string>('');
   const [linkedArticleId,  setLinkedArticleId]  = useState<string>('');
