@@ -208,11 +208,11 @@ VITE_API_URL=https://knowdesk-production.up.railway.app/api/v1
 - Liens dans les articles (externes + internes)
 - Onboarding flag côté serveur
 - SideNav avec initiales, bouton déconnexion dans TopBar
+- Recherche intelligente (Meilisearch) — tolérance aux fautes, indexation articles + processus guidés, synonymes par organisation gérables dans Settings
 
 ### Haute priorité
 - Toasts sur les erreurs API
 - Stripe billing — plans, quotas, page de facturation
-- Recherche intelligente (Meilisearch) — tolérance aux fautes, synonymes
 
 ### Issu de l'analyse Mayday — Priorité 1
 - FAQs éditables
