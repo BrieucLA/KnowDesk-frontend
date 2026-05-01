@@ -40,9 +40,9 @@
   display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
 }
 .knowledge-page__cat-title {
-  font-size: 20px; font-weight: 500; letter-spacing: -0.02em; color: var(--neutral-900);
+  font-size: 22px; font-weight: 500; letter-spacing: -0.02em; color: var(--neutral-900);
 }
-.knowledge-page__cat-count { font-size: 13px; color: var(--neutral-400); margin-top: 2px; }
+.knowledge-page__cat-count { font-size: 14px; color: var(--neutral-500); margin-top: 4px; }
 .knowledge-page__new-article {
   padding: 7px 14px; background: var(--brand-600); color: #fff;
   font-size: 13px; font-weight: 500; border-radius: var(--radius-md);

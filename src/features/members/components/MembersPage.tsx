@@ -74,7 +74,7 @@ export function MembersPage() {
       <div className="members-page__header">
         <div>
           <h1 className="members-page__title">Équipe</h1>
-          <p className="members-page__subtitle">
+          <p className="members-page__desc">
             {activeCount} membre{activeCount !== 1 ? 's' : ''} actif{activeCount !== 1 ? 's' : ''}
             {plan === 'free' && ` · ${activeCount} / ${PLAN_LIMIT} (plan gratuit)`}
           </p>

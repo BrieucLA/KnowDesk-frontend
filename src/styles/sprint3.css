@@ -174,8 +174,8 @@
   gap: 16px;
 }
 .dashboard__greeting {
-  font-size: 22px; font-weight: 500; letter-spacing: -0.03em;
-  margin-bottom: 4px;
+  font-size: 22px; font-weight: 500; letter-spacing: -0.02em;
+  color: var(--neutral-900); margin-bottom: 4px;
 }
 .dashboard__subline { font-size: 14px; color: var(--neutral-500); }
 .dashboard__cta {

@@ -12,9 +12,10 @@
   display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
 }
 .members-page__title {
-  font-size: 22px; font-weight: 500; letter-spacing: -0.03em; margin-bottom: 4px;
+  font-size: 22px; font-weight: 500; letter-spacing: -0.02em;
+  color: var(--neutral-900);
 }
-.members-page__subtitle { font-size: 14px; color: var(--neutral-500); }
+.members-page__desc { font-size: 14px; color: var(--neutral-500); margin-top: 4px; }
 .members-page__invite-btn {
   padding: 8px 16px; background: var(--brand-600); color: #fff;
   font-size: 13px; font-weight: 500; border-radius: var(--radius-md);
@@ -686,7 +687,7 @@
   font-weight: 500;
   color: var(--neutral-900);
   letter-spacing: -0.02em;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 .account-section {
   background: var(--neutral-0);
@@ -1424,10 +1425,13 @@
 .tag-row__actions { display: flex; gap: 4px; }
 
 /* ── Analytics ──────────────────────────────────────────────── */
-.analytics-page { padding: 24px 32px; max-width: 1200px; margin: 0 auto; }
+.analytics-page { padding: 32px 24px; max-width: 1200px; margin: 0 auto; }
 .analytics-page__header { margin-bottom: 24px; }
-.analytics-page__title { font-size: 24px; font-weight: 600; color: var(--neutral-900); margin-bottom: 4px; }
-.analytics-page__desc  { font-size: 14px; color: var(--neutral-500); }
+.analytics-page__title {
+  font-size: 22px; font-weight: 500; letter-spacing: -0.02em;
+  color: var(--neutral-900);
+}
+.analytics-page__desc { font-size: 14px; color: var(--neutral-500); margin-top: 4px; }
 
 .analytics-stats {
   display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;
