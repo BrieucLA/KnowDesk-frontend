@@ -152,7 +152,9 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
     }
   }, [location.search, isAdmin, navigate]);
 
-  // Load articles when category, tag filter, or sort changes
+  // Load articles when category or sort changes.
+  // Le filtre par tag est appliqué côté client (cf. filteredArticles ci-dessous)
+  // pour permettre le calcul des compteurs locaux par tag dans la sélection.
   useEffect(() => {
     setLoadingArticles(true);
     const params = new URLSearchParams();
@@ -161,7 +163,6 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
       params.set('categoryId', selectedCatId);
       params.set('includeSubcategories', 'true');
     }
-    if (activeTags.length > 0) params.set('tags', activeTags.join(','));
     params.set('sort', sort);
     apiClient.get<ArticleListItem[]>(`/articles?${params.toString()}`)
       .then(data => {
@@ -182,7 +183,7 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
         toast.error(err instanceof ApiError ? err.message : 'Impossible de charger les articles.');
         setLoadingArticles(false);
       });
-  }, [selectedCatId, activeTags, sort, toast]);
+  }, [selectedCatId, sort, toast]);
 
   const toggleTag = useCallback((tag: string) => {
     setActiveTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
@@ -197,9 +198,25 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
     return articles.filter(a => {
       if (filter !== 'all' && a.status !== filter) return false;
       if (q && !a.title.toLowerCase().includes(q)) return false;
+      // Filtre tag (AND) : l'article doit porter chacun des tags actifs
+      if (activeTags.length > 0 && !activeTags.every(t => a.tags?.includes(t))) return false;
       return true;
     });
-  }, [articles, filter, searchQuery]);
+  }, [articles, filter, searchQuery, activeTags]);
+
+  // Compteurs scopés à la cat sélectionnée (et ses descendants) : nombre
+  // d'articles taggés ce label dans la liste actuellement chargée. Ignore
+  // status / search / activeTags pour rester un indicateur utilisable.
+  const tagLocalCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const a of articles) {
+      if (!Array.isArray(a.tags)) continue;
+      for (const tag of a.tags) {
+        counts.set(tag, (counts.get(tag) ?? 0) + 1);
+      }
+    }
+    return counts;
+  }, [articles]);
 
   const breadcrumb = useMemo(
     () => findCategoryPath(categories, selectedCatId),
@@ -376,21 +393,28 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
           </div>
         )}
 
-        {/* Tag filter chips — triés par nb articles desc, capés à ~2 lignes avec toggle */}
+        {/* Tag filter chips — counts scopés à la cat sélectionnée + descendants.
+            Tri par count local desc, tags vides masqués (sauf si actifs). */}
         {orgTags.length > 0 && (() => {
-          const INITIAL_VISIBLE = 14;  // approx. 2 lignes selon la largeur du main
-          const sorted = [...orgTags].sort((a, b) => b.articles_count - a.articles_count);
-          // On garantit que les tags actifs restent visibles même si non-expanded
+          const INITIAL_VISIBLE = 14;
           const activeSet = new Set(activeTags);
+          // Enrichi avec localCount, filtré (count > 0 ou actif), trié desc
+          const enriched = orgTags
+            .map(t => ({ ...t, localCount: tagLocalCounts.get(t.display_name) ?? 0 }))
+            .filter(t => t.localCount > 0 || activeSet.has(t.display_name))
+            .sort((a, b) => b.localCount - a.localCount);
+
+          if (enriched.length === 0) return null;
+
           const visible = tagsExpanded
-            ? sorted
+            ? enriched
             : (() => {
-                const head = sorted.slice(0, INITIAL_VISIBLE);
+                const head = enriched.slice(0, INITIAL_VISIBLE);
                 const headSet = new Set(head.map(t => t.id));
-                const extraActives = sorted.filter(t => activeSet.has(t.display_name) && !headSet.has(t.id));
+                const extraActives = enriched.filter(t => activeSet.has(t.display_name) && !headSet.has(t.id));
                 return [...head, ...extraActives];
               })();
-          const remaining = sorted.length - visible.length;
+          const remaining = enriched.length - visible.length;
           return (
             <div className="knowledge-page__tag-filter" aria-label="Filtrer par tag">
               {visible.map(t => {
@@ -404,7 +428,7 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
                     aria-pressed={active}
                   >
                     {t.display_name}
-                    <span className="chip__count" aria-hidden="true">{t.articles_count}</span>
+                    <span className="chip__count" aria-hidden="true">{t.localCount}</span>
                   </button>
                 );
               })}
