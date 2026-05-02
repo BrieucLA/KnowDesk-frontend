@@ -9,11 +9,12 @@ import DOMPurify, { type Config } from 'dompurify';
 const RICH_CONFIG: Config = {
   ALLOWED_TAGS: [
     'a', 'b', 'i', 'u', 'em', 'strong', 'mark',
-    'p', 'br', 'span', 'div',
+    'p', 'br', 'span', 'div', 'hr',
     'h1', 'h2', 'h3', 'h4',
     'ul', 'ol', 'li',
     'blockquote', 'code', 'pre',
     'img',
+    'table', 'thead', 'tbody', 'tr', 'th', 'td',
   ],
   ALLOWED_ATTR: ['href', 'target', 'rel', 'src', 'alt', 'title', 'class'],
   ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel):|knowdesk:\/\/article\/)/i,
