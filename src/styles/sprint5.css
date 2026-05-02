@@ -1910,6 +1910,45 @@
   color: var(--neutral-600); font-family: var(--font-ui);
 }
 
+/* ── AiSettingsSection — radio + glossaire ─────────────────── */
+.ai-radio-group {
+  display: flex; gap: 16px; flex-wrap: wrap; align-items: center;
+}
+.ai-radio {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--neutral-700);
+  cursor: pointer;
+}
+.ai-radio input { cursor: pointer; }
+
+.ai-glossary {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.ai-glossary__empty {
+  font-size: 13px; color: var(--neutral-500);
+  font-style: italic; margin: 0 0 4px;
+}
+.ai-glossary__row {
+  display: flex; align-items: center; gap: 8px;
+}
+.ai-glossary__input { flex: 1; min-width: 0; }
+.ai-glossary__arrow {
+  color: var(--neutral-400); font-weight: 500;
+  flex-shrink: 0;
+}
+.ai-glossary__remove {
+  flex-shrink: 0; width: 28px; height: 28px;
+  background: var(--neutral-50); border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm); color: var(--neutral-500);
+  cursor: pointer; font-size: 12px;
+  transition: all var(--t-fast);
+}
+.ai-glossary__remove:hover {
+  background: var(--color-danger-bg, oklch(0.95 0.05 25));
+  border-color: var(--color-danger, oklch(0.55 0.2 25));
+  color:        var(--color-danger, oklch(0.55 0.2 25));
+}
+
 /* ── AnalyticsPage — Réponse IA ──────────────────────────────── */
 .ai-stats {
   background: linear-gradient(135deg, oklch(0.98 0.02 290), var(--neutral-0));

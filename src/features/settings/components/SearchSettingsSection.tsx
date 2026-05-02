@@ -1,12 +1,10 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Button }        from '../../../shared/components/ui/Button';
 import { Input }         from '../../../shared/components/ui/Input';
 import { Skeleton }      from '../../../shared/components/ui/Skeleton';
 import { ChipsInput }    from '../../../shared/components/ui/ChipsInput';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { Modal }         from '../../../shared/components/ui/Modal';
-import { apiClient, ApiError } from '../../../shared/lib/apiClient';
-import { useToast }      from '../../../shared/lib/useToast';
 import { useSynonyms }   from '../hooks/useSynonyms';
 import type { Synonym }  from '../types';
 
@@ -14,74 +12,12 @@ export function SearchSettingsSection() {
   const { items, loading, error, create, update, remove } = useSynonyms();
   const [showCreate,      setShowCreate]      = useState(false);
   const [confirmDelete,   setConfirmDelete]   = useState<Synonym | null>(null);
-  const [aiEnabled,       setAiEnabled]       = useState<boolean | null>(null);
-  const [aiSaving,        setAiSaving]        = useState(false);
-  const toast = useToast();
-
-  useEffect(() => {
-    apiClient.get<{ ai_answer_enabled: boolean }>('/settings/org')
-      .then(o => setAiEnabled(o.ai_answer_enabled))
-      .catch(() => setAiEnabled(true));
-  }, []);
-
-  const toggleAi = useCallback(async () => {
-    if (aiEnabled === null) return;
-    const next = !aiEnabled;
-    setAiSaving(true);
-    setAiEnabled(next);
-    try {
-      await apiClient.patch('/settings/org/ai-answer', { enabled: next });
-      toast.success(next ? 'Réponse IA activée' : 'Réponse IA désactivée');
-    } catch (err) {
-      setAiEnabled(!next);  // rollback optimiste
-      toast.error(err instanceof ApiError ? err.message : 'Modification impossible.');
-    } finally {
-      setAiSaving(false);
-    }
-  }, [aiEnabled, toast]);
 
   return (
     <section className="settings-section" aria-labelledby="search-title">
       <div className="settings-section__header">
         <div>
           <h2 id="search-title" className="settings-section__title">Recherche</h2>
-          <p className="settings-section__desc">
-            Configuration de la recherche pour votre organisation.
-          </p>
-        </div>
-      </div>
-
-      {/* Toggle Réponse IA */}
-      <div className="settings-toggles">
-        <div className="toggle-row">
-          <div className="toggle-row__text">
-            <label htmlFor="ai-answer-toggle" className="toggle-row__label">
-              Réponse IA dans la recherche
-            </label>
-            <p className="toggle-row__desc">
-              Une carte « Réponse IA » synthétise les articles pertinents au-dessus des
-              résultats quand la question est suffisamment longue. Réponses générées par
-              Mistral à partir de votre base de connaissance uniquement.
-            </p>
-          </div>
-          <button
-            type="button"
-            role="switch"
-            id="ai-answer-toggle"
-            aria-checked={aiEnabled ?? false}
-            disabled={aiEnabled === null || aiSaving}
-            className={`toggle ${aiEnabled ? 'toggle--on' : ''}`}
-            onClick={toggleAi}
-            aria-label="Activer la réponse IA"
-          >
-            <span className="toggle__thumb" />
-          </button>
-        </div>
-      </div>
-
-      <div className="settings-section__header" style={{ marginTop: 16 }}>
-        <div>
-          <h3 className="settings-section__title" style={{ fontSize: 16 }}>Synonymes</h3>
           <p className="settings-section__desc">
             Définissez des synonymes propres à votre organisation. Une recherche sur un terme
             remontera aussi les contenus contenant ses synonymes (et vice-versa).

@@ -1,11 +1,25 @@
 export type SettingsSection =
   | 'general'
+  | 'ai'
   | 'notifications'
   | 'api'
   | 'search'
   | 'tags'
   | 'billing'
   | 'danger';
+
+export type AiTone        = 'professional' | 'warm' | 'direct' | 'empathetic' | 'casual';
+export type AiAddressForm = 'tu' | 'vous';
+
+export interface AiGlossaryEntry { from: string; to: string; }
+
+export interface AiOrgSettings {
+  ai_answer_enabled: boolean;
+  industry:          string | null;
+  ai_tone:           AiTone | null;
+  ai_address_form:   AiAddressForm | null;
+  ai_glossary:       AiGlossaryEntry[];
+}
 
 export interface Synonym {
   id:         string;
