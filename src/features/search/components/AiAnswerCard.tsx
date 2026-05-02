@@ -1,6 +1,7 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { sanitizeArticleHtml } from '../../../shared/lib/sanitize';
 import { useToast }            from '../../../shared/lib/useToast';
+import { trackEvent }          from '../../../shared/lib/trackEvent';
 import type { AiState, AiSource }   from '../hooks/useAiAnswer';
 
 const TYPE_ICONS: Record<AiSource['type'], string> = {
@@ -11,6 +12,8 @@ const TYPE_ICONS: Record<AiSource['type'], string> = {
 
 interface AiAnswerCardProps {
   state:        AiState;
+  /** Query brute — utilisée pour tracker le feedback en parallèle de l'event shown. */
+  query:        string;
   onSelectSource: (source: AiSource) => void;
 }
 
@@ -23,8 +26,12 @@ interface AiAnswerCardProps {
  *  - done      : réponse finale + bouton Copier
  *  - error     : message d'erreur + sources si dispo
  */
-export function AiAnswerCard({ state, onSelectSource }: AiAnswerCardProps) {
+export function AiAnswerCard({ state, query, onSelectSource }: AiAnswerCardProps) {
   const toast = useToast();
+  const [feedback, setFeedback] = useState<'up' | 'down' | null>(null);
+
+  // Reset le feedback quand la query change (nouvelle réponse → nouveau vote possible)
+  useEffect(() => { setFeedback(null); }, [query]);
 
   const handleCopy = useCallback(async () => {
     // Strip HTML/markdown au cas où le LLM en a glissé, garde les références [n]
@@ -36,6 +43,20 @@ export function AiAnswerCard({ state, onSelectSource }: AiAnswerCardProps) {
       toast.error('Impossible d\'accéder au presse-papier');
     }
   }, [state.answer, toast]);
+
+  const handleFeedback = useCallback((helpful: boolean) => {
+    if (feedback) return;  // anti double-click
+    setFeedback(helpful ? 'up' : 'down');
+    trackEvent('ai_answer.feedback', {
+      payload: {
+        query:      query.toLowerCase().slice(0, 200),
+        helpful,
+        status:     state.status,
+        sourceIds:  state.sources.map(s => s.id),
+      },
+    });
+    toast.success(helpful ? 'Merci pour votre retour' : 'Merci, on va améliorer ça');
+  }, [feedback, query, state.status, state.sources, toast]);
 
   const isStreaming = state.status === 'streaming';
   const isUnsure    = state.status === 'unsure';
@@ -95,11 +116,37 @@ export function AiAnswerCard({ state, onSelectSource }: AiAnswerCardProps) {
       )}
 
       <div className="ai-answer__footer">
-        {isDone && state.answer && (
-          <button type="button" className="ai-answer__copy" onClick={handleCopy}>
-            Copier
-          </button>
-        )}
+        <div className="ai-answer__footer-actions">
+          {isDone && state.answer && (
+            <button type="button" className="ai-answer__copy" onClick={handleCopy}>
+              Copier
+            </button>
+          )}
+          {(isDone || isUnsure) && (
+            <div className="ai-answer__feedback" role="group" aria-label="Cette réponse était-elle utile ?">
+              <button
+                type="button"
+                className={`ai-answer__feedback-btn ${feedback === 'up' ? 'ai-answer__feedback-btn--active' : ''}`}
+                onClick={() => handleFeedback(true)}
+                disabled={feedback !== null}
+                aria-label="Réponse utile"
+                title="Réponse utile"
+              >
+                👍
+              </button>
+              <button
+                type="button"
+                className={`ai-answer__feedback-btn ${feedback === 'down' ? 'ai-answer__feedback-btn--active' : ''}`}
+                onClick={() => handleFeedback(false)}
+                disabled={feedback !== null}
+                aria-label="Réponse pas utile"
+                title="Réponse pas utile"
+              >
+                👎
+              </button>
+            </div>
+          )}
+        </div>
         <span className="ai-answer__disclaimer">Réponse générée par IA — vérifiez les sources</span>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { trackEvent } from '../../../shared/lib/trackEvent';
 
 export interface AiSource {
   id:    string;
@@ -25,23 +26,27 @@ const MIN_QUERY   = 3;
  *
  * - Debounce 600ms après la dernière frappe avant l'appel.
  * - AbortController : la requête en vol est tuée si la query change.
- * - Pas de tracking ici (Sprint 3 ajoutera l'event ai_answer.shown).
+ * - Tracker `ai_answer.shown` (event analytics) une fois la réponse complète.
  */
 export function useAiAnswer(query: string, enabled: boolean): AiState {
   const [state, setState] = useState<AiState>(INITIAL);
-  const abortRef = useRef<AbortController | null>(null);
+  const abortRef    = useRef<AbortController | null>(null);
+  /** Pour ne pas tracker shown plusieurs fois sur la même réponse (re-render). */
+  const trackedRef  = useRef<string | null>(null);
 
   useEffect(() => {
     const trimmed = query.trim();
     if (!enabled || trimmed.length < MIN_QUERY) {
       abortRef.current?.abort();
       setState(INITIAL);
+      trackedRef.current = null;
       return;
     }
 
     const controller = new AbortController();
     abortRef.current?.abort();
     abortRef.current = controller;
+    trackedRef.current = null;   // nouvelle query → nouveau tracking possible
 
     const handle = setTimeout(() => {
       runAiStream(trimmed, controller.signal, setState);
@@ -52,6 +57,23 @@ export function useAiAnswer(query: string, enabled: boolean): AiState {
       controller.abort();
     };
   }, [query, enabled]);
+
+  // Tracker `ai_answer.shown` quand la génération se termine (done/unsure).
+  // Une seule fois par query — clé = query + status pour idempotence.
+  useEffect(() => {
+    if (state.status !== 'done' && state.status !== 'unsure') return;
+    const key = `${query}:${state.status}`;
+    if (trackedRef.current === key) return;
+    trackedRef.current = key;
+    trackEvent('ai_answer.shown', {
+      payload: {
+        query:        query.toLowerCase().slice(0, 200),
+        status:       state.status,
+        sourcesCount: state.sources.length,
+        answerLength: state.answer.length,
+      },
+    });
+  }, [state.status, state.sources.length, state.answer.length, query]);
 
   return state;
 }

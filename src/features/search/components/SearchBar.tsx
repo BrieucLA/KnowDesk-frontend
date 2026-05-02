@@ -210,7 +210,7 @@ export function SearchBar({ onSelect, className }: SearchBarProps) {
         <div className="search-bar__dropdown">
           {/* Réponse IA — toujours en tête, visuellement distinct */}
           {aiVisible && aiState.status !== 'idle' && (
-            <AiAnswerCard state={aiState} onSelectSource={handleSelectSource} />
+            <AiAnswerCard state={aiState} query={state.query} onSelectSource={handleSelectSource} />
           )}
 
           {/* Header global */}

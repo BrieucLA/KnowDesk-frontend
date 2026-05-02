@@ -489,6 +489,36 @@
   background: oklch(0.92 0.06 290);
   border-color: oklch(0.7 0.16 290);
 }
+.ai-answer__footer-actions {
+  display: flex; align-items: center; gap: 8px;
+}
+.ai-answer__feedback {
+  display: flex; gap: 4px;
+}
+.ai-answer__feedback-btn {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  padding: 3px 8px;
+  font-size: 13px; line-height: 1;
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+.ai-answer__feedback-btn:hover:not(:disabled) {
+  border-color: oklch(0.7 0.16 290);
+  background: oklch(0.97 0.04 290);
+  transform: scale(1.1);
+}
+.ai-answer__feedback-btn:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+.ai-answer__feedback-btn--active {
+  background: oklch(0.94 0.08 290) !important;
+  border-color: oklch(0.65 0.18 290) !important;
+  opacity: 1 !important;
+  transform: scale(1.1);
+}
 .ai-answer__disclaimer {
   font-size: 10px; color: var(--neutral-400);
   font-style: italic;
