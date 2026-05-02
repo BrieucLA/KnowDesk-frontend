@@ -1,20 +1,29 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { cn }              from '../../../shared/lib/cn';
 import type { Category }   from '../types';
 
 interface CategoryTreeProps {
   categories:       Category[];
   selectedId:       string | null;
+  expandedIds:      Set<string>;
   onSelect:         (category: Category) => void;
+  onToggleExpand:   (categoryId: string) => void;
   loading?:         boolean;
 }
 
 /**
  * CategoryTree — collapsible sidebar navigation.
- * Top-level categories are always visible; children expand on click.
- * Keyboard: Arrow keys + Enter for full navigation.
+ * Chevron click = expand/collapse only. Name click = navigate.
+ * Expansion state lifted to parent (KnowledgePage) for persistence.
  */
-export function CategoryTree({ categories, selectedId, onSelect, loading }: CategoryTreeProps) {
+export function CategoryTree({
+  categories,
+  selectedId,
+  expandedIds,
+  onSelect,
+  onToggleExpand,
+  loading,
+}: CategoryTreeProps) {
   if (loading) {
     return (
       <nav className="category-tree" aria-label="Catégories">
@@ -35,7 +44,9 @@ export function CategoryTree({ categories, selectedId, onSelect, loading }: Cate
             key={cat.id}
             category={cat}
             selectedId={selectedId}
+            expandedIds={expandedIds}
             onSelect={onSelect}
+            onToggleExpand={onToggleExpand}
             level={0}
           />
         ))}
@@ -47,30 +58,40 @@ export function CategoryTree({ categories, selectedId, onSelect, loading }: Cate
 /* ── Category node — recursive ───────────────────────────────── */
 
 interface CategoryNodeProps {
-  category:   Category;
-  selectedId: string | null;
-  onSelect:   (cat: Category) => void;
-  level:      number;
+  category:       Category;
+  selectedId:     string | null;
+  expandedIds:    Set<string>;
+  onSelect:       (cat: Category) => void;
+  onToggleExpand: (categoryId: string) => void;
+  level:          number;
 }
 
-function CategoryNode({ category, selectedId, onSelect, level }: CategoryNodeProps) {
+function CategoryNode({
+  category,
+  selectedId,
+  expandedIds,
+  onSelect,
+  onToggleExpand,
+  level,
+}: CategoryNodeProps) {
   const hasChildren = category.children.length > 0;
   const isSelected  = category.id === selectedId;
+  const isOpen      = expandedIds.has(category.id);
 
-  // Auto-expand if a child is selected
-  const childSelected = category.children.some(c => c.id === selectedId);
-  const [isOpen, setIsOpen] = useState(childSelected);
-
-  const handleClick = useCallback(() => {
+  const handleSelect = useCallback(() => {
     onSelect(category);
-    if (hasChildren) setIsOpen(o => !o);
-  }, [category, hasChildren, onSelect]);
+  }, [category, onSelect]);
+
+  const handleChevron = useCallback((e: React.MouseEvent | React.KeyboardEvent) => {
+    e.stopPropagation();
+    onToggleExpand(category.id);
+  }, [category.id, onToggleExpand]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(); }
-    if (e.key === 'ArrowRight' && hasChildren) setIsOpen(true);
-    if (e.key === 'ArrowLeft'  && hasChildren) setIsOpen(false);
-  }, [handleClick, hasChildren]);
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSelect(); }
+    if (e.key === 'ArrowRight' && hasChildren && !isOpen) { e.preventDefault(); onToggleExpand(category.id); }
+    if (e.key === 'ArrowLeft'  && hasChildren && isOpen)  { e.preventDefault(); onToggleExpand(category.id); }
+  }, [handleSelect, hasChildren, isOpen, category.id, onToggleExpand]);
 
   return (
     <li
@@ -85,16 +106,21 @@ function CategoryNode({ category, selectedId, onSelect, level }: CategoryNodePro
           isSelected && 'cat-item--selected',
         )}
         tabIndex={0}
-        onClick={handleClick}
+        onClick={handleSelect}
         onKeyDown={handleKeyDown}
         style={{ '--cat-level': level } as React.CSSProperties}
       >
-        {hasChildren && (
-          <span className={cn('cat-item__chevron', isOpen && 'cat-item__chevron--open')} aria-hidden="true">
+        {hasChildren ? (
+          <button
+            type="button"
+            className={cn('cat-item__chevron', isOpen && 'cat-item__chevron--open')}
+            onClick={handleChevron}
+            aria-label={isOpen ? 'Replier' : 'Déplier'}
+            tabIndex={-1}
+          >
             ›
-          </span>
-        )}
-        {!hasChildren && (
+          </button>
+        ) : (
           <span className="cat-item__dot" aria-hidden="true" />
         )}
 
@@ -112,7 +138,9 @@ function CategoryNode({ category, selectedId, onSelect, level }: CategoryNodePro
               key={child.id}
               category={child}
               selectedId={selectedId}
+              expandedIds={expandedIds}
               onSelect={onSelect}
+              onToggleExpand={onToggleExpand}
               level={level + 1}
             />
           ))}

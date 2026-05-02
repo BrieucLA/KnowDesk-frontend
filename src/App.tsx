@@ -21,6 +21,7 @@ import { MembersPage }      from './features/members/components/MembersPage';
 import { SettingsPage }     from './features/settings/components/SettingsPage';
 import { AnalyticsPage }    from './features/analytics/components/AnalyticsPage';
 import { SearchBar }        from './features/search/components/SearchBar';
+import { CommandPalette }   from './features/search/components/CommandPalette';
 import { AppLayout }        from './shared/components/layout/AppLayout';
 import { ImpersonateBanner } from './shared/components/ui/ImpersonateBanner';
 import { NetworkErrorBanner } from './shared/components/ui/NetworkErrorBanner';
@@ -345,6 +346,7 @@ if (!isLoggedIn) {
 )}
 
       <NetworkErrorBanner />
+      <CommandPalette />
       <ToastContainer />
     </>
   );
