@@ -68,15 +68,15 @@ const SECTIONS: { id: SettingsSection; label: string; adminOnly?: boolean }[] = 
 
 function SectionGeneral() {
   const session = useAuthStore(s => s.session);
-  const [form,   setForm]   = useState({ name: '', timezone: 'Europe/Paris' });
+  const [form,   setForm]   = useState({ name: '', industry: '', timezone: 'Europe/Paris' });
   const [saving, setSaving] = useState(false);
   const [saved,  setSaved]  = useState(false);
   const [error,  setError]  = useState('');
 
-  // Charger le vrai nom depuis l'API au montage
+  // Charger les valeurs réelles depuis l'API au montage
   useEffect(() => {
-    apiClient.get<{ name: string; slug: string; plan: string }>('/settings/org')
-      .then(org => setForm(f => ({ ...f, name: org.name })))
+    apiClient.get<{ name: string; slug: string; plan: string; industry: string | null }>('/settings/org')
+      .then(org => setForm(f => ({ ...f, name: org.name, industry: org.industry ?? '' })))
       .catch(() => {
         // Fallback sur le store si l'API échoue
         setForm(f => ({ ...f, name: session?.organization.name ?? '' }));
@@ -88,7 +88,10 @@ function SectionGeneral() {
     setSaving(true);
     setError('');
     try {
-      await apiClient.put('/settings/org', { name: form.name });
+      await apiClient.put('/settings/org', {
+        name:     form.name,
+        industry: form.industry.trim() || null,
+      });
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
@@ -112,6 +115,15 @@ function SectionGeneral() {
           required
           onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
           helperText="Affiché dans le header et les emails envoyés à votre équipe."
+        />
+        <Input
+          id="org-industry"
+          label="Secteur d'activité"
+          value={form.industry}
+          maxLength={80}
+          placeholder="ex. Telecom, Banque, Retail, Santé…"
+          onChange={e => setForm(f => ({ ...f, industry: e.target.value }))}
+          helperText="Personnalise les réponses générées par l'IA dans la recherche. Laissez vide pour une formulation générique."
         />
         <div className="field">
           <label htmlFor="timezone" className="field-label">Fuseau horaire</label>
