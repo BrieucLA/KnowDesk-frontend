@@ -176,8 +176,9 @@ export function SearchBar({ onSelect, className }: SearchBarProps) {
           onFocus={handleFocusWrapped}
         />
 
-        {/* Sparkle IA : visible dès que la query déclenche le trigger */}
-        {aiTriggered && (
+        {/* Sparkle IA : visible dès que la query déclenche le trigger.
+            Masquée quand la feature est désactivée côté org */}
+        {aiTriggered && aiState.status !== 'disabled' && (
           <span
             className={`search-bar__ai-sparkle ${aiState.status === 'streaming' ? 'search-bar__ai-sparkle--anim' : ''}`}
             aria-hidden="true"
@@ -206,10 +207,11 @@ export function SearchBar({ onSelect, className }: SearchBarProps) {
       </div>
 
       {/* Results dropdown */}
-      {(isOpenEffective || (aiVisible && aiState.status !== 'idle')) && (
+      {(isOpenEffective || (aiVisible && aiState.status !== 'idle' && aiState.status !== 'disabled')) && (
         <div className="search-bar__dropdown">
-          {/* Réponse IA — toujours en tête, visuellement distinct */}
-          {aiVisible && aiState.status !== 'idle' && (
+          {/* Réponse IA — toujours en tête, visuellement distinct.
+              Cachée quand l'org a désactivé la feature (status='disabled') */}
+          {aiVisible && aiState.status !== 'idle' && aiState.status !== 'disabled' && (
             <AiAnswerCard state={aiState} query={state.query} onSelectSource={handleSelectSource} />
           )}
 

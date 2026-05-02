@@ -7,7 +7,7 @@ export interface AiSource {
   title: string;
 }
 
-export type AiStatus = 'idle' | 'streaming' | 'unsure' | 'done' | 'error';
+export type AiStatus = 'idle' | 'streaming' | 'unsure' | 'done' | 'error' | 'disabled';
 
 export interface AiState {
   status:  AiStatus;
@@ -123,14 +123,17 @@ async function runAiStream(
           setState(s => ({ ...s, answer: s.answer + (data.text ?? '') }));
         } else if (eventName === 'unsure') {
           setState(s => ({ ...s, status: 'unsure' }));
+        } else if (eventName === 'disabled') {
+          setState(s => ({ ...s, status: 'disabled' }));
         } else if (eventName === 'error') {
           setState(s => ({ ...s, status: 'error', error: data.message ?? 'Erreur IA' }));
         } else if (eventName === 'done') {
           setState(s => ({
             ...s,
-            // Si on est passé en unsure, on garde ce statut, sinon done
-            status: s.status === 'unsure' ? 'unsure'
-                  : s.status === 'error'  ? 'error'
+            // Conserve un éventuel statut terminal déjà posé (unsure/error/disabled)
+            status: s.status === 'unsure'   ? 'unsure'
+                  : s.status === 'error'    ? 'error'
+                  : s.status === 'disabled' ? 'disabled'
                   : 'done',
           }));
           return;

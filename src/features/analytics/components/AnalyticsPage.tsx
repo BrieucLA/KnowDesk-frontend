@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Skeleton }       from '../../../shared/components/ui/Skeleton';
 import { Button }          from '../../../shared/components/ui/Button';
 import { formatRelative }  from '../../../shared/lib/formatDate';
+import { apiClient }       from '../../../shared/lib/apiClient';
 import { useAnalytics }    from '../hooks/useAnalytics';
 import { analyticsApi, type FaqSuggestion } from '../api/analyticsApi';
 import type {
@@ -50,6 +51,8 @@ export function AnalyticsPage({ onOpenArticle, onCreateFaq }: AnalyticsPageProps
 
       <InventoryRow inventory={data.inventory} />
       <EngagementRow engagement={data.engagement} windowDays={data.windowDays} />
+
+      <AiAnswerStatsBanner onCreateFaq={onCreateFaq} />
 
       {onCreateFaq && <FaqsToCreateBanner onCreate={onCreateFaq} />}
 
@@ -380,6 +383,107 @@ function ZeroResultsCard({ items, windowDays }: { items: SearchQueryStat[]; wind
         ))}
       </ul>
     </AnalyticsCard>
+  );
+}
+
+// ── Réponse IA — usage + qualité ─────────────────────────────
+
+interface AiAnswerStats {
+  windowDays:    number;
+  totalShown:    number;
+  doneCount:     number;
+  unsureCount:   number;
+  helpfulYes:    number;
+  helpfulNo:     number;
+  helpfulRatio:  number | null;
+  topQueries:    Array<{ query: string; count: number }>;
+  unsureQueries: Array<{ query: string; count: number }>;
+}
+
+function AiAnswerStatsBanner({ onCreateFaq }: { onCreateFaq?: (q: string) => void }) {
+  const [stats,   setStats]   = useState<AiAnswerStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    apiClient.get<AiAnswerStats>('/analytics/ai-answer')
+      .then(d => { if (alive) setStats(d); })
+      .catch(() => { /* silencieux : pas critique */ })
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
+  }, []);
+
+  if (loading) return null;
+  if (!stats || stats.totalShown === 0) return null;
+
+  const helpfulPct = stats.helpfulRatio !== null
+    ? Math.round(stats.helpfulRatio * 100)
+    : null;
+
+  return (
+    <section className="ai-stats" aria-labelledby="ai-stats-title">
+      <header className="ai-stats__header">
+        <h2 id="ai-stats-title" className="ai-stats__title">✨ Réponse IA — {stats.windowDays} derniers jours</h2>
+      </header>
+      <div className="ai-stats__row">
+        <div className="ai-stats__metric">
+          <span className="ai-stats__metric-value">{stats.totalShown}</span>
+          <span className="ai-stats__metric-label">Réponses générées</span>
+        </div>
+        <div className="ai-stats__metric">
+          <span className="ai-stats__metric-value">{stats.doneCount}</span>
+          <span className="ai-stats__metric-label">Réponses précises</span>
+        </div>
+        <div className="ai-stats__metric">
+          <span className="ai-stats__metric-value">{stats.unsureCount}</span>
+          <span className="ai-stats__metric-label">Sans réponse</span>
+        </div>
+        <div className="ai-stats__metric">
+          <span className="ai-stats__metric-value">
+            {helpfulPct !== null ? `${helpfulPct}%` : '—'}
+          </span>
+          <span className="ai-stats__metric-label">
+            Utiles ({stats.helpfulYes}👍 / {stats.helpfulNo}👎)
+          </span>
+        </div>
+      </div>
+
+      {(stats.topQueries.length > 0 || stats.unsureQueries.length > 0) && (
+        <div className="ai-stats__queries">
+          {stats.topQueries.length > 0 && (
+            <div className="ai-stats__queries-col">
+              <h3 className="ai-stats__queries-title">Top questions</h3>
+              <ul className="ai-stats__list" role="list">
+                {stats.topQueries.slice(0, 5).map(q => (
+                  <li key={q.query} className="ai-stats__item">
+                    <span className="ai-stats__item-q">« {q.query} »</span>
+                    <span className="ai-stats__item-count">{q.count}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {stats.unsureQueries.length > 0 && (
+            <div className="ai-stats__queries-col">
+              <h3 className="ai-stats__queries-title">Questions sans réponse — pistes éditoriales</h3>
+              <ul className="ai-stats__list" role="list">
+                {stats.unsureQueries.slice(0, 5).map(q => (
+                  <li key={q.query} className="ai-stats__item">
+                    <span className="ai-stats__item-q">« {q.query} »</span>
+                    <span className="ai-stats__item-count">{q.count}</span>
+                    {onCreateFaq && (
+                      <Button variant="ghost" size="sm" onClick={() => onCreateFaq(q.query)}>
+                        Créer FAQ
+                      </Button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+    </section>
   );
 }
 
