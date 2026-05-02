@@ -4,6 +4,7 @@ import { Button }         from '../../../shared/components/ui/Button';
 import { Skeleton }       from '../../../shared/components/ui/Skeleton';
 import { ConfirmDialog }  from '../../../shared/components/ui/ConfirmDialog';
 import { useToast }       from '../../../shared/lib/useToast';
+import { sanitizeArticleHtml } from '../../../shared/lib/sanitize';
 import type { TreeNode, NodeAnswer } from '../types';
 
 interface TreeEditorProps {
@@ -150,7 +151,7 @@ export function TreeEditor({ treeId, onBack, onPreview }: TreeEditorProps) {
               className="tree-node__textarea"
               value={nodeEditDraft}
               onChange={e => setNodeEditDraft(e.target.value)}
-              rows={3}
+              rows={6}
               autoFocus
             />
             <div className="tree-node__edit-actions">
@@ -159,7 +160,10 @@ export function TreeEditor({ treeId, onBack, onPreview }: TreeEditorProps) {
             </div>
           </div>
         ) : (
-          <p className="tree-node__content">{node.content}</p>
+          <div
+            className="tree-node__content article-content"
+            dangerouslySetInnerHTML={{ __html: sanitizeArticleHtml(node.content) }}
+          />
         )}
 
         {node.type === 'question' && (

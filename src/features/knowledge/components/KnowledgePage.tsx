@@ -52,6 +52,7 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
   const [filter,           setFilter]         = useState<'all' | 'published' | 'draft'>('all');
   const [orgTags,        setOrgTags]        = useState<OrgTag[]>([]);
   const [activeTags,     setActiveTags]     = useState<string[]>([]);
+  const [tagsExpanded,   setTagsExpanded]   = useState(false);
   const [sort,           setSort]           = useState<SortKey>('updated');
   const [searchQuery,    setSearchQuery]    = useState('');
 
@@ -138,8 +139,11 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
   useEffect(() => {
     setLoadingArticles(true);
     const params = new URLSearchParams();
-    params.set('perPage', '50');
-    if (selectedCatId)        params.set('categoryId', selectedCatId);
+    params.set('perPage', '200');
+    if (selectedCatId) {
+      params.set('categoryId', selectedCatId);
+      params.set('includeSubcategories', 'true');
+    }
     if (activeTags.length > 0) params.set('tags', activeTags.join(','));
     params.set('sort', sort);
     apiClient.get<ArticleListItem[]>(`/articles?${params.toString()}`)
@@ -347,35 +351,68 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
           </div>
         )}
 
-        {/* Tag filter chips */}
-        {orgTags.length > 0 && (
-          <div className="knowledge-page__tag-filter" aria-label="Filtrer par tag">
-            {orgTags.map(t => {
-              const active = activeTags.includes(t.display_name);
-              return (
+        {/* Tag filter chips — triés par nb articles desc, capés à ~2 lignes avec toggle */}
+        {orgTags.length > 0 && (() => {
+          const INITIAL_VISIBLE = 14;  // approx. 2 lignes selon la largeur du main
+          const sorted = [...orgTags].sort((a, b) => b.articles_count - a.articles_count);
+          // On garantit que les tags actifs restent visibles même si non-expanded
+          const activeSet = new Set(activeTags);
+          const visible = tagsExpanded
+            ? sorted
+            : (() => {
+                const head = sorted.slice(0, INITIAL_VISIBLE);
+                const headSet = new Set(head.map(t => t.id));
+                const extraActives = sorted.filter(t => activeSet.has(t.display_name) && !headSet.has(t.id));
+                return [...head, ...extraActives];
+              })();
+          const remaining = sorted.length - visible.length;
+          return (
+            <div className="knowledge-page__tag-filter" aria-label="Filtrer par tag">
+              {visible.map(t => {
+                const active = activeSet.has(t.display_name);
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => toggleTag(t.display_name)}
+                    className={`chip chip--toggle ${active ? 'chip--toggle-on' : ''}`}
+                    aria-pressed={active}
+                  >
+                    {t.display_name}
+                    <span className="chip__count" aria-hidden="true">{t.articles_count}</span>
+                  </button>
+                );
+              })}
+              {!tagsExpanded && remaining > 0 && (
                 <button
-                  key={t.id}
                   type="button"
-                  onClick={() => toggleTag(t.display_name)}
-                  className={`chip chip--toggle ${active ? 'chip--toggle-on' : ''}`}
-                  aria-pressed={active}
+                  onClick={() => setTagsExpanded(true)}
+                  className="knowledge-page__tag-filter-toggle"
                 >
-                  {t.display_name}
-                  <span className="chip__count" aria-hidden="true">{t.articles_count}</span>
+                  + {remaining} autre{remaining > 1 ? 's' : ''}
                 </button>
-              );
-            })}
-            {activeTags.length > 0 && (
-              <button
-                type="button"
-                onClick={() => setActiveTags([])}
-                className="knowledge-page__tag-filter-clear"
-              >
-                Effacer
-              </button>
-            )}
-          </div>
-        )}
+              )}
+              {tagsExpanded && (
+                <button
+                  type="button"
+                  onClick={() => setTagsExpanded(false)}
+                  className="knowledge-page__tag-filter-toggle"
+                >
+                  Réduire
+                </button>
+              )}
+              {activeTags.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTags([])}
+                  className="knowledge-page__tag-filter-clear"
+                >
+                  Effacer
+                </button>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Article list */}
         {loadingArticles && (

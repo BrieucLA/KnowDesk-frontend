@@ -3,6 +3,7 @@ import { useQuestionTree }    from '../hooks/useQuestionTree';
 import { Skeleton }       from '../../../shared/components/ui/Skeleton';
 import { NotFoundPage } from '../../../shared/components/ui/NotFoundPage';
 import { Button }             from '../../../shared/components/ui/Button';
+import { sanitizeArticleHtml } from '../../../shared/lib/sanitize';
 
 interface QuestionTreePageProps {
   treeId:        string;
@@ -17,7 +18,9 @@ export function QuestionTreePage({ treeId, onBack, onViewArticle }: QuestionTree
   } = useQuestionTree(treeId);
 
   const handleCopy = useCallback((text: string) => {
-    navigator.clipboard?.writeText(text);
+    // Strip HTML pour copier du texte plain dans le presse-papier
+    const plain = text.replace(/<[^>]*>/g, '').replace(/\s+\n/g, '\n').trim();
+    navigator.clipboard?.writeText(plain);
   }, []);
 
   if (loadState.status === 'idle' || loadState.status === 'loading') {
@@ -72,7 +75,10 @@ export function QuestionTreePage({ treeId, onBack, onViewArticle }: QuestionTree
       <div className="tree-page__content">
         {currentNode.type === 'question' ? (
           <div className="tree-question">
-            <p className="tree-question__text">{currentNode.content}</p>
+            <div
+              className="tree-question__text article-content"
+              dangerouslySetInnerHTML={{ __html: sanitizeArticleHtml(currentNode.content) }}
+            />
             <ul className="tree-options" role="list">
               {currentNode.answers.map(answer => (
                 <li key={answer.id}>
@@ -90,7 +96,11 @@ export function QuestionTreePage({ treeId, onBack, onViewArticle }: QuestionTree
         ) : (
           <div className="tree-conclusion">
             <div className="tree-conclusion__icon">✅</div>
-            <p className="tree-conclusion__text">{currentNode.content}</p>
+            <div
+              className="tree-conclusion__text article-content"
+              dangerouslySetInnerHTML={{ __html: sanitizeArticleHtml(currentNode.content) }}
+            />
+
             {currentNode.article_id && (
               <button
                 type="button"

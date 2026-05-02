@@ -1397,6 +1397,16 @@
   font-size: 12px; color: var(--neutral-500); padding: 4px 8px;
 }
 .knowledge-page__tag-filter-clear:hover { color: var(--brand-600); }
+.knowledge-page__tag-filter-toggle {
+  background: none; border: 1px dashed var(--neutral-300); cursor: pointer;
+  font-size: 12px; color: var(--neutral-600);
+  padding: 3px 10px; border-radius: var(--radius-full);
+  font-family: var(--font-ui);
+  transition: all var(--t-fast);
+}
+.knowledge-page__tag-filter-toggle:hover {
+  border-color: var(--brand-400); color: var(--brand-600); background: var(--brand-50);
+}
 
 /* ── Tags affichés dans la fiche article ────────────────────── */
 .article-page__tags {
