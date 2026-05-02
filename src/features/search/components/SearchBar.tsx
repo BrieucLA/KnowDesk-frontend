@@ -1,7 +1,10 @@
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { SearchResultItem }    from './SearchResultItem';
 import { FaqResultExpansion }  from './FaqResultExpansion';
+import { AiAnswerCard }        from './AiAnswerCard';
 import { useSearch }           from '../hooks/useSearch';
+import { useAiTrigger }        from '../hooks/useAiTrigger';
+import { useAiAnswer, type AiSource } from '../hooks/useAiAnswer';
 import { useAuthStore }        from '../../../store/authStore';
 import { useToast }            from '../../../shared/lib/useToast';
 import type { SearchResult, SearchResultType }   from '../types';
@@ -105,6 +108,26 @@ export function SearchBar({ onSelect, className }: SearchBarProps) {
   // Effective open : on respecte le dismiss tant que l'utilisateur n'a pas re-focus
   const isOpenEffective = isOpen && !dismissed;
 
+  // Réponse IA : trigger + état stream
+  const aiTriggered = useAiTrigger(state.query);
+  const aiVisible   = aiTriggered && !dismissed && state.query.trim().length > 0;
+  const aiState     = useAiAnswer(state.query, aiVisible);
+
+  const handleSelectSource = useCallback((source: AiSource) => {
+    // Construit un SearchResult-like minimal et délègue au handler standard
+    const synthetic: SearchResult = {
+      id:        source.id,
+      type:      source.type,
+      title:     source.title,
+      excerpt:   '',
+      category:  '',
+      score:     1,
+      updatedAt: new Date().toISOString(),
+    };
+    onSelect(synthetic);
+    setDismissed(true);
+  }, [onSelect]);
+
   const activeResultId = activeIndex >= 0
     ? `${resultIdPrefix}-${activeIndex}`
     : undefined;
@@ -153,6 +176,17 @@ export function SearchBar({ onSelect, className }: SearchBarProps) {
           onFocus={handleFocusWrapped}
         />
 
+        {/* Sparkle IA : visible dès que la query déclenche le trigger */}
+        {aiTriggered && (
+          <span
+            className={`search-bar__ai-sparkle ${aiState.status === 'streaming' ? 'search-bar__ai-sparkle--anim' : ''}`}
+            aria-hidden="true"
+            title="Réponse IA disponible"
+          >
+            ✨
+          </span>
+        )}
+
         {/* Kbd hint — hidden when typing */}
         {!state.query && (
           <kbd className="search-bar__kbd" aria-hidden="true">⌘K</kbd>
@@ -172,15 +206,23 @@ export function SearchBar({ onSelect, className }: SearchBarProps) {
       </div>
 
       {/* Results dropdown */}
-      {isOpenEffective && (
+      {(isOpenEffective || (aiVisible && aiState.status !== 'idle')) && (
         <div className="search-bar__dropdown">
-          {/* Header global */}
-          <p className="search-bar__dropdown-label" aria-hidden="true">
-            {state.query
-              ? `${state.results.length} résultat${state.results.length > 1 ? 's' : ''} pour « ${state.query} »`
-              : 'Articles populaires'}
-          </p>
+          {/* Réponse IA — toujours en tête, visuellement distinct */}
+          {aiVisible && aiState.status !== 'idle' && (
+            <AiAnswerCard state={aiState} onSelectSource={handleSelectSource} />
+          )}
 
+          {/* Header global */}
+          {isOpenEffective && (
+            <p className="search-bar__dropdown-label" aria-hidden="true">
+              {state.query
+                ? `${state.results.length} résultat${state.results.length > 1 ? 's' : ''} pour « ${state.query} »`
+                : 'Articles populaires'}
+            </p>
+          )}
+
+          {isOpenEffective && (
           <ul
             ref={listRef}
             id={listboxId}
@@ -222,13 +264,16 @@ export function SearchBar({ onSelect, className }: SearchBarProps) {
               );
             })}
           </ul>
+          )}
 
           {/* Footer hint */}
-          <div className="search-bar__footer" aria-hidden="true">
-            <span><kbd>↑↓</kbd> naviguer</span>
-            <span><kbd>↵</kbd> ouvrir</span>
-            <span><kbd>Esc</kbd> fermer</span>
-          </div>
+          {isOpenEffective && (
+            <div className="search-bar__footer" aria-hidden="true">
+              <span><kbd>↑↓</kbd> naviguer</span>
+              <span><kbd>↵</kbd> ouvrir</span>
+              <span><kbd>Esc</kbd> fermer</span>
+            </div>
+          )}
         </div>
       )}
 
