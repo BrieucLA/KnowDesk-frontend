@@ -26,6 +26,15 @@ interface KnowledgePageProps {
 
 type SortKey = 'updated' | 'alpha' | 'popular';
 
+interface TreeListItem {
+  id:           string;
+  title:        string;
+  status:       string;
+  category_id:  string | null;
+  category_name?: string | null;
+  updated_at:   string;
+}
+
 const SIDEBAR_MIN     = 180;
 const SIDEBAR_MAX     = 360;
 const SIDEBAR_DEFAULT = 220;
@@ -55,6 +64,7 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
   const [tagsExpanded,   setTagsExpanded]   = useState(false);
   const [sort,           setSort]           = useState<SortKey>('updated');
   const [searchQuery,    setSearchQuery]    = useState('');
+  const [trees,          setTrees]          = useState<TreeListItem[]>([]);
 
   // Sidebar persistance
   const [sidebarWidth,     setSidebarWidth]     = useLocalStorageState('knowledge.sidebar.width', SIDEBAR_DEFAULT);
@@ -100,6 +110,13 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
   // Charger les tags de l'org pour les chips de filtre
   useEffect(() => {
     tagsApi.list().then(setOrgTags).catch(() => setOrgTags([]));
+  }, []);
+
+  // Charger les processus guidés publiés (≤ qq dizaines max — fetch unique au mount)
+  useEffect(() => {
+    apiClient.get<TreeListItem[]>('/trees?status=published')
+      .then(setTrees)
+      .catch(() => setTrees([]));
   }, []);
 
   // Load categories on mount
@@ -189,6 +206,14 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
     [categories, selectedCatId],
   );
   const selectedCategory = breadcrumb.length > 0 ? breadcrumb[breadcrumb.length - 1] : null;
+
+  // Trees affichés : ceux attachés à la cat sélectionnée OU à un de ses descendants.
+  // Réplique côté client la logique du backend `findDescendantIds` (cat racine + descendants).
+  const visibleTrees = useMemo(() => {
+    if (!selectedCatId) return trees;
+    const allowed = collectDescendantIds(categories, selectedCatId);
+    return trees.filter(t => t.category_id && allowed.has(t.category_id));
+  }, [trees, categories, selectedCatId]);
 
   // Auto-déplie les ancêtres quand une cat enfant est sélectionnée — sans
   // refermer ce que l'utilisateur a déjà ouvert manuellement.
@@ -471,25 +496,28 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
           </ul>
         )}
 
-        {/* Question trees section */}
-        {!loadingArticles && (
+        {/* Processus guidés — masqué si aucun tree pour la cat sélectionnée */}
+        {!loadingArticles && visibleTrees.length > 0 && (
           <div className="knowledge-trees">
             <h3 className="knowledge-trees__title">Processus guidés</h3>
-            <button
-              type="button"
-              className="knowledge-tree-card"
-              onClick={() => onOpenTree('tree-1')}
-            >
-              <div className="knowledge-tree-card__main">
-                <span className="knowledge-tree-card__name">
-                  Qualifier une demande de remboursement
-                </span>
-                <span className="knowledge-tree-card__meta">
-                  Remboursements · Mis à jour il y a 2 jours
-                </span>
-              </div>
-              <span className="badge badge--info">Processus</span>
-            </button>
+            {visibleTrees.map(tree => (
+              <button
+                key={tree.id}
+                type="button"
+                className="knowledge-tree-card"
+                onClick={() => onOpenTree(tree.id)}
+              >
+                <div className="knowledge-tree-card__main">
+                  <span className="knowledge-tree-card__name">{tree.title}</span>
+                  <span className="knowledge-tree-card__meta">
+                    {tree.category_name ?? 'Sans catégorie'}
+                    <span aria-hidden="true"> · </span>
+                    Mis à jour <time dateTime={tree.updated_at}>{formatRelative(tree.updated_at)}</time>
+                  </span>
+                </div>
+                <span className="badge badge--info">Processus</span>
+              </button>
+            ))}
           </div>
         )}
 
@@ -541,4 +569,20 @@ function findCategoryPath(cats: Category[], id: string | null): Category[] {
     if (sub.length > 0) return [cat, ...sub];
   }
   return [];
+}
+
+/**
+ * Retourne l'id de la catégorie + tous ses descendants. Réplique côté client
+ * le CTE récursif backend (`categoriesRepository.findDescendantIds`) — utilisé
+ * pour filtrer les processus guidés visibles depuis la sélection.
+ */
+function collectDescendantIds(cats: Category[], rootId: string): Set<string> {
+  const out = new Set<string>();
+  function walk(node: Category, inside: boolean) {
+    const here = inside || node.id === rootId;
+    if (here) out.add(node.id);
+    for (const child of node.children) walk(child, here);
+  }
+  for (const cat of cats) walk(cat, false);
+  return out;
 }

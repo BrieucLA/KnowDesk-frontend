@@ -3,10 +3,7 @@ import { apiClient, ApiError } from '../../../shared/lib/apiClient';
 import { useToast }     from '../../../shared/lib/useToast';
 import { Button }       from '../../../shared/components/ui/Button';
 import { Input }        from '../../../shared/components/ui/Input';
-import {
-  MOCK_NOTIF_PREFS, MOCK_BILLING,
-  mockSaveNotifPrefs, mockDeleteOrg,
-} from '../api/settings.mock';
+import { MOCK_BILLING, mockDeleteOrg } from '../api/settings.mock';
 import { useAuthStore }    from '../../../store/authStore';
 import { ApiKeysSection } from './ApiKeysSection';
 import { SearchSettingsSection } from './SearchSettingsSection';
@@ -148,8 +145,17 @@ function SectionGeneral() {
 
 /* ── Section: Notifications ──────────────────────────────────── */
 
+// Defaults neutres alignés sur le backend (tous activés sauf weeklyDigest).
+// Pas un mock — c'est l'état affiché en attendant le fetch initial.
+const DEFAULT_NOTIF_PREFS: NotifPreferences = {
+  articleUpdated: true,
+  memberJoined:   true,
+  weeklyDigest:   false,
+  channel:        'email',
+};
+
 function SectionNotifications() {
-  const [prefs,  setPrefs]  = useState<NotifPreferences>(MOCK_NOTIF_PREFS);
+  const [prefs,  setPrefs]  = useState<NotifPreferences>(DEFAULT_NOTIF_PREFS);
   const [saving, setSaving] = useState(false);
   const [saved,  setSaved]  = useState(false);
   const toast = useToast();
@@ -158,7 +164,7 @@ function SectionNotifications() {
   useEffect(() => {
     apiClient.get<NotifPreferences>('/notifications/preferences')
       .then(setPrefs)
-      .catch(() => {/* utilise les defaults — pas critique */});
+      .catch(() => {/* on conserve les defaults — pas critique */});
   }, []);
 
   const toggle = useCallback((key: keyof NotifPreferences) => {
