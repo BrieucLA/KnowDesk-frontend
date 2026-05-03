@@ -111,9 +111,22 @@
       + '}'
       + '.header__logo { width: 32px; height: 32px; border-radius: 6px; object-fit: cover; flex-shrink: 0; background: rgba(255,255,255,.15); }'
       + '.header__title { flex: 1; font-size: 14px; font-weight: 600; }'
-      + '.header__close, .header__reset { background: transparent; border: none; color: white; cursor: pointer; padding: 4px 8px; font-size: 18px; line-height: 1; opacity: 0.85; }'
-      + '.header__close:hover, .header__reset:hover { opacity: 1; }'
-      + '.header__reset { font-size: 16px; }'
+      + '.header__close, .header__reset, .header__end { background: transparent; border: none; color: white; cursor: pointer; padding: 4px 8px; font-size: 18px; line-height: 1; opacity: 0.85; }'
+      + '.header__close:hover, .header__reset:hover, .header__end:hover { opacity: 1; }'
+      + '.header__reset, .header__end { font-size: 16px; }'
+      + '.feedback { padding: 18px 16px; background: white; border-top: 1px solid #eaecef; }'
+      + '.feedback__title { font-size: 13.5px; color: #1a1a1a; margin: 0 0 10px; line-height: 1.45; }'
+      + '.feedback__choices { display: flex; flex-direction: column; gap: 6px; }'
+      + '.feedback__choices button { padding: 9px 12px; background: white; border: 1px solid #d6dae0; border-radius: 8px; font-size: 13px; cursor: pointer; text-align: left; transition: all 0.12s; }'
+      + '.feedback__choices button:hover { border-color: var(--kd-primary, #5B6CFF); background: #f6f7ff; }'
+      + '.feedback__stars { display: flex; gap: 4px; justify-content: center; margin: 8px 0 4px; }'
+      + '.feedback__stars button { background: transparent; border: none; cursor: pointer; font-size: 28px; color: #d6dae0; padding: 2px 4px; transition: color 0.1s, transform 0.1s; }'
+      + '.feedback__stars button:hover { transform: scale(1.15); }'
+      + '.feedback__stars button.is-active, .feedback__stars button.is-active ~ button:not(.is-active) { color: var(--kd-primary, #5B6CFF); }'
+      + '.feedback__stars--hovering button { color: #d6dae0; }'
+      + '.feedback__stars--hovering button.hover-up-to { color: var(--kd-primary, #5B6CFF); }'
+      + '.feedback__escalate-msg { font-size: 13px; color: #4a4a4a; line-height: 1.5; margin: 8px 0 14px; padding: 10px 12px; background: #f6f7fb; border-radius: 8px; white-space: pre-wrap; }'
+      + '.feedback__close-btn { padding: 9px 16px; background: var(--kd-primary, #5B6CFF); color: white; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; width: 100%; }'
       + '.messages { flex: 1; overflow-y: auto; padding: 14px; background: #f8f9fb; display: flex; flex-direction: column; gap: 8px; }'
       + '.msg { display: flex; gap: 6px; max-width: 85%; }'
       + '.msg--user { align-self: flex-end; }'
@@ -138,10 +151,39 @@
       + '  <div class="header">'
       + '    <div class="header__logo-wrap"></div>'
       + '    <div class="header__title">Discutons</div>'
-      + '    <button class="header__reset" type="button" aria-label="Nouvelle conversation" title="Nouvelle conversation">↺</button>'
+      + '    <button class="header__end"   type="button" aria-label="Terminer la conversation" title="Terminer la conversation">✓</button>'
+      + '    <button class="header__reset" type="button" aria-label="Nouvelle conversation"     title="Nouvelle conversation">↺</button>'
       + '    <button class="header__close" type="button" aria-label="Fermer">×</button>'
       + '  </div>'
       + '  <div class="messages" role="log" aria-live="polite"></div>'
+      + '  <div class="feedback" hidden>'
+      + '    <div class="feedback__step feedback__step--1">'
+      + '      <p class="feedback__title">Cette conversation vous a-t-elle aidé&nbsp;?</p>'
+      + '      <div class="feedback__choices">'
+      + '        <button type="button" data-helpful="yes">👍 Oui, parfait</button>'
+      + '        <button type="button" data-helpful="partial">🤷 Pas tout à fait</button>'
+      + '        <button type="button" data-helpful="no">👎 Non, besoin d\'un humain</button>'
+      + '      </div>'
+      + '    </div>'
+      + '    <div class="feedback__step feedback__step--csat" hidden>'
+      + '      <p class="feedback__title">Merci&nbsp;! Notez votre expérience&nbsp;:</p>'
+      + '      <div class="feedback__stars" role="radiogroup" aria-label="Note">'
+      + '        <button type="button" data-csat="1" aria-label="1 étoile">★</button>'
+      + '        <button type="button" data-csat="2" aria-label="2 étoiles">★</button>'
+      + '        <button type="button" data-csat="3" aria-label="3 étoiles">★</button>'
+      + '        <button type="button" data-csat="4" aria-label="4 étoiles">★</button>'
+      + '        <button type="button" data-csat="5" aria-label="5 étoiles">★</button>'
+      + '      </div>'
+      + '    </div>'
+      + '    <div class="feedback__step feedback__step--escalate" hidden>'
+      + '      <p class="feedback__title">Désolé que je n\'aie pas pu vous aider.</p>'
+      + '      <p class="feedback__escalate-msg"></p>'
+      + '      <button type="button" class="feedback__close-btn">Fermer</button>'
+      + '    </div>'
+      + '    <div class="feedback__step feedback__step--thanks" hidden>'
+      + '      <p class="feedback__title">Merci pour votre retour&nbsp;! 🙏</p>'
+      + '    </div>'
+      + '  </div>'
       + '  <form class="input-row">'
       + '    <input type="text" placeholder="Posez votre question…" autocomplete="off" maxlength="500" />'
       + '    <button type="submit">Envoyer</button>'
@@ -433,6 +475,117 @@
     bubble.addEventListener('click', open);
     close.addEventListener('click', closeP);
     if (reset) reset.addEventListener('click', function () { resetConversation(root); });
+
+    // ── Feedback flow ────────────────────────────────────────────
+    var endBtn       = root.querySelector('.header__end');
+    var feedbackEl   = root.querySelector('.feedback');
+    var fbStep1      = root.querySelector('.feedback__step--1');
+    var fbStepCsat   = root.querySelector('.feedback__step--csat');
+    var fbStepEsc    = root.querySelector('.feedback__step--escalate');
+    var fbStepThanks = root.querySelector('.feedback__step--thanks');
+
+    function showFeedback() {
+      // Cache l'input et affiche le panneau de feedback (étape 1)
+      form.style.display = 'none';
+      feedbackEl.hidden = false;
+      fbStep1.hidden = false;
+      fbStepCsat.hidden = true;
+      fbStepEsc.hidden = true;
+      fbStepThanks.hidden = true;
+    }
+    function hideFeedback() {
+      feedbackEl.hidden = true;
+      form.style.display = '';
+    }
+
+    async function submitFeedback(payload) {
+      if (!state.conversationId) return;
+      try {
+        await fetch(API_BASE + '/conversation/' + encodeURIComponent(state.conversationId) + '/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.assign({ orgSlug: orgSlug }, payload)),
+        });
+      } catch (e) { /* silencieux : feedback non critique */ }
+    }
+
+    if (endBtn) {
+      endBtn.addEventListener('click', function () {
+        // Nécessite au moins 1 vrai échange (≥ 2 turns en historique : welcome + 1 réponse bot
+        // c'est minimum pour activer)
+        var hasInteracted = state.history.filter(function (t) { return t.role === 'visitor'; }).length > 0;
+        if (!hasInteracted) {
+          // Rien à évaluer → ferme simplement le widget
+          closeP();
+          return;
+        }
+        showFeedback();
+      });
+    }
+
+    fbStep1.addEventListener('click', function (e) {
+      var btn = e.target.closest('button[data-helpful]');
+      if (!btn) return;
+      var helpful = btn.getAttribute('data-helpful');
+      fbStep1.hidden = true;
+      if (helpful === 'yes') {
+        fbStepCsat.hidden = false;
+      } else {
+        // Affiche le message de fallback admin (escalation)
+        var escMsg = root.querySelector('.feedback__escalate-msg');
+        var fallback = (state.config && state.config.fallbackMessage)
+          || 'Un de nos conseillers vous répondra dans les meilleurs délais. Merci de patienter.';
+        escMsg.textContent = fallback;
+        fbStepEsc.hidden = false;
+        // POST feedback dès maintenant (le visiteur peut fermer après lecture)
+        submitFeedback({ helpful: helpful });
+      }
+    });
+
+    // CSAT — survol et click
+    fbStepCsat.addEventListener('mouseover', function (e) {
+      var btn = e.target.closest('button[data-csat]');
+      if (!btn) return;
+      var n = parseInt(btn.getAttribute('data-csat'), 10);
+      var stars = fbStepCsat.querySelectorAll('button[data-csat]');
+      fbStepCsat.querySelector('.feedback__stars').classList.add('feedback__stars--hovering');
+      stars.forEach(function (s, i) {
+        if (i < n) s.classList.add('hover-up-to'); else s.classList.remove('hover-up-to');
+      });
+    });
+    fbStepCsat.addEventListener('mouseleave', function () {
+      fbStepCsat.querySelector('.feedback__stars').classList.remove('feedback__stars--hovering');
+    });
+    fbStepCsat.addEventListener('click', function (e) {
+      var btn = e.target.closest('button[data-csat]');
+      if (!btn) return;
+      var csat = parseInt(btn.getAttribute('data-csat'), 10);
+      submitFeedback({ helpful: 'yes', csat: csat });
+      fbStepCsat.hidden = true;
+      fbStepThanks.hidden = false;
+      // Fin de la conversation : on RAZ pour la prochaine session
+      setTimeout(function () {
+        hideFeedback();
+        state.conversationId = null;
+        state.history = [];
+        saveConversationId(null);
+        renderMessages(root);
+        if (state.config && state.config.welcomeMessage) {
+          state.history.push({ role: 'assistant', content: state.config.welcomeMessage });
+          renderMessages(root);
+        }
+        closeP();
+      }, 1800);
+    });
+
+    fbStepEsc.querySelector('.feedback__close-btn').addEventListener('click', function () {
+      hideFeedback();
+      state.conversationId = null;
+      state.history = [];
+      saveConversationId(null);
+      closeP();
+    });
+
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var v = input.value;

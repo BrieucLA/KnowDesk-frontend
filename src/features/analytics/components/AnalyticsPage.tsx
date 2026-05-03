@@ -53,6 +53,7 @@ export function AnalyticsPage({ onOpenArticle, onCreateFaq }: AnalyticsPageProps
       <EngagementRow engagement={data.engagement} windowDays={data.windowDays} />
 
       <AiAnswerStatsBanner onCreateFaq={onCreateFaq} />
+      <ChatStatsBanner />
 
       {onCreateFaq && <FaqsToCreateBanner onCreate={onCreateFaq} />}
 
@@ -481,6 +482,87 @@ function AiAnswerStatsBanner({ onCreateFaq }: { onCreateFaq?: (q: string) => voi
               </ul>
             </div>
           )}
+        </div>
+      )}
+    </section>
+  );
+}
+
+// ── Chatbot — usage + qualité ────────────────────────────────
+
+interface ChatStats {
+  windowDays:         number;
+  totalConversations: number;
+  active:             number;
+  resolved:           number;
+  escalated:          number;
+  abandoned:          number;
+  resolvedRate:       number | null;
+  escalationRate:     number | null;
+  csatAverage:        number | null;
+  csatRated:          number;
+  topQuestions:       Array<{ question: string; count: number }>;
+}
+
+function ChatStatsBanner() {
+  const [stats,   setStats]   = useState<ChatStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    apiClient.get<ChatStats>('/analytics/chat')
+      .then(d => { if (alive) setStats(d); })
+      .catch(() => {})
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
+  }, []);
+
+  if (loading) return null;
+  if (!stats || stats.totalConversations === 0) return null;
+
+  const resolvedPct = stats.resolvedRate !== null ? Math.round(stats.resolvedRate * 100) : null;
+
+  return (
+    <section className="ai-stats" aria-labelledby="chat-stats-title">
+      <header className="ai-stats__header">
+        <h2 id="chat-stats-title" className="ai-stats__title" style={{ color: 'oklch(0.4 0.16 200)' }}>
+          💬 Chatbot — {stats.windowDays} derniers jours
+        </h2>
+      </header>
+      <div className="ai-stats__row">
+        <div className="ai-stats__metric">
+          <span className="ai-stats__metric-value">{stats.totalConversations}</span>
+          <span className="ai-stats__metric-label">Conversations</span>
+        </div>
+        <div className="ai-stats__metric">
+          <span className="ai-stats__metric-value">{resolvedPct !== null ? `${resolvedPct}%` : '—'}</span>
+          <span className="ai-stats__metric-label">Résolues ({stats.resolved}/{stats.resolved + stats.escalated + stats.abandoned})</span>
+        </div>
+        <div className="ai-stats__metric">
+          <span className="ai-stats__metric-value">{stats.escalated}</span>
+          <span className="ai-stats__metric-label">Escaladées</span>
+        </div>
+        <div className="ai-stats__metric">
+          <span className="ai-stats__metric-value">
+            {stats.csatAverage !== null ? `${stats.csatAverage.toFixed(1)} ⭐` : '—'}
+          </span>
+          <span className="ai-stats__metric-label">CSAT moyen ({stats.csatRated} note{stats.csatRated > 1 ? 's' : ''})</span>
+        </div>
+      </div>
+
+      {stats.topQuestions.length > 0 && (
+        <div className="ai-stats__queries">
+          <div className="ai-stats__queries-col">
+            <h3 className="ai-stats__queries-title">Top questions des visiteurs</h3>
+            <ul className="ai-stats__list" role="list">
+              {stats.topQuestions.slice(0, 8).map(q => (
+                <li key={q.question} className="ai-stats__item">
+                  <span className="ai-stats__item-q">« {q.question} »</span>
+                  <span className="ai-stats__item-count">{q.count}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       )}
     </section>
