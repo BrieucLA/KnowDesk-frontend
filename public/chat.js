@@ -46,6 +46,16 @@
     history:        [],      // [{role:'visitor'|'assistant', content}, ...] (UI-only, pas la source de vérité)
     pending:        false,
     error:          null,
+    /**
+     * Flag posé après un clic 👎 inline (Sprint 10) : on a poussé une bulle
+     * d'empathie qui demande l'email du visiteur. Le prochain message est
+     * intercepté par sendMessage : si c'est un email valide → POST /handoff
+     * avec l'email ; sinon le flag retombe et le message reprend le RAG normal.
+     * Reste éphémère (pas persisté localStorage) — un reload du widget annule
+     * la demande, ce qui est le comportement attendu pour ne pas piéger
+     * l'utilisateur dans une boucle.
+     */
+    awaitingHandoffEmail: false,
   };
 
   // Identifiants persistés côté client : la conversationId pour reprendre
@@ -288,7 +298,7 @@
       // immédiatement le handoff humain. Une fois cliqué, l'état persiste
       // visuellement (turn.voted) et l'autre bouton est désactivé.
       var isBot = turn.role === 'assistant' || turn.role === 'bot';
-      if (isBot && !turn.welcome) {
+      if (isBot && !turn.welcome && !turn.handoffPrompt && !turn.handoffConfirm) {
         var fb = document.createElement('div');
         fb.className = 'msg-fb';
 
@@ -323,13 +333,30 @@
         down.addEventListener('click', function () {
           if (turn.voted) return;
           turn.voted = 'no';
+          // Vote enregistré tout de suite (helpful=no ⇒ status=escalated côté DB).
           if (typeof window.__knowdeskSubmitFeedback === 'function') {
             window.__knowdeskSubmitFeedback({ helpful: 'no' });
           }
-          renderMessages(root);
-          if (typeof window.__knowdeskTriggerHandoff === 'function') {
-            window.__knowdeskTriggerHandoff();
+          // Sprint 10 : on reste dans le canal de discussion plutôt que d'ouvrir
+          // le panel handoff. On pousse une bulle d'empathie qui propose l'email
+          // pour un contact ultérieur. Le prochain message du user est intercepté
+          // par sendMessage (cf. flag awaitingHandoffEmail).
+          // On évite de spammer plusieurs bulles d'empathie si le user vote 👎
+          // sur plusieurs réponses successives — un seul prompt à la fois.
+          if (!state.awaitingHandoffEmail) {
+            state.history.push({
+              role:    'assistant',
+              content: 'Désolé que cette réponse ne vous ait pas aidé. Si vous souhaitez '
+                     + 'qu\'un membre de notre équipe vous recontacte, indiquez-moi votre '
+                     + 'adresse email. Sinon, vous pouvez continuer à me poser vos questions.',
+              handoffPrompt: true,
+            });
+            state.awaitingHandoffEmail = true;
           }
+          renderMessages(root);
+          // Focus l'input pour aller direct à la saisie email
+          var inp = root.querySelector('.input-row input');
+          if (inp) inp.focus();
         });
 
         fb.appendChild(up);
@@ -362,11 +389,53 @@
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
 
+  // Regex email simple pour le pré-flight handoff (Sprint 10).
+  // Volontairement permissive (pas de RFC 5322) — on rejette juste les
+  // chaînes qui ne ressemblent visiblement pas à un email.
+  var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
   // ── Logique d'envoi message ──────────────────────────────────────
   async function sendMessage(root, text) {
     if (!text.trim() || state.pending) return;
+    var trimmed = text.trim();
+
+    // Sprint 10 — pré-flight email handoff : si on attend un email suite à
+    // un clic 👎 inline, on intercepte le prochain message du visiteur.
+    //  - email valide → POST /handoff(visitorEmail) + bulle confirmation
+    //  - autre chose → on lève le flag et on enchaîne le flow normal
+    //    (RAG sur le message, qui peut être une nouvelle question ou
+    //    un « non merci » que le bot va comprendre comme smalltalk).
+    if (state.awaitingHandoffEmail) {
+      if (EMAIL_RE.test(trimmed)) {
+        state.awaitingHandoffEmail = false;
+        state.history.push({ role: 'visitor', content: trimmed });
+        renderMessages(root);
+        var resp = null;
+        if (typeof window.__knowdeskSubmitHandoff === 'function') {
+          resp = await window.__knowdeskSubmitHandoff(trimmed);
+        }
+        var delivered = resp && resp.delivered;
+        var confirmText = delivered === 'webhook' || delivered === 'email'
+          ? 'Merci. Votre demande a été transmise à notre équipe — nous reviendrons '
+            + 'vers vous à cette adresse dans les meilleurs délais. '
+            + 'En attendant, n\'hésitez pas à continuer la conversation.'
+          : 'Merci. Votre adresse a été notée. N\'hésitez pas à continuer '
+            + 'à me poser vos questions en attendant.';
+        state.history.push({
+          role:           'assistant',
+          content:        confirmText,
+          handoffConfirm: true,
+        });
+        renderMessages(root);
+        return;
+      }
+      // Pas un email → on annule l'attente, le message est traité comme une
+      // question normale (le bot répondra via RAG, smalltalk, etc.).
+      state.awaitingHandoffEmail = false;
+    }
+
     state.pending = true;
-    state.history.push({ role: 'visitor', content: text.trim() });
+    state.history.push({ role: 'visitor', content: trimmed });
     renderMessages(root);
 
     var streamedText = '';
@@ -469,6 +538,7 @@
     var oldId = state.conversationId;
     state.conversationId = null;
     state.history = [];
+    state.awaitingHandoffEmail = false;
     saveConversationId(null);
     if (oldId) {
       // Best-effort RGPD : supprime côté serveur. Erreur ignorée.
@@ -665,6 +735,8 @@
         return json.data;
       } catch (e) { return null; }
     }
+    // Exposé pour le pré-flight email du flow 👎 inline (Sprint 10)
+    window.__knowdeskSubmitHandoff = submitHandoff;
 
     var submitHandoffBtn = fbHandoffForm.querySelector('.feedback__submit-btn');
     if (submitHandoffBtn) {
