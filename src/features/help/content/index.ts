@@ -25,6 +25,29 @@ export const HELP_CONTENT: HelpSection[] = [
 
 Cette page récapitule les fonctionnalités livrées sur les dernières semaines. Elle se met à jour à chaque release.
 
+### Juin 2026
+
+**💬 Chatbot — moteur conversationnel complet**
+Le chatbot embarqué a fait un grand pas en avant en quelques sprints :
+- **Persistence serveur** : chaque conversation est désormais conservée côté serveur (auditable depuis la nouvelle page **💬 Chats**, recherche par mot-clé dans les transcripts)
+- **Question de clarification** : quand un visiteur pose une question trop vague, le bot pose **une** question pour préciser avant de répondre
+- **Quick replies** : sous chaque réponse, le bot propose des chips cliquables avec les sources les plus pertinentes
+- **Pouces 👍/👎 inline** discrets sous chaque réponse — le 👎 pousse une bulle d'empathie **dans le canal** qui demande l'email pour un contact ultérieur (plus de modale qui interrompt)
+- **Bouton 🙋** dans le header pour escalader vers un humain
+- **Handoff structuré** : à chaque escalade, KnowDesk peut envoyer le transcript par email à ton équipe ou poster un JSON sur ton webhook (CRM, Zendesk, Slack, n8n…). Configuration dans **Paramètres → 💬 Chatbot**
+- **Topic clustering** : chaque conversation est résumée automatiquement à la clôture (3-6 mots) — alimente les **Top thématiques** dans Analytics. Bien plus utile qu'une liste de messages bruts
+- **Page admin Chats** : nouvelle entrée sidebar admin pour relire les transcripts, filtrer par statut, chercher par mot-clé
+
+→ Voir la section **💬 Chats** et **🔍 Recherche → Chatbot embarquable**.
+
+**🛠️ Prompt système personnalisable**
+Tu peux désormais voir le prompt **réellement utilisé** par le chatbot à chaque message dans **Paramètres → 💬 Chatbot → Prompt système**, et le réécrire si besoin (override total). Bouton **↺ Restaurer le défaut** pour revenir à la version générée automatiquement à partir des champs Personnalisation. À utiliser avec précaution — un prompt mal rédigé peut casser le comportement.
+
+**📊 Analytics — Top thématiques + dédup IA**
+- Le top **Top questions IA** ne pollue plus avec les versions intermédiaires d'une même requête tapée caractère par caractère. Filtrage des préfixes en fenêtre 60s par utilisateur — rétro-actif sur l'historique existant.
+- Le top **Top thématiques chatbot** remplace l'ancien top messages bruts.
+- Bloc Chatbot avec total / résolution / escalade / CSAT moyen.
+
 ### Mai 2026
 
 **🔍 Barre de recherche améliorée**
@@ -743,21 +766,85 @@ Sous le formulaire de configuration, KnowDesk affiche un snippet à copier-colle
 
 Le widget se charge automatiquement et tient compte de tous les paramètres définis dans Settings (couleur, logo, message, fallback). Si tu modifies la config dans KnowDesk, les changements sont visibles immédiatement par les visiteurs (pas de cache).
 
-**4. Comportement multi-tour**
+**4. Personnalisation IA (mêmes champs que Réponse IA)**
 
-Le chatbot tient le fil de la conversation : si un visiteur demande *« comment résilier ? »* puis *« et combien ça coûte ? »*, le bot comprend que la deuxième question concerne la résiliation. L'historique est gardé localement chez le visiteur (10 derniers échanges envoyés au backend pour borner les coûts).
+Sous le bloc d'apparence, tu retrouves les 4 champs de personnalisation IA que tu as déjà configurés pour la Réponse IA conseiller : **Secteur**, **Tonalité**, **Forme d'adresse**, **Glossaire**. **Ces valeurs sont partagées avec la section ✨ IA recherche** — les modifier ici les met aussi à jour pour la Réponse IA. Pratique : tu configures tout depuis une seule section. Pour piloter l'identité du chatbot indépendamment de la recherche interne, on prévoit des champs séparés en P2.
 
-**5. Garde-fous automatiques**
+**5. Prompt système (avancé)**
+
+Le textarea **Prompt système** affiche le prompt **réellement utilisé** par le chatbot pour chaque message. Par défaut il est généré dynamiquement à partir des 4 champs ci-dessus + ton message de fallback : tu vois exactement ce que Mistral reçoit.
+
+Tu peux le **réécrire intégralement** (override total — la personnalisation est alors ignorée pour le chatbot, mais reste active pour la Réponse IA conseiller). Le bouton **↺ Restaurer le défaut** repose le prompt généré dynamique. Min 50 caractères, max 8000. À utiliser seulement si tu sais ce que tu fais — un prompt mal rédigé peut casser le comportement (lever les garde-fous anti-jailbreak, oublier le fallback, etc.).
+
+**6. Comportement multi-tour + slot filling**
+
+Le chatbot tient le fil de la conversation côté serveur : conversation complète persistée en DB (audit, RGPD-ready). Si un visiteur demande *« comment résilier ? »* puis *« et combien ça coûte ? »*, le bot comprend que la deuxième question concerne la résiliation.
+
+**Question de clarification automatique** : quand une question est trop vague (*« mon forfait ne marche pas »*, *« panne »*), le bot pose **une** question pour préciser avant de tenter une réponse. Au tour suivant, il combine la question initiale avec la précision pour interroger la base de manière ciblée. 1 clarification max par conversation pour éviter les boucles.
+
+**Quick replies** : sous chaque réponse, le bot propose 2 chips cliquables avec les sources les plus pertinentes — le visiteur peut creuser un sujet d'un clic.
+
+**7. Pouces inline + 👎 dans le canal**
+
+Sous chaque réponse bot, deux petits pouces 👍/👎 discrets. **👍** signale une réponse utile (la conversation est marquée *résolue*). **👎** signale l'inverse : le bot pousse alors une bulle d'empathie **dans le canal de discussion** qui demande l'email pour un contact ultérieur.
+
+- Si le visiteur tape une adresse email valide → POST de la demande de handoff à ton équipe (selon le mode configuré, cf article *Passage à un humain*) + bulle de confirmation. La conversation peut continuer ensuite.
+- Si le visiteur tape autre chose ("non merci", une nouvelle question…) → la demande retombe et le bot répond normalement.
+
+Le bouton 🙋 du header du widget permet aussi un handoff direct, sans passer par les pouces. Visible uniquement après le 1ᵉʳ message du visiteur.
+
+**8. Garde-fous automatiques**
 
 Le chatbot refuse :
 - Les questions hors-scope (politique, religieuses, médicales, juridiques générales) → renvoie vers tes canaux de contact
 - Les tentatives de *jailbreak* (« ignore tes instructions », « joue le rôle de… »)
-- Les domaines non whitelistés
+- Les domaines non whitelistés (CORS dynamique par org)
 - Plus de 30 messages/minute par IP visiteur (anti-spam)
 
-> 💡 **Démo rapide** : avec le widget actif sur ton site, ouvre une page, clique la bulle 💬 et pose une question dont la réponse est dans une FAQ marquée Public. Tu vois la réponse arriver token par token avec les sources citées.
+**9. Suivi des conversations**
 
-> ⚠️ **RGPD** : le chatbot est totalement anonyme (pas de collecte de nom, email, téléphone). Si tu veux recueillir le contact du visiteur pour escalation, c'est en V2 (avec consentement explicite).
+Toutes les conversations sont consultables dans la nouvelle section **💬 Chats** de la barre de gauche (admin only). Recherche par mot-clé dans les transcripts, filtre par statut, modale transcript complet. Cf article *Suivre les conversations chat*.
+
+> 💡 **Démo rapide** : avec le widget actif sur ton site, ouvre une page, clique la bulle 💬 et pose une question dont la réponse est dans une FAQ marquée Public. Tu vois la réponse arriver token par token. Clique 👎 sous la réponse pour tester le flow de handoff dans le canal.
+
+> ⚠️ **RGPD** : le chatbot collecte uniquement ce que le visiteur tape volontairement (incluant l'email s'il choisit de le donner suite à un 👎). Pas de fingerprint stocké côté serveur en clair, juste un identifiant anonyme localStorage. Disclaimer dans le widget et rétention configurable : prévu en V2.
+        `.trim(),
+      },
+      {
+        id:    'chatbot-handoff',
+        title: 'Passage à un humain (handoff) 🙋',
+        content: `
+## Passage à un humain (handoff)
+
+Quand un visiteur clique 👎 sous une réponse, ou quand il clique le bouton 🙋 du header du widget, KnowDesk peut transmettre l'historique de la conversation à ton équipe. Tu choisis comment.
+
+**Configurer le mode**
+
+Va dans **Paramètres → 💬 Chatbot** → bloc **Passage à un humain** (en bas).
+
+Trois modes au choix :
+- **Aucun** *(défaut)* — Le visiteur voit seulement le message de fallback (avec tes canaux de contact). Aucune notification côté équipe. Le statut de la conversation passe quand même à *escalated* dans les statistiques.
+- **Email** — Tu indiques une adresse (ex \`support@ton-entreprise.fr\`). Quand un visiteur déclenche le handoff, ton équipe reçoit le transcript HTML complet de la conversation, avec l'email du visiteur s'il l'a fourni. Mode le plus simple à intégrer.
+- **Webhook** — Tu indiques une URL HTTPS. KnowDesk POST un JSON \`{ orgSlug, conversationId, transcript: [...], visitorEmail, reason }\` à cette URL. Permet de créer automatiquement un ticket dans ton CRM, Zendesk, Slack, n8n, Make, etc. Timeout 8 secondes.
+
+**Comment le visiteur déclenche le handoff**
+
+Trois chemins, tous documentés dans l'article *Chatbot embarquable* :
+1. **Pouce 👎** sous une réponse bot → bulle d'empathie dans le chat qui demande l'email → l'envoi se fait au prochain message si email valide.
+2. **Bouton 🙋** dans le header du widget → ouvre directement le formulaire email + envoi.
+3. **Sans email** : si le visiteur préfère ne pas donner son email, il peut continuer à converser. Le 👎 reste comptabilisé, la conversation reste *escalated*, mais aucun handoff n'est envoyé.
+
+**Statistiques associées**
+
+La page **Analytics** → bloc Chatbot affiche :
+- **Taux de résolution** : conversations *resolved* / total clos
+- **Taux d'escalade** : conversations *escalated* / total clos
+- **CSAT moyen** sur les conversations notées
+- Pour chaque conversation escaladée, le détail (transcript + visitor email + delivered ou non) est disponible dans la page **💬 Chats**.
+
+> 💡 **Astuce** : commence avec le mode **Email** pour valider que le flow plaît à ton équipe, puis bascule en **Webhook** quand tu veux automatiser la création de tickets dans ton helpdesk.
+
+> ⚠️ **Sécurité webhook** : ton endpoint doit être public (HTTPS) et accepter un POST JSON sans auth. Pour vérifier que la requête vient bien de KnowDesk, on prévoit une signature HMAC en V2 — pour l'instant, on conseille de placer un secret partagé dans l'URL elle-même (ex \`https://api.exemple.fr/hooks/knowdesk?token=XXXXX\`).
         `.trim(),
       },
       {
@@ -1330,6 +1417,19 @@ Toutes les listes sont **cliquables** : un clic ouvre directement l'article conc
 - **Couverture par catégorie** — Identifie les catégories sous-documentées
 - **Tags utilisés** et **Tags inutilisés** — Hygiène du vocabulaire
 
+**Bloc Réponse IA (sous le grid)**
+- **Total / Done / Unsure / Helpful%** sur les recherches IA déclenchées dans la SearchBar
+- **Top questions** et **Questions sans réponse** — agrégées avec **dédup intelligente** : les variantes intermédiaires de la même recherche tapée par un user (« comment résilier », « comment résilier mon », « comment résilier mon forfait ») sont fusionnées en une seule ligne. Ne reflète que la vraie recherche finale.
+- Bouton **Créer une FAQ** sur chaque question sans réponse, raccourci vers \`/faqs/new\` avec la question pré-remplie
+
+**Bloc Chatbot (si activé)**
+- **Total conversations** sur 30 jours, ventilation par statut (En cours / Résolues / Escaladées / Abandonnées)
+- **Taux de résolution** = résolues / total clos
+- **Taux d'escalade** = escaladées / total clos
+- **CSAT moyen** sur les conversations notées
+- **Top thématiques** : agrégées via clustering Mistral à la clôture de chaque conversation. Une thématique = un groupe nominal court (ex *« Résiliation forfait mobile »*, *« Activation eSIM »*). Les variantes de question sur le même sujet sont fusionnées sur la même ligne — meilleure photo des intentions visiteurs que des messages bruts.
+- Pour creuser une conversation précise, aller dans **💬 Chats** (page dédiée).
+
 **Fenêtre temporelle**
 Les indicateurs basés sur l'activité (vues, recherches, engagement) couvrent les **30 derniers jours**. Les indicateurs structurels (articles à vérifier, tags inutilisés…) reflètent l'état actuel.
 
@@ -1337,6 +1437,64 @@ Les indicateurs basés sur l'activité (vues, recherches, engagement) couvrent l
 Aucune donnée individuelle d'utilisation par conseiller n'est exposée. Les statistiques d'engagement sont **agrégées par organisation**. Les événements bruts sont automatiquement purgés après **90 jours**.
 
 > 💡 **Astuce** : La carte **Recherches sans résultat** est probablement la plus actionnable. Chaque requête infructueuse est un sujet que tes conseillers cherchent et que ta base ne couvre pas — c'est le meilleur indicateur pour orienter ta création de contenu.
+        `.trim(),
+      },
+    ],
+  },
+  {
+    id:    'chats',
+    title: 'Chats',
+    icon:  '💬',
+    articles: [
+      {
+        id:    'chats-overview',
+        title: 'Suivre les conversations chat',
+        content: `
+## Suivre les conversations chat
+
+La page **💬 Chats** (admin only, dans la barre de gauche entre Analytics et Settings) liste toutes les conversations menées par le chatbot embarqué sur ton site. Outil d'audit qualité, de repérage des thématiques, et de relecture pour améliorer la base.
+
+**Accéder**
+
+Sidebar → icône **💬 Chats**. URL canonique \`/chats\` (deep-linkable, F5 préserve l'écran).
+
+**Vue liste**
+
+Une ligne par conversation, triée par date décroissante. Pagination 20 par page. Chaque ligne :
+- **Thématique** : 3-6 mots résumant la demande, générés automatiquement par Mistral à la clôture (ex *« Résiliation forfait mobile »*, *« Activation eSIM »*). Pour les conversations encore actives ou récentes sans thématique calculée, on affiche la 1ʳᵉ question du visiteur en italique à la place.
+- **Statut** : *En cours / Résolue / Escaladée / Abandonnée*. Une conversation devient :
+  - *Résolue* quand le visiteur clique 👍 sur une réponse, ou *Oui parfait* dans le formulaire feedback du header
+  - *Escaladée* quand le visiteur clique 👎 ou demande explicitement un humain
+  - *Abandonnée* automatiquement si elle reste *active* sans nouveau message pendant 30 minutes (cron toutes les 10 min)
+- **Nombre de messages** dans la conversation
+- **CSAT** étoiles ★ si le visiteur a noté
+- **👍 / 👎** si le visiteur a voté
+- **Date relative** (ex *« il y a 2h »*, *« hier »*)
+
+**Recherche full-text**
+
+Le champ de recherche en haut interroge le contenu **complet** des transcripts (côté visiteur **et** bot). Tape un mot-clé (ex *« remboursement »*, *« eSIM »*, *« facture »*) et clique **Rechercher** — la liste se filtre sur les conversations dont au moins un message contient le mot. Insensible à la casse, recherche par sous-chaîne (ILIKE Postgres).
+
+**Filtre statut**
+
+Le sélecteur à droite filtre par statut : utile pour audit qualité (regarde les *Escaladées*) ou pour identifier les conversations qui n'ont pas reçu de feedback (*En cours* > 30 min sont en train de devenir *Abandonnées*).
+
+**Modale transcript**
+
+Clique une ligne pour ouvrir le transcript complet :
+- Bandeau métadonnées en haut : statut, dates, nombre de messages, CSAT et retour 👍/👎 si présents
+- Bulles chat scrollables : visiteur à droite (couleur primaire), bot à gauche (blanc)
+- Tu peux relire toute la conversation comme si tu étais le visiteur
+
+**Cas d'usage typiques**
+
+- **Audit hebdomadaire** : ouvre les conversations *Escaladées* de la semaine, relis les transcripts pour comprendre où le bot a buté → identifier les contenus manquants à créer (FAQs, articles).
+- **Suivi d'incident** : un visiteur signale par email avoir eu un problème avec le bot → recherche son transcript par mot-clé pour comprendre.
+- **Amélioration KB** : repère des thématiques récurrentes mais mal couvertes — la liste des thématiques est aussi disponible en agrégée dans **Analytics → Top thématiques**.
+
+> 💡 **Astuce** : si une conversation t'aide à identifier une lacune dans la base, va directement créer une **FAQ** (\`/faqs/new\`) avec la question type — le bot s'en servira aussi grâce à l'indexation Meilisearch automatique.
+
+> 🔒 **Confidentialité** : les transcripts contiennent uniquement ce que le visiteur a tapé volontairement. Pas de fingerprint réversible vers une identité réelle. Rétention illimitée pour l'instant ; un opt-in RGPD avec rétention configurable est prévu en V2.
         `.trim(),
       },
     ],

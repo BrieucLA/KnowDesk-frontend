@@ -86,11 +86,21 @@ export function GettingStarted() {
             raisons de coût et de sécurité (chaque requête consomme des tokens LLM facturés).</li>
           <li><strong>Chatbot embarquable 💬</strong> : si vous voulez offrir une expérience IA à
             vos clients finaux directement depuis votre site web, KnowDesk fournit un widget JS
-            embarquable. Activation et configuration depuis <strong>Paramètres → Chatbot</strong> ;
-            l'intégration se fait via un simple <code>&lt;script&gt;</code> tag à coller sur votre
-            site. Le chatbot fonctionne sur un canal séparé (<code>/public/v1/chat</code>) avec
-            son propre système d'authentification (liste blanche de domaines, pas de clé API).
-            Voir le help center → "Chatbot embarquable" pour le guide complet.</li>
+            embarquable (vanilla JS + Web Component, ~12 KB, isolation Shadow DOM totale).
+            Activation et configuration depuis <strong>Paramètres → 💬 Chatbot</strong> ;
+            l'intégration se fait via un simple <code>&lt;script src="/chat.js" data-org="..."&gt;</code>
+            à coller sur votre site. Le chatbot fonctionne sur un canal séparé
+            (<code>/public/v1/chat/*</code>) avec son propre système d'authentification (liste
+            blanche de domaines via CORS dynamique, pas de clé API à manipuler).
+            Capacités : <strong>RAG multi-tour</strong> sur le contenu marqué Public,
+            <strong>persistence serveur</strong> des conversations, <strong>questions de
+            clarification</strong> automatiques, <strong>quick replies</strong> contextuels,
+            <strong>pouces 👍/👎 inline</strong>, <strong>handoff structuré</strong> vers votre
+            équipe (webhook JSON ou email avec transcript). Endpoints internes du widget :
+            <code>POST /message</code> (SSE streaming), <code>GET /conversation/:id</code>,
+            <code>POST /conversation/:id/feedback</code>, <code>POST /conversation/:id/handoff</code>,
+            <code>DELETE /conversation/:id</code> (RGPD). Voir le help center →
+            <em>Chatbot embarquable</em> et <em>Passage à un humain</em> pour le guide complet.</li>
           <li><strong>Hiérarchie des catégories</strong> : la liste retournée par <code>GET /categories</code>
             est plate ; chaque catégorie indique son <code>parent_id</code> pour vous permettre
             de reconstruire l'arbre côté client.</li>
