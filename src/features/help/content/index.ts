@@ -204,18 +204,31 @@ Pour créer un article :
         content: `
 ## Organiser par catégories
 
-Les catégories structurent ta base de connaissance. Tu peux créer une hiérarchie jusqu'à plusieurs niveaux.
+Les catégories structurent ta base de connaissance. Tu peux créer une hiérarchie jusqu'à plusieurs niveaux (univers → catégorie → sous-catégorie…).
 
 **Créer une catégorie**
 1. Va dans **Base de connaissance**
-2. Clique sur **+ Catégorie** dans le panneau de gauche
+2. Clique sur **+** en haut du panneau de gauche
 3. Donne-lui un nom clair
+4. (Optionnel) Choisis une **catégorie parente** dans le sélecteur — laissé vide, la catégorie est créée à la racine
+
+> 💡 **Raccourci** : si tu cliques **+** alors qu'une catégorie est sélectionnée, ce parent est pré-rempli automatiquement. Idéal pour ajouter rapidement une sous-catégorie.
+
+**Modifier ou supprimer une catégorie**
+Survole une ligne dans le panneau de gauche : un bouton **···** apparaît à droite. Il ouvre un menu avec 4 actions :
+- **✎ Renommer** — édition directe sur la ligne (Entrée pour valider, Échap pour annuler)
+- **+ Ajouter une sous-catégorie** — ouvre la modale avec ce parent pré-rempli
+- **↗ Déplacer…** — change la catégorie parente (descendants exclus pour éviter les cycles)
+- **🗑 Supprimer** — confirmation requise ; les sous-catégories sont supprimées aussi, les articles attachés perdent leur catégorisation
+
+> ⚠ La suppression est irréversible. Les articles d'une catégorie supprimée restent accessibles mais sans rangement — pense à les replacer.
 
 **Bonne organisation**
 Pense à tes catégories comme des dossiers. Quelques exemples :
 - Par thématique : *Facturation*, *Livraison*, *Retours*
 - Par type de demande : *FAQ*, *Procédures*, *Scripts*
 - Par produit : *Produit A*, *Produit B*
+- Hiérarchie à 2 niveaux : *Mobile → Activation*, *Mobile → Réseau*
 
 > 💡 **Astuce** : Une catégorie est unique par article. Pour des classements transversaux (saisonnalité, statut éditorial…), utilise plutôt les **tags**.
         `.trim(),

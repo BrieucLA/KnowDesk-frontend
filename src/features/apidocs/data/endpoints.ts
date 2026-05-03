@@ -7,11 +7,14 @@ export const ENDPOINTS: Endpoint[] = [
     method:      'GET',
     path:        '/categories',
     title:       'Lister les catégories',
-    description: 'Retourne toutes les catégories de votre base de connaissance.',
+    description:
+      'Retourne toutes les catégories de votre base de connaissance, avec leur hiérarchie. Une catégorie racine a `parent_id: null` ; les sous-catégories pointent vers leur parent via `parent_id`.',
     response: JSON.stringify({
       data: [
-        { id: 'uuid', name: 'Livraisons', parent_id: null, position: 0 },
-        { id: 'uuid', name: 'Retours',    parent_id: null, position: 1 },
+        { id: 'uuid-mobile',     name: 'Mobile',              parent_id: null,             position: 0 },
+        { id: 'uuid-activation', name: 'Activation',          parent_id: 'uuid-mobile',    position: 0 },
+        { id: 'uuid-reseau',     name: 'Réseau & couverture', parent_id: 'uuid-mobile',    position: 1 },
+        { id: 'uuid-box',        name: 'Box & Internet fixe', parent_id: null,             position: 1 },
       ],
       error: null,
     }, null, 2),
