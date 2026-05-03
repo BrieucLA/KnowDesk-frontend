@@ -7,12 +7,29 @@ import { formatRelative }  from '../../../shared/lib/formatDate';
 export function SuperadminApp() {
   const {
     session, orgs, loading, error, loginErr,
-    login, logout, disableOrg, enableOrg, impersonate,
+    login, logout, disableOrg, enableOrg, impersonate, reindexSearch,
   } = useSuperadmin();
 
-  const [email,    setEmail]    = useState('');
-  const [password, setPassword] = useState('');
-  const [confirm,  setConfirm]  = useState<{ orgId: string; action: 'disable' | 'enable' } | null>(null);
+  const [email,        setEmail]        = useState('');
+  const [password,     setPassword]     = useState('');
+  const [confirm,      setConfirm]      = useState<{ orgId: string; action: 'disable' | 'enable' } | null>(null);
+  const [reindexState, setReindexState] = useState<'idle' | 'running' | 'done' | 'error'>('idle');
+  const [reindexInfo,  setReindexInfo]  = useState<string>('');
+
+  const runReindex = async () => {
+    setReindexState('running');
+    setReindexInfo('');
+    try {
+      const r = await reindexSearch();
+      const total = r.articles + r.trees + r.faqs;
+      setReindexState('done');
+      setReindexInfo(`✓ Meilisearch réindexé : ${r.articles} article${r.articles !== 1 ? 's' : ''}, ${r.trees} processus, ${r.faqs} FAQ${r.faqs !== 1 ? 's' : ''} (${total} documents au total).`);
+      setTimeout(() => setReindexState('idle'), 8000);
+    } catch (err) {
+      setReindexState('error');
+      setReindexInfo(err instanceof Error ? err.message : 'Réindexation impossible.');
+    }
+  };
 
   // ── Login ─────────────────────────────────────────────────
 
@@ -69,8 +86,38 @@ export function SuperadminApp() {
         </div>
         <div className="sa-header__user">
           <span className="sa-header__email">{session.superadmin.email}</span>
+          <Button
+            variant="ghost"
+            size="sm"
+            loading={reindexState === 'running'}
+            disabled={reindexState === 'running'}
+            onClick={runReindex}
+            title="Réindexer Meilisearch (toutes les orgs)"
+          >
+            🔄 Réindexer
+          </Button>
           <Button variant="ghost" size="sm" onClick={logout}>Déconnexion</Button>
         </div>
+        {reindexInfo && (
+          <div
+            className="sa-reindex-banner"
+            role="status"
+            style={{
+              position:   'absolute',
+              top:        56,
+              left:       0,
+              right:      0,
+              padding:    '8px 16px',
+              background: reindexState === 'error' ? 'oklch(0.95 0.05 25)' : 'oklch(0.94 0.08 155)',
+              color:      reindexState === 'error' ? 'oklch(0.45 0.18 25)' : 'oklch(0.30 0.14 155)',
+              fontSize:   13,
+              borderBottom: '1px solid var(--neutral-200)',
+              textAlign:  'center',
+            }}
+          >
+            {reindexInfo}
+          </div>
+        )}
       </header>
 
       <main className="sa-main">

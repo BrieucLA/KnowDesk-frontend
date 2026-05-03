@@ -24,6 +24,12 @@ async function saFetch<T>(path: string, token: string, options?: RequestInit): P
   return body.data as T;
 }
 
+export interface ReindexResult {
+  articles: number;
+  trees:    number;
+  faqs:     number;
+}
+
 export function useSuperadmin() {
   const [session,  setSession]  = useState<SuperadminSession | null>(() => {
     const token = getSavedToken();
@@ -125,8 +131,21 @@ export function useSuperadmin() {
     if (session?.accessToken) loadOrgs(session.accessToken);
   }, [session, loadOrgs]);
 
+  /**
+   * Réindexe Meilisearch (toutes les orgs ou une seule).
+   * Utile après une migration qui ajoute un champ aux documents indexés.
+   */
+  const reindexSearch = useCallback(async (orgId?: string): Promise<ReindexResult> => {
+    if (!session) throw new Error('Non connecté.');
+    return saFetch<ReindexResult>('/search/reindex', session.accessToken, {
+      method: 'POST',
+      body:   JSON.stringify(orgId ? { orgId } : {}),
+    });
+  }, [session]);
+
   return {
     session, orgs, loading, error, loginErr,
     login, logout, loadOrgs, disableOrg, enableOrg, impersonate,
+    reindexSearch,
   };
 }
