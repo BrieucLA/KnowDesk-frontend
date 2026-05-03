@@ -21,6 +21,7 @@ export function useTreeEditor(treeId: string) {
 
   const updateTree = useCallback(async (patch: {
     title?: string; description?: string; categoryId?: string | null;
+    visibility?: 'internal' | 'public';
   }) => {
     const updated = await apiClient.patch<QuestionTree>(`/trees/${treeId}`, patch);
     setTree(updated);

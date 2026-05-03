@@ -295,6 +295,16 @@ export function TreeEditor({ treeId, onBack, onPreview }: TreeEditorProps) {
           )}
         </div>
         <div className="tree-editor__topbar-actions">
+          <select
+            className="field-input"
+            value={tree.visibility}
+            onChange={e => updateTree({ visibility: e.target.value as 'internal' | 'public' })}
+            title="Visibilité du processus"
+            style={{ maxWidth: 220 }}
+          >
+            <option value="internal">🔒 Interne</option>
+            <option value="public">🌐 Public (chatbot)</option>
+          </select>
           <Button variant="ghost"   size="sm" onClick={() => onPreview(treeId)}>Aperçu conseiller</Button>
           <Button
             variant="primary" size="sm"

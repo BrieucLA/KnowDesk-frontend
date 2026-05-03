@@ -1,5 +1,6 @@
-export type TreeStatus = 'draft' | 'published';
-export type NodeType   = 'question' | 'conclusion';
+export type TreeStatus     = 'draft' | 'published';
+export type TreeVisibility = 'internal' | 'public';
+export type NodeType       = 'question' | 'conclusion';
 
 export interface NodeAnswer {
   id:         string;
@@ -27,6 +28,7 @@ export interface QuestionTree {
   title:         string;
   description:   string | null;
   status:        TreeStatus;
+  visibility:    TreeVisibility;
   category_id:   string | null;
   category_name: string | null;
   author_email:  string | null;

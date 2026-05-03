@@ -45,7 +45,7 @@ export function ArticleEditor({ articleId, onSaved, onCancel }: ArticleEditorPro
   const titleId = useId();
 
   const [form, setForm] = useState<EditorFormState>({
-    title: '', categoryId: '', content: '', status: 'draft', tags: [],
+    title: '', categoryId: '', content: '', status: 'draft', visibility: 'internal', tags: [],
   });
   // Snapshot des tags présents en DB après le dernier save réussi.
   // Sert à n'envoyer PUT /tags que si la liste a vraiment changé.
@@ -91,6 +91,7 @@ export function ArticleEditor({ articleId, onSaved, onCancel }: ArticleEditorPro
           categoryId: article.category_id ?? '',
           content:    typeof article.content === 'string' ? article.content : (article.content?.html ?? article.content?.text ?? ''),
           status:     article.status,
+          visibility: article.visibility === 'public' ? 'public' : 'internal',
           tags,
         });
       })
@@ -120,6 +121,7 @@ export function ArticleEditor({ articleId, onSaved, onCancel }: ArticleEditorPro
         title:      data.title,
         content:    { html: data.content },
         categoryId: data.categoryId || undefined,
+        visibility: data.visibility,
       });
       await syncTagsIfChanged(articleId, data.tags);
     },
@@ -154,6 +156,7 @@ export function ArticleEditor({ articleId, onSaved, onCancel }: ArticleEditorPro
           title:      form.title,
           content:    { html: form.content },
           categoryId: form.categoryId || undefined,
+          visibility: form.visibility,
         });
         await syncTagsIfChanged(articleId!, form.tags);
         toast.success("Brouillon sauvegardé."); onSaved(articleId!);
@@ -162,6 +165,7 @@ export function ArticleEditor({ articleId, onSaved, onCancel }: ArticleEditorPro
           title:      form.title || 'Sans titre',
           content:    { html: form.content },
           categoryId: form.categoryId || undefined,
+          visibility: form.visibility,
         });
         await syncTagsIfChanged(article.id, form.tags);
         toast.success("Brouillon sauvegardé."); onSaved(article.id);
@@ -188,6 +192,7 @@ if (!isEdit) {
     content:    { html: form.content },
     categoryId: form.categoryId || undefined,
     status:     'published',
+    visibility: form.visibility,
   });
   await syncTagsIfChanged(article.id, form.tags);
   toast.success('Article publié avec succès !');
@@ -198,6 +203,7 @@ if (!isEdit) {
           title:      form.title,
           content:    { html: form.content },
           categoryId: form.categoryId || undefined,
+          visibility: form.visibility,
         });
         await syncTagsIfChanged(articleId!, form.tags);
       }
@@ -265,6 +271,21 @@ if (!isEdit) {
               onChange={tags => updateField('tags', tags)}
             />
             <p className="field-hint">10 tags max. Entrée ou virgule pour valider chaque tag.</p>
+          </div>
+          <div className="field">
+            <label htmlFor="visibility-select" className="field-label">Visibilité</label>
+            <select
+              id="visibility-select"
+              className="field-input"
+              value={form.visibility}
+              onChange={e => updateField('visibility', e.target.value as 'internal' | 'public')}
+            >
+              <option value="internal">🔒 Interne — réservé aux conseillers</option>
+              <option value="public">🌐 Public — exposé au chatbot client</option>
+            </select>
+            <p className="field-hint">
+              Les articles « Public » sont consultables par le chatbot embarqué sur le site web client (s'il est activé).
+            </p>
           </div>
         </div>
 

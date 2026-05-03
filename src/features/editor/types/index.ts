@@ -5,6 +5,7 @@ export interface EditorFormState {
   categoryId:  string;
   content:     string;   // HTML from the rich editor
   status:      'draft' | 'published';
+  visibility:  'internal' | 'public';
   tags:        string[]; // display_names
 }
 

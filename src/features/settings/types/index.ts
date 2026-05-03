@@ -1,6 +1,7 @@
 export type SettingsSection =
   | 'general'
   | 'ai'
+  | 'chatbot'
   | 'notifications'
   | 'api'
   | 'search'
@@ -19,6 +20,15 @@ export interface AiOrgSettings {
   ai_tone:           AiTone | null;
   ai_address_form:   AiAddressForm | null;
   ai_glossary:       AiGlossaryEntry[];
+}
+
+export interface ChatOrgSettings {
+  chat_enabled:           boolean;
+  chat_welcome_message:   string | null;
+  chat_fallback_message:  string | null;
+  chat_primary_color:     string | null;
+  chat_logo_url:          string | null;
+  chat_allowed_domains:   string[];
 }
 
 export interface Synonym {
