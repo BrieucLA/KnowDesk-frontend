@@ -145,6 +145,10 @@
       + '.input-row button { padding: 9px 14px; background: var(--kd-primary, #5B6CFF); color: white; border: none; border-radius: 8px; font-size: 13.5px; font-weight: 500; cursor: pointer; }'
       + '.input-row button:disabled { opacity: 0.5; cursor: not-allowed; }'
       + '.disclaimer { font-size: 10px; color: #888; text-align: center; padding: 4px 12px 8px; background: white; }'
+      + '.quick-replies { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 0 4px; max-width: 90%; align-self: flex-start; }'
+      + '.quick-reply { background: white; border: 1px solid var(--kd-primary, #5B6CFF); color: var(--kd-primary, #5B6CFF); padding: 6px 12px; border-radius: 999px; font-size: 12.5px; cursor: pointer; line-height: 1.3; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: all 0.12s; font-family: inherit; }'
+      + '.quick-reply:hover { background: var(--kd-primary, #5B6CFF); color: white; }'
+      + '.quick-reply:disabled { opacity: 0.5; cursor: not-allowed; }'
       + '</style>'
       + '<button class="bubble" type="button" aria-label="Ouvrir le chat">💬</button>'
       + '<div class="panel" role="dialog" aria-label="Chat">'
@@ -216,7 +220,8 @@
   function renderMessages(root) {
     var messagesEl = root.querySelector('.messages');
     messagesEl.innerHTML = '';
-    state.history.forEach(function (turn) {
+    var lastIdx = state.history.length - 1;
+    state.history.forEach(function (turn, idx) {
       var msg = document.createElement('div');
       // Accepte 'visitor' (nouveau format DB) ou 'user' (ancien format) côté UI
       msg.className = 'msg msg--' + (turn.role === 'visitor' || turn.role === 'user' ? 'user' : 'bot');
@@ -225,6 +230,27 @@
       bubble.textContent = stripCitations(turn.content);
       msg.appendChild(bubble);
       messagesEl.appendChild(msg);
+
+      // Quick replies — uniquement sous le dernier tour assistant.
+      // Évite l'accumulation de chips obsolètes au fil de la conversation.
+      var isLastAssistant = idx === lastIdx && (turn.role === 'assistant' || turn.role === 'bot');
+      if (isLastAssistant && Array.isArray(turn.quickReplies) && turn.quickReplies.length > 0) {
+        var chips = document.createElement('div');
+        chips.className = 'quick-replies';
+        turn.quickReplies.forEach(function (label) {
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'quick-reply';
+          btn.textContent = label;
+          btn.addEventListener('click', function () {
+            // Disable pour éviter les double-clics, puis envoie
+            chips.querySelectorAll('button').forEach(function (b) { b.disabled = true; });
+            sendMessage(root, label);
+          });
+          chips.appendChild(btn);
+        });
+        messagesEl.appendChild(chips);
+      }
     });
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
@@ -259,6 +285,7 @@
     renderMessages(root);
 
     var streamedText = '';
+    var streamedQuickReplies = null;
     setStreamingMessage(root, '');
 
     try {
@@ -305,6 +332,10 @@
           } else if (name === 'fallback') {
             streamedText = data.message || streamedText || 'Désolé, je n\'ai pas la réponse.';
             setStreamingMessage(root, streamedText);
+          } else if (name === 'quickReplies') {
+            // Les chips sont envoyées juste avant 'done' — on les stocke
+            // pour les attacher au tour assistant à l'insertion finale.
+            if (Array.isArray(data.items)) streamedQuickReplies = data.items;
           } else if (name === 'done') {
             break;
           }
@@ -312,8 +343,9 @@
       }
 
       state.history.push({
-        role:    'assistant',
-        content: streamedText || 'Désolé, je n\'ai pas pu répondre.',
+        role:         'assistant',
+        content:      streamedText || 'Désolé, je n\'ai pas pu répondre.',
+        quickReplies: streamedQuickReplies,
       });
       renderMessages(root);
     } catch (err) {
@@ -440,7 +472,11 @@
       if (conv && Array.isArray(conv.turns)) {
         state.conversationId = conv.id;
         state.history = conv.turns.map(function (t) {
-          return { role: t.role, content: t.content };
+          return {
+            role:         t.role,
+            content:      t.content,
+            quickReplies: Array.isArray(t.quickReplies) ? t.quickReplies : null,
+          };
         });
       }
     }
