@@ -699,6 +699,68 @@ Va dans **Analytics → ✨ Réponse IA — 30 derniers jours** pour voir :
         `.trim(),
       },
       {
+        id:    'chatbot-config',
+        title: 'Chatbot embarquable sur votre site web 💬',
+        content: `
+## Chatbot embarquable sur votre site web 💬
+
+KnowDesk peut alimenter un chatbot que vous embarquez sur le site web de votre entreprise. Vos clients posent leurs questions ; le bot répond à partir des contenus que vous avez explicitement marqués **Public**.
+
+> ℹ️ Le chatbot et la **Réponse IA** dans la SearchBar partagent le même moteur (Mistral) et la même base. La différence : le chatbot est **public** (anonyme, exposé sur votre site) et ne lit que les contenus marqués Public ; la Réponse IA est **interne** et lit tout.
+
+**1. Marquer un contenu comme « Public »**
+
+Pour chaque article, FAQ ou processus guidé que vous voulez exposer au chatbot :
+- **Articles** : éditeur d'article → champ **Visibilité** sous Tags → choisir *🌐 Public*
+- **FAQs** : éditeur FAQ → radio **Visibilité** → *Public* (déjà existant)
+- **Processus guidés** : éditeur → sélecteur dans la barre du haut → *🌐 Public*
+
+Tout le contenu existant est par défaut **Interne** — choix volontaire pour ne rien exposer accidentellement.
+
+**2. Configurer le chatbot**
+
+Va dans **Paramètres → 💬 Chatbot** (admin uniquement) :
+
+- **Chatbot activé** : toggle principal. Désactivé, l'endpoint refuse toute requête — le widget reste invisible.
+- **Message d'accueil** : premier message vu par le visiteur quand il ouvre le widget. *« Bonjour 👋 Comment puis-je vous aider ? »* est un bon défaut.
+- **Message de fallback** : affiché quand le bot ne sait pas répondre. **Personnalise impérativement avec tes canaux de contact** (email, téléphone, formulaire). Ex :
+  > *Désolé, je n'ai pas la réponse précise. Contactez-nous au 09 XX XX XX XX ou par email à contact@exemple.fr.*
+- **Couleur primaire** : couleur de la bulle flottante et des bulles message. Choix via picker ou hex.
+- **Logo URL** : image carrée 64×64 px recommandée (URL publique). Affichée dans le header du widget.
+- **Domaines autorisés** ⚠ : un domaine par ligne (ex. \`acme.fr\`). **Le widget ne se charge que depuis ces domaines** — sinon le serveur refuse la requête. Indispensable pour éviter qu'un site tiers détourne ton chatbot. Inclus aussi tes environnements de staging.
+
+**3. Coller le snippet sur votre site**
+
+Sous le formulaire de configuration, KnowDesk affiche un snippet à copier-coller juste avant la fermeture de \`</body>\` sur ton site :
+
+\`\`\`html
+<script
+  src="https://know-desk-frontend.vercel.app/chat.js"
+  data-org="<ton-slug>"
+  defer
+></script>
+\`\`\`
+
+Le widget se charge automatiquement et tient compte de tous les paramètres définis dans Settings (couleur, logo, message, fallback). Si tu modifies la config dans KnowDesk, les changements sont visibles immédiatement par les visiteurs (pas de cache).
+
+**4. Comportement multi-tour**
+
+Le chatbot tient le fil de la conversation : si un visiteur demande *« comment résilier ? »* puis *« et combien ça coûte ? »*, le bot comprend que la deuxième question concerne la résiliation. L'historique est gardé localement chez le visiteur (10 derniers échanges envoyés au backend pour borner les coûts).
+
+**5. Garde-fous automatiques**
+
+Le chatbot refuse :
+- Les questions hors-scope (politique, religieuses, médicales, juridiques générales) → renvoie vers tes canaux de contact
+- Les tentatives de *jailbreak* (« ignore tes instructions », « joue le rôle de… »)
+- Les domaines non whitelistés
+- Plus de 30 messages/minute par IP visiteur (anti-spam)
+
+> 💡 **Démo rapide** : avec le widget actif sur ton site, ouvre une page, clique la bulle 💬 et pose une question dont la réponse est dans une FAQ marquée Public. Tu vois la réponse arriver token par token avec les sources citées.
+
+> ⚠️ **RGPD** : le chatbot est totalement anonyme (pas de collecte de nom, email, téléphone). Si tu veux recueillir le contact du visiteur pour escalation, c'est en V2 (avec consentement explicite).
+        `.trim(),
+      },
+      {
         id:    'synonyms',
         title: 'Définir des synonymes (admin)',
         content: `

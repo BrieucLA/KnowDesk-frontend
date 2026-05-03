@@ -83,8 +83,14 @@ export function GettingStarted() {
             (ou l'API admin interne, accessible uniquement aux membres connectés).</li>
           <li><strong>Réponse IA ✨ (Mistral)</strong> : disponible uniquement <em>dans</em> KnowDesk
             pour les conseillers connectés. Elle n'est pas exposée par l'API publique pour des
-            raisons de coût et de sécurité (chaque requête consomme des tokens LLM facturés).
-            Si vous souhaitez exposer une expérience IA à vos clients finaux, contactez-nous.</li>
+            raisons de coût et de sécurité (chaque requête consomme des tokens LLM facturés).</li>
+          <li><strong>Chatbot embarquable 💬</strong> : si vous voulez offrir une expérience IA à
+            vos clients finaux directement depuis votre site web, KnowDesk fournit un widget JS
+            embarquable. Activation et configuration depuis <strong>Paramètres → Chatbot</strong> ;
+            l'intégration se fait via un simple <code>&lt;script&gt;</code> tag à coller sur votre
+            site. Le chatbot fonctionne sur un canal séparé (<code>/public/v1/chat</code>) avec
+            son propre système d'authentification (liste blanche de domaines, pas de clé API).
+            Voir le help center → "Chatbot embarquable" pour le guide complet.</li>
           <li><strong>Hiérarchie des catégories</strong> : la liste retournée par <code>GET /categories</code>
             est plate ; chaque catégorie indique son <code>parent_id</code> pour vous permettre
             de reconstruire l'arbre côté client.</li>
