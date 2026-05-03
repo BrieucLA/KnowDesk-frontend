@@ -34,6 +34,15 @@ export interface ChatOrgSettings {
   chat_handoff_mode:        ChatHandoffMode;
   chat_handoff_webhook_url: string | null;
   chat_handoff_email:       string | null;
+  /** Prompt système custom du chatbot. null = utiliser le prompt généré. */
+  chat_system_prompt?:        string | null;
+  /** Calculé côté backend à chaque GET — preview du prompt qui SERAIT généré. */
+  chat_system_prompt_default?: string | null;
+  // Personnalisation IA partagée avec la Réponse IA (table organizations)
+  industry?:        string | null;
+  ai_tone?:         AiTone | null;
+  ai_address_form?: AiAddressForm | null;
+  ai_glossary?:     AiGlossaryEntry[];
 }
 
 export interface Synonym {

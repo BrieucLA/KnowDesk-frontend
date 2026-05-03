@@ -5,10 +5,22 @@ import { Skeleton }          from '../../../shared/components/ui/Skeleton';
 import { apiClient, ApiError } from '../../../shared/lib/apiClient';
 import { useToast }          from '../../../shared/lib/useToast';
 import { useAuthStore }      from '../../../store/authStore';
-import type { ChatOrgSettings, ChatHandoffMode } from '../types';
+import type {
+  ChatOrgSettings, ChatHandoffMode,
+  AiTone, AiAddressForm, AiGlossaryEntry,
+} from '../types';
 
 const DEFAULT_WELCOME  = 'Bonjour 👋 Comment puis-je vous aider ?';
 const DEFAULT_FALLBACK = 'Désolé, je n\'ai pas la réponse précise à cette question. Vous pouvez nous joindre par email à contact@example.com ou par téléphone au 09 99 99 99 99.';
+
+const TONE_OPTIONS: Array<{ value: AiTone; label: string; hint: string }> = [
+  { value: 'professional', label: 'Professionnelle', hint: 'Neutre, factuelle' },
+  { value: 'warm',         label: 'Chaleureuse',     hint: 'Accueillante, humaine' },
+  { value: 'direct',       label: 'Directe',         hint: 'Droit au but' },
+  { value: 'empathetic',   label: 'Empathique',      hint: 'Sensible aux situations délicates' },
+  { value: 'casual',       label: 'Décontractée',    hint: 'Accessible, moderne' },
+];
+const MAX_GLOSSARY = 30;
 
 export function ChatbotSettingsSection() {
   const toast = useToast();
@@ -27,9 +39,21 @@ export function ChatbotSettingsSection() {
     chat_handoff_mode:        'none',
     chat_handoff_webhook_url: '',
     chat_handoff_email:       '',
+    chat_system_prompt:        null,
+    industry:                  '',
+    ai_tone:                   null,
+    ai_address_form:           null,
+    ai_glossary:               [],
   });
   const [domainsDraft, setDomainsDraft] = useState('');
   const [widgetMounted, setWidgetMounted] = useState(false);
+  /** Prompt généré par défaut côté backend — sert au pré-remplissage et au reset. */
+  const [defaultPrompt, setDefaultPrompt] = useState<string>('');
+  /** Texte courant du textarea prompt. Distinct de form.chat_system_prompt
+      pour gérer proprement « valeur custom » vs « valeur affichée pour info ». */
+  const [promptDraft, setPromptDraft]     = useState<string>('');
+  /** True si l'admin a un prompt custom en DB (non-null). */
+  const [hasCustomPrompt, setHasCustomPrompt] = useState<boolean>(false);
 
   // Injection live du widget pour test : on ne l'active qu'à la demande
   // explicite (clic sur le bouton "Tester sur cette page") et on le retire
@@ -106,8 +130,20 @@ export function ChatbotSettingsSection() {
           chat_handoff_mode:        (o.chat_handoff_mode as ChatHandoffMode) ?? 'none',
           chat_handoff_webhook_url: o.chat_handoff_webhook_url ?? '',
           chat_handoff_email:       o.chat_handoff_email ?? '',
+          chat_system_prompt:        o.chat_system_prompt ?? null,
+          industry:                  o.industry ?? '',
+          ai_tone:                   o.ai_tone ?? null,
+          ai_address_form:           o.ai_address_form ?? null,
+          ai_glossary:               Array.isArray(o.ai_glossary) ? o.ai_glossary : [],
         });
         setDomainsDraft((o.chat_allowed_domains ?? []).join('\n'));
+        setDefaultPrompt(o.chat_system_prompt_default ?? '');
+        // Si custom prompt en DB → on l'affiche, sinon on pré-remplit avec le défaut
+        // pour transparence (l'admin VOIT ce qui est utilisé). Le flag hasCustomPrompt
+        // distingue les deux cas pour le « Restaurer le défaut ».
+        const hasCustom = Boolean(o.chat_system_prompt && o.chat_system_prompt.trim().length > 0);
+        setHasCustomPrompt(hasCustom);
+        setPromptDraft(hasCustom ? o.chat_system_prompt! : (o.chat_system_prompt_default ?? ''));
       })
       .catch(() => { /* defaults conservés */ })
       .finally(() => setLoading(false));
@@ -122,18 +158,52 @@ export function ChatbotSettingsSection() {
         .map(d => d.trim())
         .filter(Boolean);
 
-      await apiClient.patch('/settings/org/chat', {
-        enabled:           form.chat_enabled,
-        welcomeMessage:    (form.chat_welcome_message  ?? '').trim() || null,
-        fallbackMessage:   (form.chat_fallback_message ?? '').trim() || null,
-        primaryColor:      (form.chat_primary_color    ?? '').trim() || null,
-        logoUrl:           (form.chat_logo_url         ?? '').trim() || null,
-        allowedDomains,
-        handoffMode:       form.chat_handoff_mode,
-        handoffWebhookUrl: (form.chat_handoff_webhook_url ?? '').trim() || null,
-        handoffEmail:      (form.chat_handoff_email ?? '').trim() || null,
-      });
-      setForm(f => ({ ...f, chat_allowed_domains: allowedDomains }));
+      // systemPrompt à transmettre :
+      //   - si l'utilisateur a un prompt custom (hasCustomPrompt), on transmet le draft
+      //   - sinon on transmet null pour assurer le repassage au prompt généré
+      // Cas particulier : si l'admin a édité le draft alors que ça correspondait
+      // au défaut, on considère ça comme un override (hasCustomPrompt devient true au save).
+      const trimmedDraft = promptDraft.trim();
+      const isStillDefault = !hasCustomPrompt && trimmedDraft === defaultPrompt.trim();
+      const systemPromptToSave = isStillDefault ? null : (trimmedDraft.length >= 50 ? trimmedDraft : null);
+
+      await Promise.all([
+        apiClient.patch('/settings/org/chat', {
+          enabled:           form.chat_enabled,
+          welcomeMessage:    (form.chat_welcome_message  ?? '').trim() || null,
+          fallbackMessage:   (form.chat_fallback_message ?? '').trim() || null,
+          primaryColor:      (form.chat_primary_color    ?? '').trim() || null,
+          logoUrl:           (form.chat_logo_url         ?? '').trim() || null,
+          allowedDomains,
+          handoffMode:       form.chat_handoff_mode,
+          handoffWebhookUrl: (form.chat_handoff_webhook_url ?? '').trim() || null,
+          handoffEmail:      (form.chat_handoff_email ?? '').trim() || null,
+          systemPrompt:      systemPromptToSave,
+        }),
+        // Personnalisation IA — partagée avec la section Réponse IA
+        apiClient.patch('/settings/org/ai', {
+          industry:    (form.industry ?? '').trim() || null,
+          tone:        form.ai_tone ?? null,
+          addressForm: form.ai_address_form ?? null,
+          glossary:    (form.ai_glossary ?? []).filter(g => g.from.trim() && g.to.trim()),
+        }),
+      ]);
+
+      // Recharge le prompt par défaut (les champs perso ont peut-être changé)
+      const refreshed = await apiClient.get<ChatOrgSettings>('/settings/org');
+      setDefaultPrompt(refreshed.chat_system_prompt_default ?? '');
+      const refreshedHasCustom = Boolean(refreshed.chat_system_prompt && refreshed.chat_system_prompt.trim().length > 0);
+      setHasCustomPrompt(refreshedHasCustom);
+      // Si l'admin n'a pas de custom, on synchronise le textarea avec le nouveau défaut
+      if (!refreshedHasCustom) {
+        setPromptDraft(refreshed.chat_system_prompt_default ?? '');
+      }
+
+      setForm(f => ({
+        ...f,
+        chat_allowed_domains: allowedDomains,
+        chat_system_prompt:   systemPromptToSave,
+      }));
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
       toast.success('Paramètres chatbot enregistrés');
@@ -142,7 +212,27 @@ export function ChatbotSettingsSection() {
     } finally {
       setSaving(false);
     }
-  }, [form, domainsDraft, toast]);
+  }, [form, domainsDraft, promptDraft, hasCustomPrompt, defaultPrompt, toast]);
+
+  const restorePromptDefault = useCallback(() => {
+    setPromptDraft(defaultPrompt);
+    setHasCustomPrompt(false);
+  }, [defaultPrompt]);
+
+  const addGlossaryRow = useCallback(() => {
+    setForm(f => (f.ai_glossary?.length ?? 0) >= MAX_GLOSSARY
+      ? f
+      : { ...f, ai_glossary: [...(f.ai_glossary ?? []), { from: '', to: '' }] });
+  }, []);
+  const updateGlossaryRow = useCallback((index: number, field: 'from' | 'to', value: string) => {
+    setForm(f => ({
+      ...f,
+      ai_glossary: (f.ai_glossary ?? []).map((row, i) => i === index ? { ...row, [field]: value } : row),
+    }));
+  }, []);
+  const removeGlossaryRow = useCallback((index: number) => {
+    setForm(f => ({ ...f, ai_glossary: (f.ai_glossary ?? []).filter((_, i) => i !== index) }));
+  }, []);
 
   if (loading) {
     return <section className="settings-section"><Skeleton className="sk-title" /><Skeleton className="sk-p" /></section>;
@@ -269,6 +359,164 @@ export function ChatbotSettingsSection() {
               Un domaine par ligne (ou séparés par virgule). Le widget ne se charge <strong>que</strong> depuis ces
               domaines — sinon le serveur refuse la requête. Indispensable pour éviter qu'un site tiers détourne votre chatbot.
             </p>
+          </div>
+
+          {/* ─── Personnalisation IA (partagée avec Réponse IA) ─── */}
+          <div className="settings-section__header" style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--neutral-100)' }}>
+            <div>
+              <h3 className="settings-section__title" style={{ fontSize: 16 }}>Personnalisation</h3>
+              <p className="settings-section__desc">
+                Réglages utilisés par le prompt généré du chatbot. <strong>Ces valeurs sont partagées
+                avec la section ✨ IA recherche</strong> — les modifier ici les met aussi à jour pour
+                la Réponse IA conseiller.
+              </p>
+            </div>
+          </div>
+
+          <Input
+            id="chat-industry"
+            label="Secteur d'activité"
+            value={form.industry ?? ''}
+            maxLength={80}
+            placeholder="ex. Telecom, Banque, Retail, Santé…"
+            onChange={e => setForm(f => ({ ...f, industry: e.target.value }))}
+            helperText="Personnalise l'identité de l'assistant. Vide → formulation générique."
+          />
+
+          <div className="field">
+            <label htmlFor="chat-tone" className="field-label">Tonalité</label>
+            <select
+              id="chat-tone"
+              className="field-input"
+              value={form.ai_tone ?? ''}
+              onChange={e => setForm(f => ({
+                ...f,
+                ai_tone: (e.target.value || null) as AiTone | null,
+              }))}
+            >
+              <option value="">— Aucune préférence —</option>
+              {TONE_OPTIONS.map(t => (
+                <option key={t.value} value={t.value}>{t.label} — {t.hint}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="field">
+            <label className="field-label">Forme d'adresse</label>
+            <div className="ai-radio-group">
+              {([
+                { value: null,   label: 'Aucune préférence' },
+                { value: 'vous', label: 'Vouvoiement' },
+                { value: 'tu',   label: 'Tutoiement' },
+              ] as Array<{ value: AiAddressForm | null; label: string }>).map(opt => (
+                <label key={String(opt.value)} className="ai-radio">
+                  <input
+                    type="radio"
+                    name="chat-address-form"
+                    checked={form.ai_address_form === opt.value}
+                    onChange={() => setForm(f => ({ ...f, ai_address_form: opt.value }))}
+                  />
+                  <span>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="field">
+            <label className="field-label">Glossaire</label>
+            <p className="field-helper" style={{ marginTop: 0, marginBottom: 8 }}>
+              Liste de termes que l'IA doit utiliser à la place du vocabulaire générique.
+              Ex. « abonné » à la place de « client ».
+            </p>
+            <div className="ai-glossary">
+              {(form.ai_glossary?.length ?? 0) === 0 && (
+                <p className="ai-glossary__empty">
+                  Aucune correspondance pour l'instant.
+                </p>
+              )}
+              {(form.ai_glossary ?? []).map((row: AiGlossaryEntry, i: number) => (
+                <div key={i} className="ai-glossary__row">
+                  <input
+                    type="text"
+                    className="field-input ai-glossary__input"
+                    value={row.from}
+                    placeholder="Terme générique (ex. client)"
+                    maxLength={50}
+                    onChange={e => updateGlossaryRow(i, 'from', e.target.value)}
+                  />
+                  <span className="ai-glossary__arrow" aria-hidden="true">→</span>
+                  <input
+                    type="text"
+                    className="field-input ai-glossary__input"
+                    value={row.to}
+                    placeholder="Terme préféré (ex. abonné)"
+                    maxLength={50}
+                    onChange={e => updateGlossaryRow(i, 'to', e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="ai-glossary__remove"
+                    onClick={() => removeGlossaryRow(i)}
+                    aria-label="Supprimer"
+                    title="Supprimer"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+              {(form.ai_glossary?.length ?? 0) < MAX_GLOSSARY && (
+                <Button type="button" variant="ghost" size="sm" onClick={addGlossaryRow}>
+                  + Ajouter un terme
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* ─── Prompt système ─── */}
+          <div className="settings-section__header" style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--neutral-100)' }}>
+            <div>
+              <h3 className="settings-section__title" style={{ fontSize: 16 }}>Prompt système</h3>
+              <p className="settings-section__desc">
+                Instructions complètes envoyées à Mistral à chaque message du chatbot. Pré-rempli
+                à partir des réglages ci-dessus. Tu peux le réécrire intégralement
+                (<strong>override total</strong> — la personnalisation ci-dessus n'est plus appliquée
+                automatiquement). Pour repasser au prompt généré, clique sur « Restaurer le défaut ».
+                {hasCustomPrompt && (
+                  <span style={{ display: 'inline-block', marginLeft: 6, color: 'var(--brand-600, #5B6CFF)', fontWeight: 500 }}>
+                    Prompt personnalisé actif.
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+
+          <div className="field">
+            <label htmlFor="chat-system-prompt" className="field-label">
+              Prompt utilisé par le chatbot
+            </label>
+            <textarea
+              id="chat-system-prompt"
+              className="field-input"
+              value={promptDraft}
+              onChange={e => { setPromptDraft(e.target.value); setHasCustomPrompt(true); }}
+              rows={18}
+              spellCheck={false}
+              style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: 12.5, lineHeight: 1.5 }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6, gap: 12 }}>
+              <p className="field-helper" style={{ margin: 0 }}>
+                Min. 50 caractères. {promptDraft.length} / 8000.
+              </p>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={restorePromptDefault}
+                disabled={promptDraft.trim() === defaultPrompt.trim() && !hasCustomPrompt}
+              >
+                ↺ Restaurer le défaut
+              </Button>
+            </div>
           </div>
 
           {/* Handoff humain — Sprint 5 */}
