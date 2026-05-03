@@ -22,13 +22,18 @@ export interface AiOrgSettings {
   ai_glossary:       AiGlossaryEntry[];
 }
 
+export type ChatHandoffMode = 'none' | 'webhook' | 'email';
+
 export interface ChatOrgSettings {
-  chat_enabled:           boolean;
-  chat_welcome_message:   string | null;
-  chat_fallback_message:  string | null;
-  chat_primary_color:     string | null;
-  chat_logo_url:          string | null;
-  chat_allowed_domains:   string[];
+  chat_enabled:             boolean;
+  chat_welcome_message:     string | null;
+  chat_fallback_message:    string | null;
+  chat_primary_color:       string | null;
+  chat_logo_url:            string | null;
+  chat_allowed_domains:     string[];
+  chat_handoff_mode:        ChatHandoffMode;
+  chat_handoff_webhook_url: string | null;
+  chat_handoff_email:       string | null;
 }
 
 export interface Synonym {

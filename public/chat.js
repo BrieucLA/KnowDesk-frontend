@@ -126,7 +126,12 @@
       + '.feedback__stars--hovering button { color: #d6dae0; }'
       + '.feedback__stars--hovering button.hover-up-to { color: var(--kd-primary, #5B6CFF); }'
       + '.feedback__escalate-msg { font-size: 13px; color: #4a4a4a; line-height: 1.5; margin: 8px 0 14px; padding: 10px 12px; background: #f6f7fb; border-radius: 8px; white-space: pre-wrap; }'
-      + '.feedback__close-btn { padding: 9px 16px; background: var(--kd-primary, #5B6CFF); color: white; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; width: 100%; }'
+      + '.feedback__close-btn, .feedback__close-btn-2, .feedback__submit-btn { padding: 9px 16px; background: var(--kd-primary, #5B6CFF); color: white; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; width: 100%; }'
+      + '.feedback__close-btn:disabled, .feedback__submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }'
+      + '.feedback__subtitle { font-size: 12.5px; color: #4a4a4a; margin: 4px 0 8px; line-height: 1.45; }'
+      + '.feedback__email { width: 100%; padding: 9px 12px; border: 1px solid #d6dae0; border-radius: 8px; font-size: 13px; outline: none; margin-bottom: 10px; box-sizing: border-box; font-family: inherit; }'
+      + '.feedback__email:focus { border-color: var(--kd-primary, #5B6CFF); box-shadow: 0 0 0 3px rgba(91,108,255,.15); }'
+      + '.feedback__handoff-done-msg { font-size: 12.5px; color: #4a4a4a; line-height: 1.45; margin: 6px 0 14px; padding: 10px 12px; background: #f6f7fb; border-radius: 8px; white-space: pre-wrap; }'
       + '.messages { flex: 1; overflow-y: auto; padding: 14px; background: #f8f9fb; display: flex; flex-direction: column; gap: 8px; }'
       + '.msg { display: flex; gap: 6px; max-width: 85%; }'
       + '.msg--user { align-self: flex-end; }'
@@ -183,6 +188,17 @@
       + '      <p class="feedback__title">Désolé que je n\'aie pas pu vous aider.</p>'
       + '      <p class="feedback__escalate-msg"></p>'
       + '      <button type="button" class="feedback__close-btn">Fermer</button>'
+      + '    </div>'
+      + '    <div class="feedback__step feedback__step--handoff-form" hidden>'
+      + '      <p class="feedback__title">Un humain va prendre votre demande en charge.</p>'
+      + '      <p class="feedback__subtitle">Laissez-nous votre email si vous souhaitez une réponse personnalisée (facultatif) :</p>'
+      + '      <input type="email" class="feedback__email" placeholder="vous@exemple.fr" autocomplete="email" />'
+      + '      <button type="button" class="feedback__submit-btn">Transmettre ma demande</button>'
+      + '    </div>'
+      + '    <div class="feedback__step feedback__step--handoff-done" hidden>'
+      + '      <p class="feedback__title">✓ Votre demande a été transmise.</p>'
+      + '      <p class="feedback__handoff-done-msg"></p>'
+      + '      <button type="button" class="feedback__close-btn-2">Fermer</button>'
       + '    </div>'
       + '    <div class="feedback__step feedback__step--thanks" hidden>'
       + '      <p class="feedback__title">Merci pour votre retour&nbsp;! 🙏</p>'
@@ -243,8 +259,14 @@
           btn.className = 'quick-reply';
           btn.textContent = label;
           btn.addEventListener('click', function () {
-            // Disable pour éviter les double-clics, puis envoie
+            // Disable pour éviter les double-clics
             chips.querySelectorAll('button').forEach(function (b) { b.disabled = true; });
+            // "Parler à un humain" → ouvre le formulaire de handoff au lieu d'envoyer
+            // un message normal au bot. La fonction est exposée par init().
+            if (label === 'Parler à un humain' && typeof window.__knowdeskTriggerHandoff === 'function') {
+              window.__knowdeskTriggerHandoff();
+              return;
+            }
             sendMessage(root, label);
           });
           chips.appendChild(btn);
@@ -519,6 +541,90 @@
     var fbStepCsat   = root.querySelector('.feedback__step--csat');
     var fbStepEsc    = root.querySelector('.feedback__step--escalate');
     var fbStepThanks = root.querySelector('.feedback__step--thanks');
+    var fbHandoffForm = root.querySelector('.feedback__step--handoff-form');
+    var fbHandoffDone = root.querySelector('.feedback__step--handoff-done');
+
+    function hideAllFbSteps() {
+      [fbStep1, fbStepCsat, fbStepEsc, fbStepThanks, fbHandoffForm, fbHandoffDone].forEach(function (el) {
+        if (el) el.hidden = true;
+      });
+    }
+
+    /** Déclenche le flow handoff humain (depuis quick reply ou feedback). */
+    window.__knowdeskTriggerHandoff = function () { triggerHandoffFlow(root); };
+    function triggerHandoffFlow(rootEl) {
+      // Cache l'input et affiche le formulaire handoff
+      form.style.display = 'none';
+      feedbackEl.hidden = false;
+      hideAllFbSteps();
+      fbHandoffForm.hidden = false;
+      var emailInput = fbHandoffForm.querySelector('.feedback__email');
+      if (emailInput) emailInput.focus();
+    }
+
+    async function submitHandoff(visitorEmail) {
+      if (!state.conversationId) return null;
+      try {
+        var resp = await fetch(API_BASE + '/conversation/'
+          + encodeURIComponent(state.conversationId) + '/handoff', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({
+            orgSlug:      orgSlug,
+            visitorEmail: visitorEmail || '',
+          }),
+        });
+        if (!resp.ok) return null;
+        var json = await resp.json();
+        return json.data;
+      } catch (e) { return null; }
+    }
+
+    var submitHandoffBtn = fbHandoffForm.querySelector('.feedback__submit-btn');
+    if (submitHandoffBtn) {
+      submitHandoffBtn.addEventListener('click', async function () {
+        var emailInput = fbHandoffForm.querySelector('.feedback__email');
+        var email = emailInput ? emailInput.value.trim() : '';
+        // Validation email simple si fourni
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          emailInput.focus();
+          emailInput.style.borderColor = '#e74c3c';
+          return;
+        }
+        submitHandoffBtn.disabled = true;
+        submitHandoffBtn.textContent = 'Transmission…';
+        var result = await submitHandoff(email);
+        // Affiche la confirmation, avec ou sans le fallback message admin
+        hideAllFbSteps();
+        fbHandoffDone.hidden = false;
+        var msgEl = fbHandoffDone.querySelector('.feedback__handoff-done-msg');
+        var fallback = (state.config && state.config.fallbackMessage) || '';
+        if (result && result.delivered === 'webhook') {
+          msgEl.textContent = email
+            ? 'Notre équipe vous répondra à ' + email + ' dans les meilleurs délais.'
+            : (fallback || 'Notre équipe va prendre contact via les canaux habituels.');
+        } else if (result && result.delivered === 'email') {
+          msgEl.textContent = email
+            ? 'Notre équipe a reçu votre demande et vous répondra à ' + email + '.'
+            : (fallback || 'Notre équipe a reçu votre demande.');
+        } else {
+          // 'none' ou erreur de livraison → on affiche le fallback admin
+          msgEl.textContent = fallback || 'Merci, votre demande a été enregistrée.';
+        }
+      });
+    }
+
+    var closeHandoffDoneBtn = fbHandoffDone.querySelector('.feedback__close-btn-2');
+    if (closeHandoffDoneBtn) {
+      closeHandoffDoneBtn.addEventListener('click', function () {
+        hideFeedback();
+        // Reset complet : la conversation est terminée (escalated côté serveur)
+        state.conversationId = null;
+        state.history = [];
+        saveConversationId(null);
+        closeP();
+      });
+    }
 
     function showFeedback() {
       // Cache l'input et affiche le panneau de feedback (étape 1)
@@ -566,14 +672,18 @@
       fbStep1.hidden = true;
       if (helpful === 'yes') {
         fbStepCsat.hidden = false;
+      } else if (helpful === 'no') {
+        // Demande explicite d'un humain → on lance le formulaire handoff
+        // (transmet le transcript via webhook ou email selon conf admin).
+        submitFeedback({ helpful: helpful });
+        triggerHandoffFlow(root);
       } else {
-        // Affiche le message de fallback admin (escalation)
+        // 'partial' → on affiche juste le fallback admin
         var escMsg = root.querySelector('.feedback__escalate-msg');
         var fallback = (state.config && state.config.fallbackMessage)
           || 'Un de nos conseillers vous répondra dans les meilleurs délais. Merci de patienter.';
         escMsg.textContent = fallback;
         fbStepEsc.hidden = false;
-        // POST feedback dès maintenant (le visiteur peut fermer après lecture)
         submitFeedback({ helpful: helpful });
       }
     });

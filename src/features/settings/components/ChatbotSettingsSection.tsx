@@ -5,7 +5,7 @@ import { Skeleton }          from '../../../shared/components/ui/Skeleton';
 import { apiClient, ApiError } from '../../../shared/lib/apiClient';
 import { useToast }          from '../../../shared/lib/useToast';
 import { useAuthStore }      from '../../../store/authStore';
-import type { ChatOrgSettings } from '../types';
+import type { ChatOrgSettings, ChatHandoffMode } from '../types';
 
 const DEFAULT_WELCOME  = 'Bonjour 👋 Comment puis-je vous aider ?';
 const DEFAULT_FALLBACK = 'Désolé, je n\'ai pas la réponse précise à cette question. Vous pouvez nous joindre par email à contact@example.com ou par téléphone au 09 99 99 99 99.';
@@ -18,12 +18,15 @@ export function ChatbotSettingsSection() {
   const [saving,  setSaving]  = useState(false);
   const [saved,   setSaved]   = useState(false);
   const [form,    setForm]    = useState<ChatOrgSettings>({
-    chat_enabled:           false,
-    chat_welcome_message:   '',
-    chat_fallback_message:  '',
-    chat_primary_color:     '',
-    chat_logo_url:          '',
-    chat_allowed_domains:   [],
+    chat_enabled:             false,
+    chat_welcome_message:     '',
+    chat_fallback_message:    '',
+    chat_primary_color:       '',
+    chat_logo_url:             '',
+    chat_allowed_domains:     [],
+    chat_handoff_mode:        'none',
+    chat_handoff_webhook_url: '',
+    chat_handoff_email:       '',
   });
   const [domainsDraft, setDomainsDraft] = useState('');
   const [widgetMounted, setWidgetMounted] = useState(false);
@@ -94,12 +97,15 @@ export function ChatbotSettingsSection() {
     apiClient.get<ChatOrgSettings>('/settings/org')
       .then(o => {
         setForm({
-          chat_enabled:           o.chat_enabled ?? false,
-          chat_welcome_message:   o.chat_welcome_message ?? '',
-          chat_fallback_message:  o.chat_fallback_message ?? '',
-          chat_primary_color:     o.chat_primary_color ?? '',
-          chat_logo_url:          o.chat_logo_url ?? '',
-          chat_allowed_domains:   Array.isArray(o.chat_allowed_domains) ? o.chat_allowed_domains : [],
+          chat_enabled:             o.chat_enabled ?? false,
+          chat_welcome_message:     o.chat_welcome_message ?? '',
+          chat_fallback_message:    o.chat_fallback_message ?? '',
+          chat_primary_color:       o.chat_primary_color ?? '',
+          chat_logo_url:            o.chat_logo_url ?? '',
+          chat_allowed_domains:     Array.isArray(o.chat_allowed_domains) ? o.chat_allowed_domains : [],
+          chat_handoff_mode:        (o.chat_handoff_mode as ChatHandoffMode) ?? 'none',
+          chat_handoff_webhook_url: o.chat_handoff_webhook_url ?? '',
+          chat_handoff_email:       o.chat_handoff_email ?? '',
         });
         setDomainsDraft((o.chat_allowed_domains ?? []).join('\n'));
       })
@@ -117,12 +123,15 @@ export function ChatbotSettingsSection() {
         .filter(Boolean);
 
       await apiClient.patch('/settings/org/chat', {
-        enabled:         form.chat_enabled,
-        welcomeMessage:  (form.chat_welcome_message  ?? '').trim() || null,
-        fallbackMessage: (form.chat_fallback_message ?? '').trim() || null,
-        primaryColor:    (form.chat_primary_color    ?? '').trim() || null,
-        logoUrl:         (form.chat_logo_url         ?? '').trim() || null,
+        enabled:           form.chat_enabled,
+        welcomeMessage:    (form.chat_welcome_message  ?? '').trim() || null,
+        fallbackMessage:   (form.chat_fallback_message ?? '').trim() || null,
+        primaryColor:      (form.chat_primary_color    ?? '').trim() || null,
+        logoUrl:           (form.chat_logo_url         ?? '').trim() || null,
         allowedDomains,
+        handoffMode:       form.chat_handoff_mode,
+        handoffWebhookUrl: (form.chat_handoff_webhook_url ?? '').trim() || null,
+        handoffEmail:      (form.chat_handoff_email ?? '').trim() || null,
       });
       setForm(f => ({ ...f, chat_allowed_domains: allowedDomains }));
       setSaved(true);
@@ -261,6 +270,61 @@ export function ChatbotSettingsSection() {
               domaines — sinon le serveur refuse la requête. Indispensable pour éviter qu'un site tiers détourne votre chatbot.
             </p>
           </div>
+
+          {/* Handoff humain — Sprint 5 */}
+          <div className="settings-section__header" style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--neutral-100)' }}>
+            <div>
+              <h3 className="settings-section__title" style={{ fontSize: 16 }}>Passage à un humain (handoff)</h3>
+              <p className="settings-section__desc">
+                Quand un visiteur clique « Parler à un humain » ou indique que le bot ne l'a pas aidé,
+                KnowDesk peut transmettre le transcript de la conversation à votre équipe.
+              </p>
+            </div>
+          </div>
+
+          <div className="field">
+            <label htmlFor="handoff-mode" className="field-label">Mode</label>
+            <select
+              id="handoff-mode"
+              className="field-input"
+              value={form.chat_handoff_mode}
+              onChange={e => setForm(f => ({ ...f, chat_handoff_mode: e.target.value as ChatHandoffMode }))}
+            >
+              <option value="none">Aucun — le visiteur voit juste le message de fallback</option>
+              <option value="email">Email — envoie le transcript à une adresse</option>
+              <option value="webhook">Webhook — POST le transcript JSON à votre URL (CRM, Zendesk, Slack…)</option>
+            </select>
+            <p className="field-helper">
+              « Aucun » garde l'expérience MVP actuelle. « Email » est le plus simple à intégrer. « Webhook »
+              permet de créer automatiquement un ticket dans votre helpdesk.
+            </p>
+          </div>
+
+          {form.chat_handoff_mode === 'email' && (
+            <Input
+              id="handoff-email"
+              label="Email du destinataire"
+              type="email"
+              value={form.chat_handoff_email ?? ''}
+              maxLength={120}
+              placeholder="support@votre-entreprise.fr"
+              onChange={e => setForm(f => ({ ...f, chat_handoff_email: e.target.value }))}
+              helperText="Recevra le transcript HTML de chaque demande de handoff. Utilisez une adresse partagée (support@) plutôt qu'individuelle."
+            />
+          )}
+
+          {form.chat_handoff_mode === 'webhook' && (
+            <Input
+              id="handoff-webhook"
+              label="URL du webhook"
+              type="url"
+              value={form.chat_handoff_webhook_url ?? ''}
+              maxLength={500}
+              placeholder="https://api.votre-crm.fr/webhooks/knowdesk-chat"
+              onChange={e => setForm(f => ({ ...f, chat_handoff_webhook_url: e.target.value }))}
+              helperText="Recevra un POST JSON { conversationId, transcript, visitorEmail, … }. Timeout 8s. Cf documentation handoff dans le help center pour le format exact."
+            />
+          )}
         </fieldset>
 
         <div className="settings-form__actions">
