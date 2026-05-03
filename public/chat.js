@@ -111,9 +111,9 @@
       + '}'
       + '.header__logo { width: 32px; height: 32px; border-radius: 6px; object-fit: cover; flex-shrink: 0; background: rgba(255,255,255,.15); }'
       + '.header__title { flex: 1; font-size: 14px; font-weight: 600; }'
-      + '.header__close, .header__reset, .header__end { background: transparent; border: none; color: white; cursor: pointer; padding: 4px 8px; font-size: 18px; line-height: 1; opacity: 0.85; }'
-      + '.header__close:hover, .header__reset:hover, .header__end:hover { opacity: 1; }'
-      + '.header__reset, .header__end { font-size: 16px; }'
+      + '.header__close, .header__reset, .header__end, .header__human { background: transparent; border: none; color: white; cursor: pointer; padding: 4px 8px; font-size: 18px; line-height: 1; opacity: 0.85; }'
+      + '.header__close:hover, .header__reset:hover, .header__end:hover, .header__human:hover { opacity: 1; }'
+      + '.header__reset, .header__end, .header__human { font-size: 16px; }'
       + '.feedback { padding: 18px 16px; background: white; border-top: 1px solid #eaecef; }'
       + '.feedback__title { font-size: 13.5px; color: #1a1a1a; margin: 0 0 10px; line-height: 1.45; }'
       + '.feedback__choices { display: flex; flex-direction: column; gap: 6px; }'
@@ -154,12 +154,21 @@
       + '.quick-reply { background: white; border: 1px solid var(--kd-primary, #5B6CFF); color: var(--kd-primary, #5B6CFF); padding: 6px 12px; border-radius: 999px; font-size: 12.5px; cursor: pointer; line-height: 1.3; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: all 0.12s; font-family: inherit; }'
       + '.quick-reply:hover { background: var(--kd-primary, #5B6CFF); color: white; }'
       + '.quick-reply:disabled { opacity: 0.5; cursor: not-allowed; }'
+      // Pouces inline (Sprint 6) — petits et discrets, sous chaque réponse bot
+      + '.msg-fb { display: flex; gap: 2px; margin: 2px 0 0 6px; align-self: flex-start; }'
+      + '.msg-fb button { background: transparent; border: none; cursor: pointer; padding: 2px 5px; font-size: 13px; opacity: 0.45; transition: opacity 0.12s, transform 0.12s; line-height: 1; font-family: inherit; }'
+      + '.msg-fb button:hover { opacity: 1; transform: scale(1.15); }'
+      + '.msg-fb button.is-voted { opacity: 1; cursor: default; }'
+      + '.msg-fb button.is-voted:hover { transform: none; }'
+      + '.msg-fb button.is-disabled { opacity: 0.2; cursor: default; }'
+      + '.msg-fb button.is-disabled:hover { transform: none; }'
       + '</style>'
       + '<button class="bubble" type="button" aria-label="Ouvrir le chat">💬</button>'
       + '<div class="panel" role="dialog" aria-label="Chat">'
       + '  <div class="header">'
       + '    <div class="header__logo-wrap"></div>'
       + '    <div class="header__title">Discutons</div>'
+      + '    <button class="header__human" type="button" aria-label="Parler à un humain"      title="Parler à un humain">🙋</button>'
       + '    <button class="header__end"   type="button" aria-label="Terminer la conversation" title="Terminer la conversation">✓</button>'
       + '    <button class="header__reset" type="button" aria-label="Nouvelle conversation"     title="Nouvelle conversation">↺</button>'
       + '    <button class="header__close" type="button" aria-label="Fermer">×</button>'
@@ -272,6 +281,60 @@
           chips.appendChild(btn);
         });
         messagesEl.appendChild(chips);
+      }
+
+      // Pouces inline (Sprint 6) — sous chaque réponse bot SAUF welcome.
+      // 👍 → marque la conversation 'resolved' (helpful=yes). 👎 → propose
+      // immédiatement le handoff humain. Une fois cliqué, l'état persiste
+      // visuellement (turn.voted) et l'autre bouton est désactivé.
+      var isBot = turn.role === 'assistant' || turn.role === 'bot';
+      if (isBot && !turn.welcome) {
+        var fb = document.createElement('div');
+        fb.className = 'msg-fb';
+
+        var up = document.createElement('button');
+        up.type = 'button';
+        up.setAttribute('aria-label', 'Réponse utile');
+        up.title = 'Cette réponse m\'a aidé';
+        up.textContent = '👍';
+
+        var down = document.createElement('button');
+        down.type = 'button';
+        down.setAttribute('aria-label', 'Réponse pas utile');
+        down.title = 'Je n\'ai pas eu de réponse — parler à un humain';
+        down.textContent = '👎';
+
+        if (turn.voted === 'yes') {
+          up.classList.add('is-voted');
+          down.classList.add('is-disabled');
+        } else if (turn.voted === 'no') {
+          down.classList.add('is-voted');
+          up.classList.add('is-disabled');
+        }
+
+        up.addEventListener('click', function () {
+          if (turn.voted) return;
+          turn.voted = 'yes';
+          if (typeof window.__knowdeskSubmitFeedback === 'function') {
+            window.__knowdeskSubmitFeedback({ helpful: 'yes' });
+          }
+          renderMessages(root);
+        });
+        down.addEventListener('click', function () {
+          if (turn.voted) return;
+          turn.voted = 'no';
+          if (typeof window.__knowdeskSubmitFeedback === 'function') {
+            window.__knowdeskSubmitFeedback({ helpful: 'no' });
+          }
+          renderMessages(root);
+          if (typeof window.__knowdeskTriggerHandoff === 'function') {
+            window.__knowdeskTriggerHandoff();
+          }
+        });
+
+        fb.appendChild(up);
+        fb.appendChild(down);
+        messagesEl.appendChild(fb);
       }
     });
     messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -417,11 +480,13 @@
       state.history.push({
         role:    'assistant',
         content: state.config.welcomeMessage,
+        welcome: true,
       });
     } else {
       state.history.push({
         role:    'assistant',
         content: 'Bonjour 👋 Comment puis-je vous aider ?',
+        welcome: true,
       });
     }
     renderMessages(root);
@@ -507,6 +572,7 @@
       state.history.push({
         role:    'assistant',
         content: state.config.welcomeMessage || 'Bonjour 👋 Comment puis-je vous aider ?',
+        welcome: true,
       });
     }
     renderMessages(root);
@@ -534,6 +600,12 @@
     close.addEventListener('click', closeP);
     if (reset) reset.addEventListener('click', function () { resetConversation(root); });
 
+    // Bouton "humain" du header (Sprint 6) — handoff direct, sans passer par
+    // les quick replies. Le bouton n'est visible qu'une fois la conversation
+    // commencée (≥ 1 turn visiteur) pour ne pas inciter à escalader avant
+    // toute interaction.
+    var humanBtn = root.querySelector('.header__human');
+
     // ── Feedback flow ────────────────────────────────────────────
     var endBtn       = root.querySelector('.header__end');
     var feedbackEl   = root.querySelector('.feedback');
@@ -552,6 +624,20 @@
 
     /** Déclenche le flow handoff humain (depuis quick reply ou feedback). */
     window.__knowdeskTriggerHandoff = function () { triggerHandoffFlow(root); };
+    if (humanBtn) {
+      humanBtn.addEventListener('click', function () {
+        // Ne propose pas le handoff si rien n'a été échangé — évite les escalades
+        // « réflexes » dès l'ouverture du widget.
+        var hasInteracted = state.history.filter(function (t) { return t.role === 'visitor'; }).length > 0;
+        if (!hasInteracted) {
+          // Petit feedback visuel : flash le bouton
+          humanBtn.style.opacity = '0.4';
+          setTimeout(function () { humanBtn.style.opacity = ''; }, 400);
+          return;
+        }
+        triggerHandoffFlow(root);
+      });
+    }
     function triggerHandoffFlow(rootEl) {
       // Cache l'input et affiche le formulaire handoff
       form.style.display = 'none';
@@ -650,6 +736,9 @@
         });
       } catch (e) { /* silencieux : feedback non critique */ }
     }
+    // Exposé pour les pouces inline (Sprint 6) — renderMessages est au scope
+    // module, submitFeedback au scope init() : on passe par window.
+    window.__knowdeskSubmitFeedback = submitFeedback;
 
     if (endBtn) {
       endBtn.addEventListener('click', function () {
@@ -717,7 +806,7 @@
         saveConversationId(null);
         renderMessages(root);
         if (state.config && state.config.welcomeMessage) {
-          state.history.push({ role: 'assistant', content: state.config.welcomeMessage });
+          state.history.push({ role: 'assistant', content: state.config.welcomeMessage, welcome: true });
           renderMessages(root);
         }
         closeP();

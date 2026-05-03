@@ -553,11 +553,11 @@ function ChatStatsBanner() {
       {stats.topQuestions.length > 0 && (
         <div className="ai-stats__queries">
           <div className="ai-stats__queries-col">
-            <h3 className="ai-stats__queries-title">Top questions des visiteurs</h3>
+            <h3 className="ai-stats__queries-title">Top thématiques des conversations</h3>
             <ul className="ai-stats__list" role="list">
               {stats.topQuestions.slice(0, 8).map(q => (
                 <li key={q.question} className="ai-stats__item">
-                  <span className="ai-stats__item-q">« {q.question} »</span>
+                  <span className="ai-stats__item-q">{q.question}</span>
                   <span className="ai-stats__item-count">{q.count}</span>
                 </li>
               ))}
