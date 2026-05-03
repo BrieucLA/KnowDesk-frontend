@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { CategoryTree }     from './CategoryTree';
+import { CategoryTree, type CategoryActions } from './CategoryTree';
 import { EmptyState }       from '../../../shared/components/ui/EmptyState';
 import { StatusBadge }      from '../../../shared/components/ui/StatusBadge';
 import { Skeleton }         from '../../../shared/components/ui/Skeleton';
 import { Modal }            from '../../../shared/components/ui/Modal';
 import { Button }           from '../../../shared/components/ui/Button';
 import { Input }            from '../../../shared/components/ui/Input';
+import { ConfirmDialog }    from '../../../shared/components/ui/ConfirmDialog';
 import { knowledgeApi } from '../api/knowledgeApi';
 import { apiClient, ApiError } from '../../../shared/lib/apiClient';
 import { useToast }     from '../../../shared/lib/useToast';
@@ -59,6 +60,10 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
   const [newCatName,       setNewCatName]       = useState('');
   const [newCatParentId,   setNewCatParentId]   = useState<string | null>(null);
   const [newCatLoading,    setNewCatLoading]    = useState(false);
+  const [confirmDeleteCat, setConfirmDeleteCat] = useState<Category | null>(null);
+  const [moveCat,          setMoveCat]          = useState<Category | null>(null);
+  const [moveTargetId,     setMoveTargetId]     = useState<string | null>(null);
+  const [moveLoading,      setMoveLoading]      = useState(false);
   const [filter,           setFilter]         = useState<'all' | 'published' | 'draft'>('all');
   const [orgTags,        setOrgTags]        = useState<OrgTag[]>([]);
   const [activeTags,     setActiveTags]     = useState<string[]>([]);
@@ -248,6 +253,74 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
     });
   }, [breadcrumb, setExpandedIdsArr]);
 
+  const reloadCategories = useCallback(() => {
+    return knowledgeApi.getCategories().then(setCategories);
+  }, []);
+
+  /* ── Actions admin sur catégories : rename / addChild / move / delete ── */
+
+  const handleRenameCategory = useCallback(async (cat: Category, newName: string) => {
+    try {
+      await apiClient.patch(`/categories/${cat.id}`, { name: newName });
+      await reloadCategories();
+      toast.success('Catégorie renommée.');
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'Renommage impossible.');
+    }
+  }, [reloadCategories, toast]);
+
+  const handleAddChild = useCallback((parent: Category) => {
+    setNewCatParentId(parent.id);
+    setNewCatName('');
+    setShowNewCategory(true);
+  }, []);
+
+  const handleStartMove = useCallback((cat: Category) => {
+    setMoveCat(cat);
+    setMoveTargetId(null);
+  }, []);
+
+  const handleConfirmMove = useCallback(async () => {
+    if (!moveCat) return;
+    setMoveLoading(true);
+    try {
+      await apiClient.patch(`/categories/${moveCat.id}`, { parentId: moveTargetId });
+      await reloadCategories();
+      // Auto-déplie le nouveau parent pour rendre la cat visible
+      if (moveTargetId) {
+        setExpandedIdsArr(prev => prev.includes(moveTargetId) ? prev : [...prev, moveTargetId]);
+      }
+      toast.success(moveTargetId ? 'Catégorie déplacée.' : 'Catégorie remontée à la racine.');
+      setMoveCat(null);
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'Déplacement impossible.');
+    } finally {
+      setMoveLoading(false);
+    }
+  }, [moveCat, moveTargetId, reloadCategories, setExpandedIdsArr, toast]);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!confirmDeleteCat) return;
+    try {
+      await apiClient.delete(`/categories/${confirmDeleteCat.id}`);
+      await reloadCategories();
+      // Si la cat supprimée était sélectionnée, on bascule sur la racine
+      if (selectedCatId === confirmDeleteCat.id) setSelectedCatId(null);
+      toast.success('Catégorie supprimée.');
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'Suppression impossible.');
+    } finally {
+      setConfirmDeleteCat(null);
+    }
+  }, [confirmDeleteCat, reloadCategories, selectedCatId, toast]);
+
+  const categoryActions: CategoryActions | undefined = isAdmin ? {
+    onRename:   handleRenameCategory,
+    onAddChild: handleAddChild,
+    onMove:     handleStartMove,
+    onDelete:   (cat: Category) => setConfirmDeleteCat(cat),
+  } : undefined;
+
   const handleCreateCategory = useCallback(async () => {
     if (!newCatName.trim()) return;
     setNewCatLoading(true);
@@ -311,6 +384,7 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
           expandedIds={expandedIds}
           onSelect={handleCategorySelect}
           onToggleExpand={toggleExpand}
+          actions={categoryActions}
           loading={loadingCats}
         />
         {/* Resize handle */}
@@ -609,6 +683,63 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
             </p>
           </div>
         </Modal>
+      )}
+
+      {/* Modale déplacement de catégorie */}
+      {moveCat && (
+        <Modal
+          title={`Déplacer « ${moveCat.name} »`}
+          onClose={() => setMoveCat(null)}
+          asForm
+          onSubmit={handleConfirmMove}
+          footer={
+            <>
+              <Button type="button" variant="ghost" size="md" onClick={() => setMoveCat(null)}>
+                Annuler
+              </Button>
+              <Button type="submit" variant="primary" size="md" loading={moveLoading}>
+                Déplacer
+              </Button>
+            </>
+          }
+        >
+          <div className="field">
+            <label htmlFor="move-cat-target" className="field-label">Nouvelle catégorie parente</label>
+            <select
+              id="move-cat-target"
+              className="field-input"
+              value={moveTargetId ?? ''}
+              onChange={e => setMoveTargetId(e.target.value || null)}
+              autoFocus
+            >
+              <option value="">— Aucune (catégorie racine) —</option>
+              {/* Exclut la cat elle-même + ses descendants pour anti-cycle */}
+              {flattenForSelect(categories)
+                .filter(c => !collectDescendantIds(categories, moveCat.id).has(c.id))
+                .map(({ id, indentedName }) => (
+                  <option key={id} value={id}>{indentedName}</option>
+                ))}
+            </select>
+            <p className="field-helper">
+              Laissez vide pour remettre la catégorie au premier niveau, ou choisissez une nouvelle parente.
+              La catégorie déplacée et ses sous-catégories sont exclues de la liste.
+            </p>
+          </div>
+        </Modal>
+      )}
+
+      {/* Confirmation de suppression */}
+      {confirmDeleteCat && (
+        <ConfirmDialog
+          title={`Supprimer « ${confirmDeleteCat.name} » ?`}
+          description={confirmDeleteCat.children.length > 0
+            ? `Cette catégorie contient ${confirmDeleteCat.children.length} sous-catégorie${confirmDeleteCat.children.length > 1 ? 's' : ''} qui seront aussi supprimées. Les articles attachés perdront leur catégorisation. Cette action est irréversible.`
+            : 'Les articles attachés perdront leur catégorisation. Cette action est irréversible.'}
+          confirmLabel="Supprimer"
+          variant="danger"
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setConfirmDeleteCat(null)}
+        />
       )}
     </div>
   );

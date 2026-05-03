@@ -231,6 +231,74 @@
 .cat-item--selected .cat-item__count { background: var(--brand-100); color: var(--brand-500); }
 .cat-item__children { list-style: none; }
 
+/* Menu actions admin — visible au hover seulement */
+.cat-item { position: relative; }
+.cat-item__menu-btn {
+  flex-shrink: 0; width: 22px; height: 22px;
+  background: transparent; border: none; cursor: pointer;
+  color: var(--neutral-400); font-size: 14px; line-height: 1;
+  border-radius: 4px;
+  display: none;
+  padding: 0;
+  margin-left: 4px;
+}
+.cat-item:hover .cat-item__menu-btn,
+.cat-item__menu-btn--open {
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.cat-item__menu-btn:hover {
+  background: var(--neutral-200); color: var(--neutral-800);
+}
+/* Hide the count when the menu button is visible to keep the row tidy */
+.cat-item:hover .cat-item__count,
+.cat-item__menu-btn--open ~ .cat-item__count {
+  display: none;
+}
+
+/* Dropdown menu */
+.cat-menu {
+  position: absolute; top: calc(100% + 2px); right: 8px;
+  z-index: 10;
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px rgba(0,0,0,.10);
+  padding: 4px;
+  min-width: 200px;
+  display: flex; flex-direction: column;
+}
+.cat-menu__item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; border: none; background: transparent;
+  font-size: 13px; color: var(--neutral-800); text-align: left;
+  border-radius: 4px; cursor: pointer;
+  font-family: var(--font-ui);
+  transition: background var(--t-fast);
+}
+.cat-menu__item:hover { background: var(--neutral-100); }
+.cat-menu__item--danger { color: var(--color-danger, oklch(0.55 0.2 25)); }
+.cat-menu__item--danger:hover { background: var(--color-danger-bg, oklch(0.95 0.05 25)); }
+.cat-menu__divider {
+  height: 1px; background: var(--neutral-100); margin: 4px 0;
+}
+
+/* Inline rename input */
+.cat-item--editing { background: var(--neutral-50); cursor: text; }
+.cat-item__rename-input {
+  flex: 1; min-width: 0;
+  background: var(--neutral-0);
+  border: 1px solid var(--brand-400);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 13px;
+  font-family: var(--font-ui);
+  color: var(--neutral-900);
+  outline: none;
+}
+.cat-item__rename-input:focus {
+  box-shadow: 0 0 0 3px var(--brand-100);
+}
+
 /* ── QuestionTreePage ─────────────────────────────────────────── */
 .tree-page {
   max-width: 680px;
