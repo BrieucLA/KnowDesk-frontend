@@ -1,0 +1,219 @@
+import React, { useEffect, useState } from 'react';
+import { Input } from '../../../shared/components/ui/Input';
+import { Button } from '../../../shared/components/ui/Button';
+import { EmptyState } from '../../../shared/components/ui/EmptyState';
+import { Skeleton } from '../../../shared/components/ui/Skeleton';
+import { useToast } from '../../../shared/lib/useToast';
+import { formatRelative } from '../../../shared/lib/formatDate';
+import { chatsApi, type ChatListItem, type ChatStatus } from '../api/chatsApi';
+import { TranscriptModal } from './TranscriptModal';
+
+const STATUS_OPTIONS: Array<{ value: '' | ChatStatus; label: string }> = [
+  { value: '',          label: 'Tous les statuts' },
+  { value: 'active',    label: 'Actives' },
+  { value: 'resolved',  label: 'Résolues' },
+  { value: 'escalated', label: 'Escaladées' },
+  { value: 'abandoned', label: 'Abandonnées' },
+];
+
+const STATUS_LABEL: Record<ChatStatus, { label: string; tone: 'neutral' | 'success' | 'warning' | 'danger' }> = {
+  active:    { label: 'En cours',  tone: 'neutral' },
+  resolved:  { label: 'Résolue',   tone: 'success' },
+  escalated: { label: 'Escaladée', tone: 'warning' },
+  abandoned: { label: 'Abandonnée', tone: 'neutral' },
+};
+
+const PER_PAGE = 20;
+
+export function ChatsPage() {
+  const toast = useToast();
+
+  const [items, setItems]     = useState<ChatListItem[]>([]);
+  const [total, setTotal]     = useState(0);
+  const [page, setPage]       = useState(1);
+  const [q, setQ]             = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [status, setStatus]   = useState<'' | ChatStatus>('');
+  const [loading, setLoading] = useState(true);
+
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    chatsApi.list({
+      q: q || undefined,
+      status: status || undefined,
+      page,
+      perPage: PER_PAGE,
+    })
+      .then(res => {
+        if (!alive) return;
+        setItems(res.items);
+        setTotal(res.total);
+      })
+      .catch(err => {
+        if (!alive) return;
+        toast.error(err?.message ?? 'Impossible de charger la liste des chats.');
+      })
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
+  }, [q, status, page, toast]);
+
+  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+
+  return (
+    <section className="chats-page">
+      <header className="chats-page__header">
+        <div>
+          <h1 className="chats-page__title">Chats</h1>
+          <p className="chats-page__subtitle">
+            Conversations menées par le chatbot embarqué — {total} {total === 1 ? 'conversation' : 'conversations'}
+          </p>
+        </div>
+      </header>
+
+      <form
+        className="chats-page__toolbar"
+        onSubmit={e => {
+          e.preventDefault();
+          setPage(1);
+          setQ(searchInput.trim());
+        }}
+      >
+        <Input
+          id="chats-search"
+          type="search"
+          label="Rechercher dans les transcripts"
+          placeholder="ex : remboursement, eSIM, panne…"
+          value={searchInput}
+          onChange={e => setSearchInput(e.target.value)}
+        />
+        <div className="chats-page__filters">
+          <label className="chats-page__filter">
+            <span>Statut</span>
+            <select
+              value={status}
+              onChange={e => { setStatus(e.target.value as '' | ChatStatus); setPage(1); }}
+            >
+              {STATUS_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </label>
+          <Button type="submit" variant="primary" size="sm">Rechercher</Button>
+          {q && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => { setSearchInput(''); setQ(''); setPage(1); }}
+            >
+              Effacer
+            </Button>
+          )}
+        </div>
+      </form>
+
+      {loading ? (
+        <div className="chats-page__list">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="chats-page__row-skeleton" />
+          ))}
+        </div>
+      ) : items.length === 0 ? (
+        <EmptyState
+          title={q ? 'Aucune conversation trouvée' : 'Aucune conversation pour le moment'}
+          description={
+            q
+              ? 'Essaye un autre mot-clé ou élargis les filtres.'
+              : 'Les conversations menées via le widget apparaîtront ici dès qu\'un visiteur posera une question.'
+          }
+        />
+      ) : (
+        <>
+          <ul className="chats-page__list" role="list">
+            {items.map(c => {
+              const meta = STATUS_LABEL[c.status];
+              return (
+                <li key={c.id}>
+                  <button
+                    type="button"
+                    className="chats-page__row"
+                    onClick={() => setSelectedId(c.id)}
+                  >
+                    <div className="chats-page__row-main">
+                      <div className="chats-page__row-topic">
+                        {c.topic ?? c.firstQuestion ?? '— Conversation —'}
+                      </div>
+                      {c.firstQuestion && c.topic && (
+                        <div className="chats-page__row-q">« {c.firstQuestion} »</div>
+                      )}
+                    </div>
+                    <div className="chats-page__row-meta">
+                      <span className={`chats-page__status chats-page__status--${meta.tone}`}>
+                        {meta.label}
+                      </span>
+                      <span className="chats-page__row-turns">
+                        {c.turnsCount} {c.turnsCount === 1 ? 'message' : 'messages'}
+                      </span>
+                      {c.csat !== null && (
+                        <span className="chats-page__row-csat" title={`CSAT ${c.csat}/5`}>
+                          {'★'.repeat(c.csat)}{'☆'.repeat(5 - c.csat)}
+                        </span>
+                      )}
+                      {c.resolvedHelpful !== null && (
+                        <span
+                          className="chats-page__row-thumb"
+                          title={c.resolvedHelpful ? 'Marqué utile' : 'Marqué non utile'}
+                        >
+                          {c.resolvedHelpful ? '👍' : '👎'}
+                        </span>
+                      )}
+                      <span className="chats-page__row-date">
+                        {formatRelative(c.startedAt)}
+                      </span>
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+
+          {totalPages > 1 && (
+            <div className="chats-page__pagination">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={page <= 1}
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+              >
+                ← Précédent
+              </Button>
+              <span className="chats-page__page-info">
+                Page {page} / {totalPages}
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={page >= totalPages}
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              >
+                Suivant →
+              </Button>
+            </div>
+          )}
+        </>
+      )}
+
+      {selectedId && (
+        <TranscriptModal
+          chatId={selectedId}
+          onClose={() => setSelectedId(null)}
+        />
+      )}
+    </section>
+  );
+}

@@ -20,6 +20,7 @@ import { NotFoundPage } from './shared/components/ui/NotFoundPage';
 import { MembersPage }      from './features/members/components/MembersPage';
 import { SettingsPage }     from './features/settings/components/SettingsPage';
 import { AnalyticsPage }    from './features/analytics/components/AnalyticsPage';
+import { ChatsPage }        from './features/chats/components/ChatsPage';
 import { SearchBar }        from './features/search/components/SearchBar';
 import { CommandPalette }   from './features/search/components/CommandPalette';
 import { AppLayout }        from './shared/components/layout/AppLayout';
@@ -43,6 +44,7 @@ type Screen =
   | 'editor'
   | 'members'
   | 'analytics'
+  | 'chats'
   | 'settings'
   | 'trees'
   | 'tree-editor'
@@ -58,6 +60,7 @@ type View =
   | { screen: 'editor';   articleId?: string; from: Screen }
   | { screen: 'members'  }
   | { screen: 'analytics' }
+  | { screen: 'chats' }
   | { screen: 'settings'; section?: string  }
   | { screen: 'trees' }
   | { screen: 'tree-editor'; treeId: string }
@@ -72,6 +75,7 @@ function pathToView(pathname: string, fallbackFrom: Screen): View | null {
   if (pathname === '/articles/new')               return { screen: 'editor', from: fallbackFrom };
   if (pathname === '/members')                    return { screen: 'members' };
   if (pathname === '/analytics')                  return { screen: 'analytics' };
+  if (pathname === '/chats')                      return { screen: 'chats' };
   if (pathname === '/settings')                   return { screen: 'settings' };
   if (pathname === '/account')                    return { screen: 'account' };
   if (pathname === '/trees')                      return { screen: 'trees' };
@@ -109,6 +113,7 @@ function viewToPath(view: View): string | null {
     case 'trees':       return '/trees';
     case 'members':     return '/members';
     case 'analytics':   return '/analytics';
+    case 'chats':       return '/chats';
     case 'settings':    return '/settings';
     case 'account':     return '/account';
     case 'faqs':        return '/faqs';
@@ -202,9 +207,10 @@ export function App() {
       ? 'knowledge'
     : view.screen === 'members'   ? 'team'
     : view.screen === 'analytics' ? 'analytics'
+    : view.screen === 'chats'     ? 'chats'
     : view.screen === 'settings'  ? 'settings'
     : 'dashboard'
-  ) as 'dashboard' | 'search' | 'knowledge' | 'faqs' | 'team' | 'analytics' | 'settings';
+  ) as 'dashboard' | 'search' | 'knowledge' | 'faqs' | 'team' | 'analytics' | 'chats' | 'settings';
 
 // Mode superadmin — accessible via ?superadmin dans l'URL
 if (window.location.search.includes('superadmin')) {
@@ -252,6 +258,7 @@ if (!isLoggedIn) {
             if (route === 'knowledge') go({ screen: 'knowledge' });
             if (route === 'team')      go({ screen: 'members'   });
             if (route === 'analytics') go({ screen: 'analytics' });
+            if (route === 'chats')     go({ screen: 'chats'     });
             if (route === 'settings')  go({ screen: 'settings'  });
             if (route === 'trees')     go({ screen: 'trees'     });
             if (route === 'faqs')      go({ screen: 'faqs'      });
@@ -318,6 +325,7 @@ if (!isLoggedIn) {
             />
           )}
           {view.screen === 'settings' && <SettingsPage />}
+          {view.screen === 'chats' && <ChatsPage />}
           {view.screen === 'trees' && (
   <TreesPage
     onOpenTree={id    => go({ screen: 'tree-editor', treeId: id })}
@@ -333,7 +341,7 @@ if (!isLoggedIn) {
   />
 )}
 {view.screen === 'account' && <AccountPage />}
-{!(['dashboard','knowledge','article','tree','editor','members','analytics','settings','trees','tree-editor','account','faqs','faq-editor'] as string[]).includes(view.screen) && (
+{!(['dashboard','knowledge','article','tree','editor','members','analytics','chats','settings','trees','tree-editor','account','faqs','faq-editor'] as string[]).includes(view.screen) && (
   <NotFoundPage onBack={() => go({ screen: 'dashboard' })} />
 )}
         </AppLayout>
