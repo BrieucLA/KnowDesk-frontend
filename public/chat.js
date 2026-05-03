@@ -40,33 +40,39 @@
 
   // ── État global du widget ────────────────────────────────────────
   var state = {
-    open:     false,
-    config:   null,            // { orgName, welcomeMessage, primaryColor, logoUrl }
-    history:  loadHistory(),   // [{role, content}, ...]
-    pending:  false,           // attend une réponse du serveur
-    error:    null,
+    open:           false,
+    config:         null,    // { orgName, welcomeMessage, primaryColor, logoUrl }
+    conversationId: null,    // créé par le serveur au 1er message, persisté localStorage
+    history:        [],      // [{role:'visitor'|'assistant', content}, ...] (UI-only, pas la source de vérité)
+    pending:        false,
+    error:          null,
   };
 
-  function storageKey() { return 'knowdesk_chat_history_' + orgSlug; }
-  function loadHistory() {
-    try {
-      var raw = localStorage.getItem(storageKey());
-      var arr = raw ? JSON.parse(raw) : [];
-      return Array.isArray(arr) ? arr.slice(-20) : [];
-    } catch (e) { return []; }
-  }
-  function saveHistory(h) {
-    try { localStorage.setItem(storageKey(), JSON.stringify(h.slice(-20))); }
-    catch (e) { /* quota plein, mode privé… */ }
-  }
+  // Identifiants persistés côté client : la conversationId pour reprendre
+  // une conversation après reload, et le visitorFingerprint pour suivre un
+  // visiteur unique (anonyme) cross-conversations.
+  function convIdKey()    { return 'knowdesk_chat_conv_'    + orgSlug; }
+  function fingerprintKey() { return 'knowdesk_chat_fp_'   + orgSlug; }
 
-  function sessionId() {
-    var k = 'knowdesk_chat_session_' + orgSlug;
-    var existing = sessionStorage.getItem(k);
-    if (existing) return existing;
-    var fresh = 'sess-' + Math.random().toString(36).slice(2) + '-' + Date.now().toString(36);
-    sessionStorage.setItem(k, fresh);
-    return fresh;
+  function loadConversationId() {
+    try { return localStorage.getItem(convIdKey()) || null; } catch (e) { return null; }
+  }
+  function saveConversationId(id) {
+    try { if (id) localStorage.setItem(convIdKey(), id); else localStorage.removeItem(convIdKey()); }
+    catch (e) {}
+  }
+  function visitorFingerprint() {
+    try {
+      var k = fingerprintKey();
+      var fp = localStorage.getItem(k);
+      if (fp) return fp;
+      fp = 'vis-' + Math.random().toString(36).slice(2) + '-' + Date.now().toString(36);
+      localStorage.setItem(k, fp);
+      return fp;
+    } catch (e) {
+      // localStorage indispo (mode privé strict) → fingerprint éphémère
+      return 'vis-eph-' + Math.random().toString(36).slice(2);
+    }
   }
 
   // ── Templates HTML (Shadow DOM) ──────────────────────────────────
@@ -105,8 +111,9 @@
       + '}'
       + '.header__logo { width: 32px; height: 32px; border-radius: 6px; object-fit: cover; flex-shrink: 0; background: rgba(255,255,255,.15); }'
       + '.header__title { flex: 1; font-size: 14px; font-weight: 600; }'
-      + '.header__close { background: transparent; border: none; color: white; cursor: pointer; padding: 4px 8px; font-size: 18px; line-height: 1; opacity: 0.85; }'
-      + '.header__close:hover { opacity: 1; }'
+      + '.header__close, .header__reset { background: transparent; border: none; color: white; cursor: pointer; padding: 4px 8px; font-size: 18px; line-height: 1; opacity: 0.85; }'
+      + '.header__close:hover, .header__reset:hover { opacity: 1; }'
+      + '.header__reset { font-size: 16px; }'
       + '.messages { flex: 1; overflow-y: auto; padding: 14px; background: #f8f9fb; display: flex; flex-direction: column; gap: 8px; }'
       + '.msg { display: flex; gap: 6px; max-width: 85%; }'
       + '.msg--user { align-self: flex-end; }'
@@ -131,6 +138,7 @@
       + '  <div class="header">'
       + '    <div class="header__logo-wrap"></div>'
       + '    <div class="header__title">Discutons</div>'
+      + '    <button class="header__reset" type="button" aria-label="Nouvelle conversation" title="Nouvelle conversation">↺</button>'
       + '    <button class="header__close" type="button" aria-label="Fermer">×</button>'
       + '  </div>'
       + '  <div class="messages" role="log" aria-live="polite"></div>'
@@ -168,7 +176,8 @@
     messagesEl.innerHTML = '';
     state.history.forEach(function (turn) {
       var msg = document.createElement('div');
-      msg.className = 'msg msg--' + (turn.role === 'user' ? 'user' : 'bot');
+      // Accepte 'visitor' (nouveau format DB) ou 'user' (ancien format) côté UI
+      msg.className = 'msg msg--' + (turn.role === 'visitor' || turn.role === 'user' ? 'user' : 'bot');
       var bubble = document.createElement('div');
       bubble.className = 'msg__bubble';
       bubble.textContent = stripCitations(turn.content);
@@ -204,11 +213,9 @@
   async function sendMessage(root, text) {
     if (!text.trim() || state.pending) return;
     state.pending = true;
-    state.history.push({ role: 'user', content: text.trim() });
+    state.history.push({ role: 'visitor', content: text.trim() });
     renderMessages(root);
-    saveHistory(state.history);
 
-    // Bot bubble en streaming
     var streamedText = '';
     setStreamingMessage(root, '');
 
@@ -217,9 +224,10 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          orgSlug:   orgSlug,
-          sessionId: sessionId(),
-          history:   state.history.slice(-10),  // dernier 10 tours envoyés
+          orgSlug:            orgSlug,
+          conversationId:     state.conversationId || undefined,
+          visitorFingerprint: visitorFingerprint(),
+          message:            text.trim(),
         }),
       });
       if (!resp.ok || !resp.body) throw new Error('HTTP ' + resp.status);
@@ -243,11 +251,16 @@
           var data;
           try { data = JSON.parse(dataMatch[1]); } catch (e) { continue; }
 
-          if (name === 'token') {
+          if (name === 'conversation') {
+            // Le serveur nous attribue (ou confirme) un conversationId
+            if (data.id && data.id !== state.conversationId) {
+              state.conversationId = data.id;
+              saveConversationId(data.id);
+            }
+          } else if (name === 'token') {
             streamedText += (data.text || '');
             setStreamingMessage(root, streamedText);
           } else if (name === 'fallback') {
-            // Le serveur indique qu'il ne sait pas (clé LLM absente, etc.)
             streamedText = data.message || streamedText || 'Désolé, je n\'ai pas la réponse.';
             setStreamingMessage(root, streamedText);
           } else if (name === 'done') {
@@ -256,19 +269,16 @@
         }
       }
 
-      // Persiste le tour assistant
       state.history.push({
         role:    'assistant',
         content: streamedText || 'Désolé, je n\'ai pas pu répondre.',
       });
-      saveHistory(state.history);
       renderMessages(root);
     } catch (err) {
       state.history.push({
         role:    'assistant',
         content: 'Désolé, une erreur technique m\'empêche de répondre. Réessayez dans un instant.',
       });
-      saveHistory(state.history);
       renderMessages(root);
     } finally {
       state.pending = false;
@@ -277,6 +287,48 @@
       if (input) input.disabled = false;
       if (btn)   btn.disabled = false;
     }
+  }
+
+  // Recharge l'historique d'une conversation depuis le serveur (au reload page).
+  async function fetchConversation(convId) {
+    try {
+      var resp = await fetch(API_BASE + '/conversation/' + encodeURIComponent(convId)
+        + '?orgSlug=' + encodeURIComponent(orgSlug));
+      if (resp.status === 404) {
+        // Conversation purgée serveur → on en démarre une nouvelle
+        saveConversationId(null);
+        return null;
+      }
+      if (!resp.ok) return null;
+      var json = await resp.json();
+      return json.data;
+    } catch (e) { return null; }
+  }
+
+  // Démarre une conversation neuve (bouton "Nouvelle conversation" du header).
+  async function resetConversation(root) {
+    var oldId = state.conversationId;
+    state.conversationId = null;
+    state.history = [];
+    saveConversationId(null);
+    if (oldId) {
+      // Best-effort RGPD : supprime côté serveur. Erreur ignorée.
+      fetch(API_BASE + '/conversation/' + encodeURIComponent(oldId)
+        + '?orgSlug=' + encodeURIComponent(orgSlug),
+        { method: 'DELETE' }).catch(function () {});
+    }
+    if (state.config && state.config.welcomeMessage) {
+      state.history.push({
+        role:    'assistant',
+        content: state.config.welcomeMessage,
+      });
+    } else {
+      state.history.push({
+        role:    'assistant',
+        content: 'Bonjour 👋 Comment puis-je vous aider ?',
+      });
+    }
+    renderMessages(root);
   }
 
   function emitEvent(name, detail) {
@@ -339,13 +391,23 @@
     var titleEl = root.querySelector('.header__title');
     if (titleEl) titleEl.textContent = state.config.orgName ? ('Chat ' + state.config.orgName) : 'Discutons';
 
-    // Welcome message si historique vide
+    // Recharge la conversation depuis le serveur si on a un id en local
+    var existingId = loadConversationId();
+    if (existingId) {
+      var conv = await fetchConversation(existingId);
+      if (conv && Array.isArray(conv.turns)) {
+        state.conversationId = conv.id;
+        state.history = conv.turns.map(function (t) {
+          return { role: t.role, content: t.content };
+        });
+      }
+    }
+    // Welcome message si conversation neuve
     if (state.history.length === 0) {
       state.history.push({
         role:    'assistant',
         content: state.config.welcomeMessage || 'Bonjour 👋 Comment puis-je vous aider ?',
       });
-      saveHistory(state.history);
     }
     renderMessages(root);
 
@@ -353,6 +415,7 @@
     var bubble = root.querySelector('.bubble');
     var panel  = root.querySelector('.panel');
     var close  = root.querySelector('.header__close');
+    var reset  = root.querySelector('.header__reset');
     var form   = root.querySelector('.input-row');
     var input  = root.querySelector('.input-row input');
 
@@ -369,6 +432,7 @@
     }
     bubble.addEventListener('click', open);
     close.addEventListener('click', closeP);
+    if (reset) reset.addEventListener('click', function () { resetConversation(root); });
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var v = input.value;
