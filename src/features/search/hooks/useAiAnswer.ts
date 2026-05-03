@@ -18,7 +18,13 @@ export interface AiState {
 
 const INITIAL: AiState = { status: 'idle', sources: [], answer: '' };
 
-const DEBOUNCE_MS = 600;     // évite de cramer du LLM à chaque keystroke
+// 1200ms — pause typique entre deux mots pour un humain qui cherche.
+// Avant : 600ms générait un appel + un event analytics dès qu'on
+// soufflait entre deux mots, polluant le top "Questions sans réponse"
+// avec des préfixes intermédiaires (« comment résilier », « comment
+// résilier mon », etc.). Backend dédupe désormais ces préfixes mais on
+// limite aussi à la source pour économiser des appels Mistral.
+const DEBOUNCE_MS = 1200;
 const MIN_QUERY   = 3;
 
 /**
