@@ -32,15 +32,54 @@ export function ChatbotSettingsSection() {
   // explicite (clic sur le bouton "Tester sur cette page") et on le retire
   // au démontage du composant pour éviter qu'il persiste sur les autres pages.
   const mountWidget = useCallback(() => {
-    if (widgetMounted || !orgSlug) return;
+    if (widgetMounted) return;
+    if (!orgSlug) {
+      toast.error('Slug d\'organisation introuvable. Reconnecte-toi et réessaye.');
+      return;
+    }
     const script = document.createElement('script');
     script.src = '/chat.js';
     script.setAttribute('data-org', orgSlug);
     script.setAttribute('data-knowdesk-chat-test', '1');  // marqueur pour le cleanup
-    script.defer = true;
     document.body.appendChild(script);
     setWidgetMounted(true);
-  }, [widgetMounted, orgSlug]);
+
+    // Le widget émet `knowdesk-chat:ready` ou `knowdesk-chat:error` après init.
+    // Si on ne reçoit rien sous 5s, c'est que le script ne s'est pas exécuté.
+    const onReady = () => {
+      cleanup();
+      toast.success('Widget chargé — il est en bas à droite.');
+    };
+    const onError = (e: Event) => {
+      cleanup();
+      const reason = (e as CustomEvent).detail?.reason ?? 'unknown';
+      const status = (e as CustomEvent).detail?.status;
+      const messages: Record<string, string> = {
+        'domain-not-allowed': `Ce domaine (${window.location.host}) n'est pas dans la liste blanche. Ajoutez-le et enregistrez avant de retester.`,
+        'org-not-found':      'Organisation introuvable côté serveur (incohérence ?).',
+        'network':            'Impossible de joindre le serveur. Vérifie que tu as bien enregistré la config et que le backend est en ligne.',
+        'server-error':       'Erreur serveur. Vérifiez les logs Railway.',
+        'already-loaded':     'Le widget est déjà chargé sur cette page.',
+        'unknown':            `Erreur ${status ?? '?'} — vérifie la console navigateur pour les détails.`,
+      };
+      toast.error(messages[reason] ?? messages.unknown);
+      // En cas d'erreur, retire les éléments injectés pour permettre un nouveau test
+      document.querySelectorAll('[data-knowdesk-chat], script[data-knowdesk-chat-test]').forEach(el => el.remove());
+      delete (window as { __knowdeskChatLoaded?: boolean }).__knowdeskChatLoaded;
+      setWidgetMounted(false);
+    };
+    const timer = window.setTimeout(() => {
+      cleanup();
+      toast.error('Le widget n\'a pas répondu sous 5s — vérifie la console navigateur (F12 → Console / Network).');
+    }, 5000);
+    function cleanup() {
+      window.removeEventListener('knowdesk-chat:ready', onReady);
+      window.removeEventListener('knowdesk-chat:error', onError as EventListener);
+      window.clearTimeout(timer);
+    }
+    window.addEventListener('knowdesk-chat:ready', onReady, { once: true });
+    window.addEventListener('knowdesk-chat:error', onError as EventListener, { once: true });
+  }, [widgetMounted, orgSlug, toast]);
 
   const unmountWidget = useCallback(() => {
     document.querySelectorAll('[data-knowdesk-chat], script[data-knowdesk-chat-test]').forEach(el => el.remove());

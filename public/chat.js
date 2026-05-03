@@ -292,10 +292,18 @@
     }
   }
 
+  function emitEvent(name, detail) {
+    try { window.dispatchEvent(new CustomEvent('knowdesk-chat:' + name, { detail: detail || {} })); }
+    catch (e) { /* CustomEvent pas dispo, ignore */ }
+  }
+
   // ── Init après chargement de la config ───────────────────────────
   async function init() {
     // Empêche un double-init si le script est inclus deux fois
-    if (window.__knowdeskChatLoaded) return;
+    if (window.__knowdeskChatLoaded) {
+      emitEvent('error', { reason: 'already-loaded' });
+      return;
+    }
     window.__knowdeskChatLoaded = true;
 
     // Charge la config publique du chatbot pour l'org
@@ -304,10 +312,18 @@
       configResp = await fetch(API_BASE + '/config?orgSlug=' + encodeURIComponent(orgSlug));
     } catch (err) {
       console.warn('[knowdesk-chat] impossible de joindre le serveur', err);
+      emitEvent('error', { reason: 'network', message: String(err && err.message ? err.message : err) });
       return;
     }
     if (!configResp.ok) {
-      // 403 : domaine non autorisé ; 404 : org inconnue ; etc. — silencieux
+      var bodyText = '';
+      try { bodyText = await configResp.text(); } catch (e) {}
+      console.warn('[knowdesk-chat] config échouée', configResp.status, bodyText);
+      var reason = 'unknown';
+      if (configResp.status === 403) reason = 'domain-not-allowed';
+      else if (configResp.status === 404) reason = 'org-not-found';
+      else if (configResp.status >= 500) reason = 'server-error';
+      emitEvent('error', { reason: reason, status: configResp.status, body: bodyText });
       return;
     }
     var json = await configResp.json();
@@ -375,6 +391,9 @@
       if (btn) btn.disabled = true;
       sendMessage(root, v);
     });
+
+    // Signal au parent (cas du test live dans Settings) que le widget est OK
+    emitEvent('ready', { orgSlug: orgSlug });
   }
 
   if (document.readyState === 'loading') {
