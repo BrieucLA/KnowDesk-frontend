@@ -26,6 +26,30 @@ export function ChatbotSettingsSection() {
     chat_allowed_domains:   [],
   });
   const [domainsDraft, setDomainsDraft] = useState('');
+  const [widgetMounted, setWidgetMounted] = useState(false);
+
+  // Injection live du widget pour test : on ne l'active qu'à la demande
+  // explicite (clic sur le bouton "Tester sur cette page") et on le retire
+  // au démontage du composant pour éviter qu'il persiste sur les autres pages.
+  const mountWidget = useCallback(() => {
+    if (widgetMounted || !orgSlug) return;
+    const script = document.createElement('script');
+    script.src = '/chat.js';
+    script.setAttribute('data-org', orgSlug);
+    script.setAttribute('data-knowdesk-chat-test', '1');  // marqueur pour le cleanup
+    script.defer = true;
+    document.body.appendChild(script);
+    setWidgetMounted(true);
+  }, [widgetMounted, orgSlug]);
+
+  const unmountWidget = useCallback(() => {
+    document.querySelectorAll('[data-knowdesk-chat], script[data-knowdesk-chat-test]').forEach(el => el.remove());
+    delete (window as { __knowdeskChatLoaded?: boolean }).__knowdeskChatLoaded;
+    setWidgetMounted(false);
+  }, []);
+
+  // Cleanup au démontage de la section
+  useEffect(() => () => unmountWidget(), [unmountWidget]);
 
   useEffect(() => {
     apiClient.get<ChatOrgSettings>('/settings/org')
@@ -86,7 +110,7 @@ export function ChatbotSettingsSection() {
   return (
     <section className="settings-section" aria-labelledby="chatbot-title">
       <div className="settings-section__header">
-        <h2 id="chatbot-title" className="settings-section__title">💬 Chatbot</h2>
+        <h2 id="chatbot-title" className="settings-section__title">✨ IA chatbot</h2>
         <p className="settings-section__desc">
           Activez et personnalisez le chatbot embarquable que vos clients peuvent utiliser depuis votre site web.
           Il répond <strong>uniquement</strong> à partir des FAQs, articles et processus marqués comme « Public ».
@@ -211,8 +235,42 @@ export function ChatbotSettingsSection() {
           )}
         </div>
 
-        {/* Snippet d'intégration */}
+        {/* Test live sur cette page */}
         <div className="settings-section__header" style={{ marginTop: 32, paddingTop: 16, borderTop: '1px solid var(--neutral-100)' }}>
+          <div>
+            <h3 className="settings-section__title" style={{ fontSize: 16 }}>Tester le chatbot sur cette page</h3>
+            <p className="settings-section__desc">
+              Charge le widget directement dans cette page d'administration pour valider l'apparence et
+              les réponses, sans avoir à intégrer le snippet sur ton site web.
+            </p>
+          </div>
+        </div>
+        <div style={{
+          background: 'oklch(0.97 0.04 250)',
+          border: '1px solid oklch(0.85 0.06 250)',
+          borderRadius: 'var(--radius-md)',
+          padding: 14,
+          fontSize: 13,
+          color: 'var(--neutral-700)',
+          marginBottom: 12,
+        }}>
+          <strong>⚠ Pré-requis :</strong> ajoute le domaine <code>{typeof window !== 'undefined' ? window.location.host : 'know-desk-frontend.vercel.app'}</code> dans la liste des domaines autorisés ci-dessus, sinon le widget ne s'affichera pas (CORS bloqué côté serveur).
+        </div>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+          <Button
+            type="button"
+            variant={widgetMounted ? 'ghost' : 'primary'}
+            size="sm"
+            onClick={widgetMounted ? unmountWidget : mountWidget}
+            disabled={!form.chat_enabled}
+            title={form.chat_enabled ? '' : 'Activez le chatbot d\'abord'}
+          >
+            {widgetMounted ? '✕ Retirer le widget' : '💬 Tester sur cette page'}
+          </Button>
+        </div>
+
+        {/* Snippet d'intégration */}
+        <div className="settings-section__header" style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--neutral-100)' }}>
           <div>
             <h3 className="settings-section__title" style={{ fontSize: 16 }}>Intégrer le widget sur votre site</h3>
             <p className="settings-section__desc">

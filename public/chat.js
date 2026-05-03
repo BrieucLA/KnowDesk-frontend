@@ -315,6 +315,9 @@
 
     // Crée le widget
     var widget = ChatWidget();
+    // Marqueur pour permettre à l'admin de retirer le widget proprement
+    // depuis Settings → Chatbot quand il quitte la page de test.
+    widget.setAttribute('data-knowdesk-chat', '1');
     document.body.appendChild(widget);
     var root = widget.shadowRoot;
 

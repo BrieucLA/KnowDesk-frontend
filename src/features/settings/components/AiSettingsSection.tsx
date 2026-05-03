@@ -94,10 +94,11 @@ export function AiSettingsSection() {
   return (
     <section className="settings-section" aria-labelledby="ai-title">
       <div className="settings-section__header">
-        <h2 id="ai-title" className="settings-section__title">✨ IA</h2>
+        <h2 id="ai-title" className="settings-section__title">✨ IA recherche</h2>
         <p className="settings-section__desc">
           Configuration de la <strong>Réponse IA</strong> qui apparaît au-dessus des résultats
-          de la recherche. Réponses générées par Mistral à partir de votre base uniquement.
+          de la recherche interne (vue conseiller). Réponses générées par Mistral à partir
+          de votre base uniquement.
         </p>
       </div>
 

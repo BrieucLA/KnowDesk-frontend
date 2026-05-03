@@ -59,15 +59,15 @@ export function SettingsPage({ initialSection = 'general' }: SettingsPageProps) 
 }
 
 const SECTIONS: { id: SettingsSection; label: string; adminOnly?: boolean }[] = [
-  { id: 'general',       label: 'Général'        },
-  { id: 'ai',            label: '✨ IA',         adminOnly: true },
-  { id: 'chatbot',       label: '💬 Chatbot',    adminOnly: true },
-  { id: 'notifications', label: 'Notifications'  },
-  { id: 'api',           label: 'API'            },
+  { id: 'general',       label: 'Général'             },
+  { id: 'ai',            label: '✨ IA recherche',    adminOnly: true },
+  { id: 'chatbot',       label: '✨ IA chatbot',      adminOnly: true },
+  { id: 'notifications', label: 'Notifications'       },
+  { id: 'api',           label: 'API'                 },
   { id: 'search',        label: 'Recherche', adminOnly: true },
   { id: 'tags',          label: 'Tags',      adminOnly: true },
-  { id: 'billing',       label: 'Facturation'    },
-  { id: 'danger',        label: 'Zone de danger' },
+  { id: 'billing',       label: 'Facturation'         },
+  { id: 'danger',        label: 'Zone de danger'      },
 ];
 
 /* ── Section: Général ────────────────────────────────────────── */
