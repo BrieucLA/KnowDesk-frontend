@@ -57,6 +57,7 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
   const [loadingArticles, setLoadingArticles] = useState(false);
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCatName,       setNewCatName]       = useState('');
+  const [newCatParentId,   setNewCatParentId]   = useState<string | null>(null);
   const [newCatLoading,    setNewCatLoading]    = useState(false);
   const [filter,           setFilter]         = useState<'all' | 'published' | 'draft'>('all');
   const [orgTags,        setOrgTags]        = useState<OrgTag[]>([]);
@@ -251,10 +252,17 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
     if (!newCatName.trim()) return;
     setNewCatLoading(true);
     try {
-      await apiClient.post('/categories', { name: newCatName.trim() });
+      const body: { name: string; parentId?: string } = { name: newCatName.trim() };
+      if (newCatParentId) body.parentId = newCatParentId;
+      await apiClient.post('/categories', body);
       setNewCatName('');
+      setNewCatParentId(null);
       setShowNewCategory(false);
-      toast.success('Catégorie créée.');
+      toast.success(newCatParentId ? 'Sous-catégorie créée.' : 'Catégorie créée.');
+      // Si on a créé une sous-cat, on déplie son parent automatiquement
+      if (newCatParentId) {
+        setExpandedIdsArr(prev => prev.includes(newCatParentId) ? prev : [...prev, newCatParentId]);
+      }
       knowledgeApi.getCategories().then(cats => {
         setCategories(cats);
         if (cats.length > 0 && !selectedCatId) setSelectedCatId(cats[0].id);
@@ -264,7 +272,7 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
     } finally {
       setNewCatLoading(false);
     }
-  }, [newCatName, selectedCatId, toast]);
+  }, [newCatName, newCatParentId, selectedCatId, toast, setExpandedIdsArr]);
 
 
   return (
@@ -283,9 +291,14 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
           {isAdmin && (
             <button
               type="button"
-              onClick={() => setShowNewCategory(true)}
+              onClick={() => {
+                // Pré-remplit le parent avec la cat actuellement sélectionnée — l'admin
+                // navigue le plus souvent dans une cat avant de vouloir y ajouter une sous-cat.
+                setNewCatParentId(selectedCatId);
+                setShowNewCategory(true);
+              }}
               className="knowledge-page__icon-btn"
-              title="Nouvelle catégorie"
+              title="Nouvelle catégorie ou sous-catégorie"
               aria-label="Nouvelle catégorie"
             >
               +
@@ -546,16 +559,21 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
         )}
 
       </main>
-      {/* Modale nouvelle catégorie */}
+      {/* Modale nouvelle catégorie ou sous-catégorie */}
       {showNewCategory && (
         <Modal
-          title="Nouvelle catégorie"
-          onClose={() => setShowNewCategory(false)}
+          title={newCatParentId ? 'Nouvelle sous-catégorie' : 'Nouvelle catégorie'}
+          onClose={() => { setShowNewCategory(false); setNewCatParentId(null); }}
           asForm
           onSubmit={handleCreateCategory}
           footer={
             <>
-              <Button type="button" variant="ghost" size="md" onClick={() => setShowNewCategory(false)}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="md"
+                onClick={() => { setShowNewCategory(false); setNewCatParentId(null); }}
+              >
                 Annuler
               </Button>
               <Button type="submit" variant="primary" size="md" loading={newCatLoading} disabled={!newCatName.trim()}>
@@ -573,6 +591,23 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
             autoFocus
             onChange={e => setNewCatName(e.target.value)}
           />
+          <div className="field">
+            <label htmlFor="new-cat-parent" className="field-label">Catégorie parente</label>
+            <select
+              id="new-cat-parent"
+              className="field-input"
+              value={newCatParentId ?? ''}
+              onChange={e => setNewCatParentId(e.target.value || null)}
+            >
+              <option value="">— Aucune (catégorie racine) —</option>
+              {flattenForSelect(categories).map(({ id, indentedName }) => (
+                <option key={id} value={id}>{indentedName}</option>
+              ))}
+            </select>
+            <p className="field-helper">
+              Laissez vide pour créer une catégorie de premier niveau, ou choisissez un parent pour créer une sous-catégorie.
+            </p>
+          </div>
         </Modal>
       )}
     </div>
@@ -608,5 +643,18 @@ function collectDescendantIds(cats: Category[], rootId: string): Set<string> {
     for (const child of node.children) walk(child, here);
   }
   for (const cat of cats) walk(cat, false);
+  return out;
+}
+
+/**
+ * Aplatit l'arbre de catégories en liste indentée pour un <select>.
+ * Profondeur 0 : "Mobile" / 1 : "  Activation" / 2 : "    Réseau"…
+ */
+function flattenForSelect(cats: Category[], depth = 0): Array<{ id: string; indentedName: string }> {
+  const out: Array<{ id: string; indentedName: string }> = [];
+  for (const cat of cats) {
+    out.push({ id: cat.id, indentedName: `${'  '.repeat(depth)}${cat.name}` });
+    if (cat.children.length > 0) out.push(...flattenForSelect(cat.children, depth + 1));
+  }
   return out;
 }
