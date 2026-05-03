@@ -44,7 +44,6 @@
     config:   null,            // { orgName, welcomeMessage, primaryColor, logoUrl }
     history:  loadHistory(),   // [{role, content}, ...]
     pending:  false,           // attend une réponse du serveur
-    sources:  [],              // sources de la dernière réponse
     error:    null,
   };
 
@@ -158,6 +157,12 @@
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
+  // Strip les éventuelles citations [n] que Mistral pourrait laisser malgré
+  // l'instruction du prompt — on les retire à l'affichage pour rester propre.
+  function stripCitations(text) {
+    return String(text).replace(/\s*\[\d+\]\s*/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+
   function renderMessages(root) {
     var messagesEl = root.querySelector('.messages');
     messagesEl.innerHTML = '';
@@ -166,27 +171,10 @@
       msg.className = 'msg msg--' + (turn.role === 'user' ? 'user' : 'bot');
       var bubble = document.createElement('div');
       bubble.className = 'msg__bubble';
-      // Linkify [n] et conserve les sauts de ligne
-      bubble.innerHTML = escapeHtml(turn.content).replace(/\[(\d+)\]/g, '<span class="msg__cite">[$1]</span>');
+      bubble.textContent = stripCitations(turn.content);
       msg.appendChild(bubble);
       messagesEl.appendChild(msg);
     });
-    // Sources de la dernière réponse
-    if (state.sources.length > 0 && state.history.length > 0 && state.history[state.history.length - 1].role === 'assistant') {
-      var lastMsg = messagesEl.lastChild;
-      if (lastMsg) {
-        var sources = document.createElement('div');
-        sources.className = 'sources';
-        state.sources.forEach(function (s, i) {
-          var chip = document.createElement('span');
-          chip.className = 'source-chip';
-          var icon = s.type === 'faq' ? '❓' : (s.type === 'tree' ? '🌳' : '📄');
-          chip.textContent = '[' + (i + 1) + '] ' + icon + ' ' + s.title;
-          sources.appendChild(chip);
-        });
-        lastMsg.appendChild(sources);
-      }
-    }
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
 
@@ -202,7 +190,13 @@
       messagesEl.appendChild(msg);
       lastMsg = bubble;
     }
-    lastMsg.innerHTML = escapeHtml(partialText).replace(/\[(\d+)\]/g, '<span class="msg__cite">[$1]</span>') + '<span class="cursor"></span>';
+    // En streaming, on garde le texte tel quel + cursor ; le strip définitif
+    // se fait au render final via renderMessages.
+    lastMsg.innerHTML = '';
+    lastMsg.appendChild(document.createTextNode(stripCitations(partialText)));
+    var cur = document.createElement('span');
+    cur.className = 'cursor';
+    lastMsg.appendChild(cur);
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
 
@@ -210,7 +204,6 @@
   async function sendMessage(root, text) {
     if (!text.trim() || state.pending) return;
     state.pending = true;
-    state.sources = [];
     state.history.push({ role: 'user', content: text.trim() });
     renderMessages(root);
     saveHistory(state.history);
@@ -218,7 +211,6 @@
     // Bot bubble en streaming
     var streamedText = '';
     setStreamingMessage(root, '');
-    var fallbackHit = false;
 
     try {
       var resp = await fetch(API_BASE + '/message', {
@@ -251,16 +243,13 @@
           var data;
           try { data = JSON.parse(dataMatch[1]); } catch (e) { continue; }
 
-          if (name === 'sources') {
-            state.sources = (data.sources || []).slice(0, 5);
-          } else if (name === 'token') {
+          if (name === 'token') {
             streamedText += (data.text || '');
             setStreamingMessage(root, streamedText);
           } else if (name === 'fallback') {
-            // Le serveur indique qu'il ne sait pas → message admin-configuré
+            // Le serveur indique qu'il ne sait pas (clé LLM absente, etc.)
             streamedText = data.message || streamedText || 'Désolé, je n\'ai pas la réponse.';
             setStreamingMessage(root, streamedText);
-            fallbackHit = true;
           } else if (name === 'done') {
             break;
           }
@@ -273,8 +262,6 @@
         content: streamedText || 'Désolé, je n\'ai pas pu répondre.',
       });
       saveHistory(state.history);
-      // Pas de sources affichées si on est tombé en fallback (réponse "je sais pas")
-      if (fallbackHit) state.sources = [];
       renderMessages(root);
     } catch (err) {
       state.history.push({
