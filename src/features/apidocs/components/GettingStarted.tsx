@@ -69,6 +69,27 @@ export function GettingStarted() {
         </p>
         <CodeBlock code={PAGINATION_EXAMPLE} hideCopy />
       </section>
+
+      {/* Scope de l'API publique */}
+      <section id="scope" className="apidoc-section">
+        <h2 className="apidoc-section__title">Ce que l'API publique permet (et ne permet pas)</h2>
+        <p className="apidoc-section__text">
+          Cette API est <strong>en lecture seule</strong>. Elle expose le contenu publié de votre
+          base (catégories, articles, FAQs, processus guidés) pour vous permettre de l'intégrer
+          dans vos propres outils — site public, FAQ embed, chatbot maison, etc.
+        </p>
+        <ul className="apidoc-section__text" style={{ paddingLeft: 20 }}>
+          <li><strong>Création / modification</strong> du contenu : passe par l'interface KnowDesk
+            (ou l'API admin interne, accessible uniquement aux membres connectés).</li>
+          <li><strong>Réponse IA ✨ (Mistral)</strong> : disponible uniquement <em>dans</em> KnowDesk
+            pour les conseillers connectés. Elle n'est pas exposée par l'API publique pour des
+            raisons de coût et de sécurité (chaque requête consomme des tokens LLM facturés).
+            Si vous souhaitez exposer une expérience IA à vos clients finaux, contactez-nous.</li>
+          <li><strong>Hiérarchie des catégories</strong> : la liste retournée par <code>GET /categories</code>
+            est plate ; chaque catégorie indique son <code>parent_id</code> pour vous permettre
+            de reconstruire l'arbre côté client.</li>
+        </ul>
+      </section>
     </>
   );
 }

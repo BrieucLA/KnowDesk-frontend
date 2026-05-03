@@ -612,6 +612,93 @@ Chaque section affiche un compteur. Si une section ne contient aucun résultat p
         `.trim(),
       },
       {
+        id:    'ai-answer',
+        title: 'Comprendre la Réponse IA ✨',
+        content: `
+## Comprendre la Réponse IA ✨
+
+Quand tu poses une **question** dans la barre de recherche, une carte « Réponse IA » apparaît en haut des résultats. Elle synthétise les articles, FAQs et processus pertinents en quelques phrases — utile en appel client pour gagner du temps.
+
+**Quand l'IA se déclenche-t-elle ?**
+La Réponse IA s'active automatiquement si :
+- ta requête fait **15 caractères ou plus**, OU
+- elle contient un **point d'interrogation** (\`?\`), OU
+- elle commence par un mot interrogatif : *comment*, *pourquoi*, *qui*, *que*, *où*, *quand*, *combien*, *quel*, *quelle*…
+
+L'icône ✨ qui apparaît dans la barre te confirme que l'IA est active. Elle s'anime pendant la génération.
+
+> 💡 Pour une recherche par **mot-clé** courte (ex. *RIO*, *iPhone*), l'IA ne se déclenche pas — tu obtiens directement les résultats classiques.
+
+**Comment lire la carte**
+- Le texte arrive **token par token** (effet machine à écrire) : tu peux commencer à lire avant la fin
+- Les **citations** \`[1]\`, \`[2]\`, etc. renvoient aux **sources** affichées juste en-dessous
+- Les **chips de sources** sont cliquables : ouvre l'article correspondant pour creuser
+- **Bouton Copier** en bas : copie la réponse en texte plain (sans HTML), prêt à coller dans une conversation client
+
+**Quand l'IA dit *« Je n'ai pas la réponse précise dans la base. »***
+C'est volontaire. L'IA ne **fabrique jamais** d'information : si la réponse n'est pas dans tes articles, elle l'admet et te montre quand même les articles les plus proches. C'est une garantie anti-hallucination — en service client, mieux vaut le doute qu'une mauvaise info.
+
+Si tu vois ce message souvent sur des questions légitimes : signale-le à ton admin. Les questions sans réponse remontent dans **Analytics → Réponse IA** et permettent de combler les manques éditoriaux.
+
+**Ton avis compte 👍 / 👎**
+À la fin de chaque réponse, deux boutons te permettent de signaler si elle a été utile. Ces votes alimentent les statistiques de qualité visibles côté admin.
+
+> ⚠️ **Disclaimer** : L'IA peut se tromper, surtout sur des sujets sensibles (juridique, financier). **Vérifie toujours les sources citées** avant de communiquer une information critique au client.
+        `.trim(),
+      },
+      {
+        id:    'ai-config',
+        title: 'Configurer l\'IA pour son organisation (admin)',
+        content: `
+## Configurer la Réponse IA ✨ pour son organisation
+
+Tu peux personnaliser le comportement de l'IA depuis **Paramètres → ✨ IA** (visible uniquement aux admins). 5 leviers de configuration.
+
+**1. Activer / désactiver la Réponse IA**
+Toggle principal en haut de la section. Quand désactivée, la carte « Réponse IA » et l'icône ✨ disparaissent ; la SearchBar revient en mode classique (Meilisearch seulement). Utile pour les organisations soumises à des contraintes réglementaires strictes.
+
+> Quand le toggle est OFF, les autres champs sont grisés.
+
+**2. Secteur d'activité**
+Champ libre (max 80 caractères). L'IA s'adapte au persona : *« assistant pour les conseillers d'un service client dans le secteur Telecom »*. Exemples : \`Telecom\`, \`Banque\`, \`Retail\`, \`Santé\`, \`Énergie\`. Laisse vide pour une formulation générique.
+
+**3. Tonalité**
+5 styles prédéfinis :
+- **Professionnelle** — neutre, factuelle (défaut institutionnel)
+- **Chaleureuse** — accueillante, humaine (service haut de gamme)
+- **Directe** — droit au but (gain de temps conseiller)
+- **Empathique** — sensible aux situations délicates (banque, santé)
+- **Décontractée** — accessible, moderne (marques B2C jeunes)
+
+L'option *« Aucune préférence »* laisse Mistral en mode neutre.
+
+**4. Forme d'adresse**
+- **Vouvoiement** — l'IA dit systématiquement *« vous »*, *« votre »*, *« vos »*
+- **Tutoiement** — l'IA dit *« tu »*, *« ton »*, *« tes »*
+- **Aucune préférence** — Mistral choisit selon le contexte (vouvoiement par défaut en français formel)
+
+**5. Glossaire**
+Liste de paires *« terme générique → terme préféré »* (max 30 paires, 50 caractères chacune). L'IA utilise systématiquement le terme préféré dans ses réponses.
+
+Exemples concrets :
+- \`client\` → \`abonné\`
+- \`offre\` → \`forfait\`
+- \`annulation\` → \`résiliation\`
+- \`dépanneur\` → \`conseiller technique\`
+
+> 💡 **Construis ton glossaire au fil de l'eau**. Inutile de tout définir d'un coup — ajoute des paires quand tu repères un mot que l'IA utilise mais qui ne correspond pas à ton vocabulaire interne.
+
+**Suivre l'usage et la qualité**
+Va dans **Analytics → ✨ Réponse IA — 30 derniers jours** pour voir :
+- Nombre total de réponses générées (et combien tombent en *« sans réponse précise »*)
+- Taux d'utilité (👍 / 👎) sur les feedbacks reçus
+- Top 5 des questions les plus posées à l'IA
+- Top 5 des questions sans réponse — chacune avec un bouton **Créer FAQ** pour combler le manque éditorial en un clic
+
+> ℹ️ **Sous le capot** : la Réponse IA s'appuie sur **Mistral Small** (modèle français hébergé en UE). Toutes les requêtes sont scopées à votre organisation : aucune autre org KnowDesk ne voit votre contenu, et le modèle n'a accès qu'aux extraits que nous lui envoyons à chaque appel — pas d'entraînement sur vos données.
+        `.trim(),
+      },
+      {
         id:    'synonyms',
         title: 'Définir des synonymes (admin)',
         content: `
