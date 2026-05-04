@@ -54,6 +54,11 @@ export function ChatbotSettingsSection() {
   const [promptDraft, setPromptDraft]     = useState<string>('');
   /** True si l'admin a un prompt custom en DB (non-null). */
   const [hasCustomPrompt, setHasCustomPrompt] = useState<boolean>(false);
+  /** Le prompt est en lecture seule par défaut — un clic « Modifier » le déverrouille.
+      Évite les manipulations erronées (effacer le prompt ou le casser involontairement). */
+  const [editPrompt,   setEditPrompt]   = useState<boolean>(false);
+  /** Backup pour permettre l'annulation de l'édition. Restauré sur Annuler. */
+  const [promptBackup, setPromptBackup] = useState<{ draft: string; hadCustom: boolean }>({ draft: '', hadCustom: false });
 
   // Injection live du widget pour test : on ne l'active qu'à la demande
   // explicite (clic sur le bouton "Tester sur cette page") et on le retire
@@ -204,6 +209,10 @@ export function ChatbotSettingsSection() {
         chat_allowed_domains: allowedDomains,
         chat_system_prompt:   systemPromptToSave,
       }));
+      // Re-verrouille automatiquement le prompt après une sauvegarde
+      // réussie : l'admin doit cliquer "Modifier" à nouveau pour repasser
+      // en édition (cohérent avec le défaut "lecture seule").
+      setEditPrompt(false);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
       toast.success('Paramètres chatbot enregistrés');
@@ -493,29 +502,72 @@ export function ChatbotSettingsSection() {
           <div className="field">
             <label htmlFor="chat-system-prompt" className="field-label">
               Prompt utilisé par le chatbot
+              {!editPrompt && (
+                <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 400, color: 'var(--neutral-500)' }}>
+                  · lecture seule
+                </span>
+              )}
             </label>
             <textarea
               id="chat-system-prompt"
               className="field-input"
               value={promptDraft}
               onChange={e => { setPromptDraft(e.target.value); setHasCustomPrompt(true); }}
-              rows={18}
+              rows={22}
+              readOnly={!editPrompt}
               spellCheck={false}
-              style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: 12.5, lineHeight: 1.5 }}
+              style={{
+                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+                fontSize: 12.5,
+                lineHeight: 1.5,
+                background: editPrompt ? 'white' : 'var(--neutral-50, #f8f9fb)',
+                cursor:     editPrompt ? 'text'  : 'default',
+              }}
             />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6, gap: 12 }}>
               <p className="field-helper" style={{ margin: 0 }}>
-                Min. 50 caractères. {promptDraft.length} / 8000.
+                {editPrompt
+                  ? <>Min. 50 caractères. {promptDraft.length} / 8000.</>
+                  : <>Le prompt est verrouillé pour éviter les manipulations erronées. Clique sur « Modifier » pour le débloquer.</>
+                }
               </p>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={restorePromptDefault}
-                disabled={promptDraft.trim() === defaultPrompt.trim() && !hasCustomPrompt}
-              >
-                ↺ Restaurer le défaut
-              </Button>
+              {!editPrompt ? (
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={() => {
+                    setPromptBackup({ draft: promptDraft, hadCustom: hasCustomPrompt });
+                    setEditPrompt(true);
+                  }}
+                >
+                  ✎ Modifier
+                </Button>
+              ) : (
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setPromptDraft(promptBackup.draft);
+                      setHasCustomPrompt(promptBackup.hadCustom);
+                      setEditPrompt(false);
+                    }}
+                  >
+                    Annuler
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={restorePromptDefault}
+                    disabled={promptDraft.trim() === defaultPrompt.trim() && !hasCustomPrompt}
+                  >
+                    ↺ Restaurer le défaut
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
 
