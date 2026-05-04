@@ -522,6 +522,12 @@ export function ChatbotSettingsSection() {
                 lineHeight: 1.5,
                 background: editPrompt ? 'white' : 'var(--neutral-50, #f8f9fb)',
                 cursor:     editPrompt ? 'text'  : 'default',
+                // Override .field-input qui force height: var(--input-h) ≈ 40px
+                // sinon le rows={22} HTML est ignoré et le textarea s'affiche
+                // en input mono-ligne.
+                height:     'auto',
+                padding:    '12px 14px',
+                resize:     'vertical',
               }}
             />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6, gap: 12 }}>
