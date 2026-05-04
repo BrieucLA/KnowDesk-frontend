@@ -447,7 +447,17 @@ function AiAnswerStatsBanner({ onCreateFaq }: { onCreateFaq?: (q: string) => voi
         </div>
         <div className="ai-stats__metric">
           <span className="ai-stats__metric-value">{stats.doneCount}</span>
-          <span className="ai-stats__metric-label">Réponses précises</span>
+          <span className="ai-stats__metric-label">
+            Réponses précises
+            <InfoTooltip
+              title="Réponses précises"
+              rows={[
+                { label: 'Quoi',   text: 'nombre de fois où l\'IA a réussi à produire une vraie réponse adossée à ta base (avec sources affichées), sur 30 jours. Sous-ensemble de « Réponses générées par IA ».' },
+                { label: 'Calcul', text: 'appels à l\'IA ayant produit une réponse, par opposition aux « Sans réponse » où l\'IA n\'a pas trouvé de matière exploitable dans ta base. Dédup préfixes appliquée.' },
+                { label: 'Action', text: 'viser un ratio Précises / Total ≥ 70%. Si plus bas, l\'IA tombe souvent dans le vide — consulte la carte « Recherches sans résultat » plus bas et crée les FAQs manquantes.' },
+              ]}
+            />
+          </span>
         </div>
         <div className="ai-stats__metric">
           <span className="ai-stats__metric-value">{stats.unsureCount}</span>
