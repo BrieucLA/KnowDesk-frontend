@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '../../../shared/components/ui/Skeleton';
+import { InfoTooltip, type InfoTooltipRow } from '../../../shared/components/ui/Tooltip';
 import { useToast } from '../../../shared/lib/useToast';
 import { kbscoreApi, type KbScoreResult, type DimensionScore } from '../api/kbscoreApi';
 
@@ -12,16 +13,27 @@ const BAND_LABEL: Record<KbScoreResult['band'], { label: string; tone: string }>
 };
 
 const DIM_META: Array<{
-  key:    keyof KbScoreResult['dimensions'];
-  label:  string;
-  hint:   string;
+  key:     keyof KbScoreResult['dimensions'];
+  label:   string;
+  hint:    string;
+  /** Lignes de l'info-bulle (Phase « clarté KPI »). null = tooltip pas encore rédigée. */
+  tooltip: InfoTooltipRow[] | null;
 }> = [
-  { key: 'coverage',     label: 'Couverture',   hint: '% recherches qui aboutissent' },
-  { key: 'satisfaction', label: 'Satisfaction', hint: 'CSAT chatbot · helpful% FAQs' },
-  { key: 'freshness',    label: 'Fraîcheur',    hint: 'Articles modifiés < 6 mois' },
-  { key: 'consistency',  label: 'Cohérence',    hint: 'Conversations résolues sans escalade' },
-  { key: 'activation',   label: 'Activation',   hint: 'Membres actifs sur 7 jours' },
-  { key: 'clarity',      label: 'Clarté',       hint: 'Articles dans la fenêtre 200-2000 mots' },
+  {
+    key:   'coverage',
+    label: 'Couverture',
+    hint:  '% recherches qui aboutissent',
+    tooltip: [
+      { label: 'Quoi',   text: '% des recherches mots-clés faites par les conseillers dans la barre Cmd+K (base interne) qui retournent au moins 1 résultat.' },
+      { label: 'Calcul', text: 'recherches avec ≥ 1 résultat ÷ total recherches sur 30 jours, dans la barre Cmd+K uniquement.' },
+      { label: 'Action', text: 'si < 80%, va dans « Recherches sans résultat » et crée une FAQ pour combler — c\'est le levier le plus rapide.' },
+    ],
+  },
+  { key: 'satisfaction', label: 'Satisfaction', hint: 'CSAT chatbot · helpful% FAQs',                   tooltip: null },
+  { key: 'freshness',    label: 'Fraîcheur',    hint: 'Articles modifiés < 6 mois',                    tooltip: null },
+  { key: 'consistency',  label: 'Cohérence',    hint: 'Conversations résolues sans escalade',          tooltip: null },
+  { key: 'activation',   label: 'Activation',   hint: 'Membres actifs sur 7 jours',                    tooltip: null },
+  { key: 'clarity',      label: 'Clarté',       hint: 'Articles dans la fenêtre 200-2000 mots',        tooltip: null },
 ];
 
 function dimTone(score: number | null): string {
@@ -85,7 +97,10 @@ export function KbScoreCard() {
           return (
             <div key={meta.key} className={`kbscore__dim kbscore__dim--${tone}`} role="listitem">
               <div className="kbscore__dim-top">
-                <span className="kbscore__dim-label">{meta.label}</span>
+                <span className="kbscore__dim-label">
+                  {meta.label}
+                  {meta.tooltip && <InfoTooltip title={meta.label} rows={meta.tooltip} />}
+                </span>
                 <span className="kbscore__dim-score">
                   {dim.score === null ? '—' : `${dim.score}`}
                 </span>
