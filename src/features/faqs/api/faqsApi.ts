@@ -7,6 +7,9 @@ function buildQuery(filters: FaqListFilters): string {
   if (filters.categoryId)        p.set('categoryId', filters.categoryId);
   if (filters.q?.trim())         p.set('q',          filters.q.trim());
   if (filters.staleOnly)         p.set('staleOnly',  '1');
+  if (filters.tags?.length)      p.set('tags',       filters.tags.join(','));
+  if (filters.sortBy)            p.set('sortBy',     filters.sortBy);
+  if (filters.sortDir)           p.set('sortDir',    filters.sortDir);
   if (filters.page    !== undefined) p.set('page',    String(filters.page));
   if (filters.perPage !== undefined) p.set('perPage', String(filters.perPage));
   const qs = p.toString();

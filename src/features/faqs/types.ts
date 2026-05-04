@@ -25,11 +25,18 @@ export interface FaqDetail extends FaqListItem {
   created_at:        string;
 }
 
+export type FaqSortBy  = 'updated' | 'views' | 'helpful';
+export type FaqSortDir = 'asc' | 'desc';
+
 export interface FaqListFilters {
   status?:     FaqStatus;
   categoryId?: string;
   q?:          string;
   staleOnly?:  boolean;
+  /** Multi-tag AND : la FAQ doit porter tous les tags. Slugs lowercase. */
+  tags?:       string[];
+  sortBy?:     FaqSortBy;
+  sortDir?:    FaqSortDir;
   page?:       number;
   perPage?:    number;
 }
