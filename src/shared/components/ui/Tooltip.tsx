@@ -43,6 +43,13 @@ interface InfoTooltipProps {
 
 export function InfoTooltip({ title, rows, children, ariaLabel }: InfoTooltipProps) {
   const [open, setOpen] = useState(false);
+  /**
+   * Placement choisi à chaque ouverture via le boundingClientRect du
+   * trigger. 'top' par défaut, 'bottom' si l'espace au-dessus est
+   * insuffisant (typiquement quand le trigger est en haut de page).
+   * Évite le débord en haut de viewport.
+   */
+  const [placement, setPlacement] = useState<'top' | 'bottom'>('top');
   const wrapRef         = useRef<HTMLSpanElement>(null);
   const tooltipId       = useId();
 
@@ -52,6 +59,16 @@ export function InfoTooltip({ title, rows, children, ariaLabel }: InfoTooltipPro
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
+  }, [open]);
+
+  // Smart placement : à l'ouverture, on regarde si le trigger a au moins
+  // ~200px d'espace au-dessus dans le viewport. Sinon on bascule la bulle
+  // en dessous. Hauteur estimée d'une bulle 4 rangées ≈ 180px + marge.
+  useEffect(() => {
+    if (!open || !wrapRef.current) return;
+    const rect = wrapRef.current.getBoundingClientRect();
+    const ESTIMATED_HEIGHT = 200;
+    setPlacement(rect.top >= ESTIMATED_HEIGHT ? 'top' : 'bottom');
   }, [open]);
 
   // Click outside pour fermer
@@ -96,7 +113,7 @@ export function InfoTooltip({ title, rows, children, ariaLabel }: InfoTooltipPro
         <div
           id={tooltipId}
           role="tooltip"
-          className="info-tooltip__bubble"
+          className={`info-tooltip__bubble info-tooltip__bubble--${placement}`}
         >
           <div className="info-tooltip__title">{title}</div>
           {rows && rows.length > 0 && (
@@ -110,7 +127,7 @@ export function InfoTooltip({ title, rows, children, ariaLabel }: InfoTooltipPro
             </dl>
           )}
           {children}
-          <span className="info-tooltip__arrow" aria-hidden="true" />
+          <span className={`info-tooltip__arrow info-tooltip__arrow--${placement}`} aria-hidden="true" />
         </div>
       )}
     </span>

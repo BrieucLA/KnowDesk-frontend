@@ -2085,7 +2085,6 @@
 }
 .info-tooltip__bubble {
   position: absolute;
-  bottom: calc(100% + 8px);
   left: 50%; transform: translateX(-50%);
   width: max-content;
   max-width: 320px;
@@ -2100,6 +2099,8 @@
   cursor: default;
   pointer-events: auto;
 }
+.info-tooltip__bubble--top    { bottom: calc(100% + 8px); }
+.info-tooltip__bubble--bottom { top:    calc(100% + 8px); }
 .info-tooltip__title {
   font-weight: 600;
   margin-bottom: 6px;
@@ -2119,10 +2120,12 @@
 }
 .info-tooltip__arrow {
   position: absolute;
-  bottom: -5px; left: 50%; transform: translateX(-50%) rotate(45deg);
+  left: 50%;
   width: 10px; height: 10px;
   background: #1f2937;
 }
+.info-tooltip__arrow--top    { bottom: -5px; transform: translateX(-50%) rotate(45deg); }
+.info-tooltip__arrow--bottom { top:    -5px; transform: translateX(-50%) rotate(45deg); }
 
 /* ───── Sprint 7 — Page Chats (admin) ───── */
 .chats-page {
