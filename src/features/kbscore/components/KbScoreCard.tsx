@@ -52,11 +52,11 @@ const DIM_META: Array<{
   {
     key:   'activation',
     label: 'Utilisation',
-    hint:  'Membres actifs sur 7 jours',
+    hint:  'Membres actifs sur 30 jours',
     tooltip: [
-      { label: 'Quoi',   text: '% des membres internes (conseillers, managers, admins) qui ont utilisé KnowDesk dans les 7 derniers jours.' },
-      { label: 'Calcul', text: 'membres ayant consulté ≥ 1 article OU lancé ≥ 1 recherche dans la barre Cmd+K, sur 7 jours, ÷ total des membres actifs de l\'organisation. Fenêtre courte (7 jours, pas 30) pour refléter l\'usage récent.' },
-      { label: 'Action', text: 'si bas, fais une démo Cmd+K en réunion d\'équipe et identifie les sujets manquants — les conseillers reviennent quand ils trouvent leurs réponses.' },
+      { label: 'Quoi',   text: '% des membres internes (conseillers, managers, admins) qui ont utilisé KnowDesk dans les 30 derniers jours.' },
+      { label: 'Calcul', text: 'membres ayant consulté ≥ 1 article OU lancé ≥ 1 recherche dans la barre Cmd+K sur 30 jours, sur le total des membres actifs de l\'organisation.' },
+      { label: 'Action', text: 'si bas, fais une démo Cmd+K en réunion d\'équipe et identifie les sujets manquants — les collaborateurs reviennent quand ils trouvent leurs réponses.' },
     ],
   },
   {
@@ -124,7 +124,7 @@ export function KbScoreCard() {
           </h2>
           <p className="kbscore__subtitle">
             Mesure de la santé globale de ta base sur les <strong>{data.windowDays} derniers jours</strong>.
-            6 dimensions, score composite pondéré.
+            5 dimensions, score composite pondéré.
           </p>
         </div>
         <div className={`kbscore__hero kbscore__hero--${data.band}`}>
