@@ -10,7 +10,12 @@ interface ImportModalProps {
   onCompleted?: (item: ImportItem) => void;
 }
 
-const ACCEPTED_TYPES = '.pdf,application/pdf';
+const ACCEPTED_TYPES = [
+  '.pdf', 'application/pdf',
+  '.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  '.pptx', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+].join(',');
+const ACCEPTED_EXTENSIONS = ['.pdf', '.docx', '.pptx'];
 const MAX_SIZE_MB = 50;
 
 export function ImportModal({ onClose, onCompleted }: ImportModalProps) {
@@ -47,8 +52,9 @@ export function ImportModal({ onClose, onCompleted }: ImportModalProps) {
       toast.error(`Fichier trop lourd (${(f.size / 1024 / 1024).toFixed(1)} MB). Max ${MAX_SIZE_MB} MB.`);
       return;
     }
-    if (!f.name.toLowerCase().endsWith('.pdf')) {
-      toast.error('Seul le format PDF est supporté pour l\'instant. DOCX/PPTX arriveront prochainement.');
+    const lname = f.name.toLowerCase();
+    if (!ACCEPTED_EXTENSIONS.some(ext => lname.endsWith(ext))) {
+      toast.error('Format non supporté. Formats acceptés : PDF, DOCX, PPTX.');
       return;
     }
     setFile(f);
@@ -105,10 +111,10 @@ export function ImportModal({ onClose, onCompleted }: ImportModalProps) {
         {!item && (
           <>
             <p className="import-modal__intro">
-              Convertis un document existant (PDF) en articles brouillon dans
-              ta base. Les articles seront créés dans une catégorie temporaire
-              <strong> 📥 Imports — date du jour</strong>, prêts à être révisés
-              et publiés.
+              Convertis un document existant (<strong>PDF</strong>, <strong>DOCX</strong> ou <strong>PPTX</strong>)
+              en articles brouillon dans ta base. Les articles seront créés
+              dans une catégorie temporaire <strong>📥 Imports — date du jour</strong>,
+              prêts à être révisés et publiés.
             </p>
 
             <div
@@ -131,7 +137,7 @@ export function ImportModal({ onClose, onCompleted }: ImportModalProps) {
               {!file ? (
                 <>
                   <div className="import-modal__dropzone-icon" aria-hidden="true">📥</div>
-                  <p className="import-modal__dropzone-title">Glisse un fichier PDF ici</p>
+                  <p className="import-modal__dropzone-title">Glisse un fichier PDF, DOCX ou PPTX ici</p>
                   <p className="import-modal__dropzone-hint">ou clique pour le sélectionner — max {MAX_SIZE_MB} MB</p>
                 </>
               ) : (
@@ -174,9 +180,10 @@ export function ImportModal({ onClose, onCompleted }: ImportModalProps) {
                 <span>
                   <strong>Découper en sections (recommandé pour les gros docs)</strong>
                   <small>
-                    KnowDesk repère les titres (numérotation, MAJUSCULES, lignes courtes
-                    isolées) et crée un article par section. Si aucun titre n'est détecté,
-                    fallback automatique sur 1 article unique.
+                    KnowDesk repère les titres (numérotation, headings Word, lignes en MAJUSCULES)
+                    et crée un article par section. Si aucun titre n'est détecté, fallback
+                    automatique sur 1 article unique. <em>Pour PPTX : ignoré, chaque slide devient
+                    automatiquement un article.</em>
                   </small>
                 </span>
               </label>
