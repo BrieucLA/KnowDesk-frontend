@@ -110,7 +110,18 @@ export function KbScoreCard() {
     <section className="kbscore" aria-label="KB Health Score">
       <header className="kbscore__header">
         <div className="kbscore__title-block">
-          <h2 className="kbscore__title">KB Health Score</h2>
+          <h2 className="kbscore__title">
+            KB Health Score
+            <InfoTooltip
+              title="Score de santé de la base"
+              rows={[
+                { label: 'Quoi',    text: 'note composite 0-100 reflétant la santé éditoriale globale de ta base de connaissance.' },
+                { label: 'Calcul',  text: 'moyenne pondérée des 5 dimensions ci-dessous (Couverture 30%, Satisfaction 25%, Fraîcheur 20%, Utilisation 15%, Clarté 10%). Une dimension marquée « — » (volume insuffisant) est exclue et son poids redistribué automatiquement sur les autres.' },
+                { label: 'Niveaux', text: '⚫ < 50 Critique · 🟡 50-74 À améliorer · 🟢 75-89 Bon · 🟣 ≥ 90 Excellent.' },
+                { label: 'Action',  text: 'viser ≥ 75. Concentre-toi sur les 3 actions prioritaires affichées ci-dessous — chacune indique l\'impact estimé en points.' },
+              ]}
+            />
+          </h2>
           <p className="kbscore__subtitle">
             Mesure de la santé globale de ta base sur les <strong>{data.windowDays} derniers jours</strong>.
             6 dimensions, score composite pondéré.
