@@ -36,7 +36,7 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
     tags:      activeTags.length > 0 ? activeTags : undefined,
     sortBy,
     sortDir,
-    perPage:   100,
+    perPage:   50,
   }), [tab, search, activeTags, sortBy, sortDir]);
 
   const { items, loading, setFilters, remove } = useFaqs(filterPayload);
