@@ -2067,6 +2067,10 @@
   display: inline-flex; align-items: center; position: relative;
   vertical-align: middle;
   margin-left: 4px;
+  /* Casse les héritages de casse/spacing depuis le contexte parent
+     (ex: .ai-stats__metric-label qui a text-transform: uppercase). */
+  text-transform: none;
+  letter-spacing: normal;
 }
 .info-tooltip__trigger {
   background: transparent; border: none; padding: 2px;
