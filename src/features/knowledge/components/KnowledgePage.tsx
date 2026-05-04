@@ -16,6 +16,7 @@ import { tagsApi, type OrgTag } from '../../articles/api/tagsApi';
 
 import { useAuthStore, selectUserRole } from '../../../store/authStore';
 import { formatRelative }   from '../../../shared/lib/formatDate';
+import { ImportModal }      from '../../imports/components/ImportModal';
 import type { Category }    from '../types';
 import type { ArticleListItem } from '../../articles/types';
 
@@ -58,6 +59,7 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
   const [loadingArticles, setLoadingArticles] = useState(false);
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCatName,       setNewCatName]       = useState('');
+  const [showImportModal, setShowImportModal] = useState(false);
   const [newCatParentId,   setNewCatParentId]   = useState<string | null>(null);
   const [newCatLoading,    setNewCatLoading]    = useState(false);
   const [confirmDeleteCat, setConfirmDeleteCat] = useState<Category | null>(null);
@@ -429,9 +431,20 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
               </p>
             </div>
             {isAdmin && (
-              <button type="button" onClick={onNewArticle} className="knowledge-page__new-article">
-                + Nouvel article
-              </button>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => setShowImportModal(true)}
+                  className="knowledge-page__new-article"
+                  style={{ background: 'transparent', color: 'var(--brand-600, #5B6CFF)', border: '1px solid var(--brand-500, #5B6CFF)' }}
+                  title="Importer un PDF"
+                >
+                  📥 Importer
+                </button>
+                <button type="button" onClick={onNewArticle} className="knowledge-page__new-article">
+                  + Nouvel article
+                </button>
+              </div>
             )}
           </div>
         )}
@@ -739,6 +752,20 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
           variant="danger"
           onConfirm={handleConfirmDelete}
           onCancel={() => setConfirmDeleteCat(null)}
+        />
+      )}
+
+      {/* Phase A — Import de documents */}
+      {showImportModal && (
+        <ImportModal
+          onClose={() => setShowImportModal(false)}
+          onCompleted={completed => {
+            // Recharge les catégories pour faire apparaître « 📥 Imports — date »
+            // et resélectionne celle créée pour montrer les articles draft.
+            reloadCategories().then(() => {
+              if (completed.category_id) setSelectedCatId(completed.category_id);
+            });
+          }}
         />
       )}
     </div>
