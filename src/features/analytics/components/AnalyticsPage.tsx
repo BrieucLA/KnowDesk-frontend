@@ -454,7 +454,6 @@ function AiAnswerStatsBanner({ onCreateFaq }: { onCreateFaq?: (q: string) => voi
           <span className="ai-stats__metric-value">{precisePct !== null ? `${precisePct}%` : '—'}</span>
           <span className="ai-stats__metric-label">
             Réponses précises
-            <span className="ai-stats__metric-sublabel">{stats.doneCount} sur {stats.totalShown}</span>
             <InfoTooltip
               title="Réponses précises"
               rows={[
@@ -463,6 +462,7 @@ function AiAnswerStatsBanner({ onCreateFaq }: { onCreateFaq?: (q: string) => voi
                 { label: 'Action', text: 'viser ≥ 70%. Si plus bas, l\'IA tombe souvent dans le vide — consulte la carte « Recherches sans résultat » plus bas et crée les FAQs manquantes.' },
               ]}
             />
+            <span className="ai-stats__metric-sublabel">{stats.doneCount} sur {stats.totalShown}</span>
           </span>
         </div>
         <div className="ai-stats__metric">
