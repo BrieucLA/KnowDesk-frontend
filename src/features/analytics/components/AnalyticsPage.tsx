@@ -458,7 +458,7 @@ function AiAnswerStatsBanner({ onCreateFaq }: { onCreateFaq?: (q: string) => voi
               title="Réponses précises"
               rows={[
                 { label: 'Quoi',   text: 'pourcentage de fois où l\'IA a réussi à produire une vraie réponse adossée à ta base (avec sources affichées), sur 30 jours.' },
-                { label: 'Calcul', text: 'Réponses précises ÷ Réponses générées par IA. Une réponse précise = une réponse réelle, par opposition aux « Sans réponse » où l\'IA n\'a pas trouvé de matière exploitable. Dédup préfixes appliquée sur les deux côtés du ratio.' },
+                { label: 'Calcul', text: 'nombre de réponses précises sur nombre total de réponses générées par IA. Dédup préfixes appliquée : une recherche tapée en plusieurs étapes compte 1.' },
                 { label: 'Action', text: 'viser ≥ 70%. Si plus bas, l\'IA tombe souvent dans le vide — consulte la carte « Recherches sans résultat » plus bas et crée les FAQs manquantes.' },
               ]}
             />
@@ -469,6 +469,14 @@ function AiAnswerStatsBanner({ onCreateFaq }: { onCreateFaq?: (q: string) => voi
           <span className="ai-stats__metric-value">{unsurePct !== null ? `${unsurePct}%` : '—'}</span>
           <span className="ai-stats__metric-label">
             Sans réponse
+            <InfoTooltip
+              title="Sans réponse"
+              rows={[
+                { label: 'Quoi',   text: 'pourcentage de cas où l\'IA n\'a pas pu répondre, car le contenu de ta base ne couvre pas le sujet posé.' },
+                { label: 'Calcul', text: 'nombre de cas où l\'IA n\'a pas pu répondre sur nombre total de réponses générées par IA. Dédup préfixes appliquée : une recherche tapée en plusieurs étapes compte 1.' },
+                { label: 'Action', text: 'viser ≤ 30%. Si plus haut, va dans la carte « Recherches sans résultat » plus bas et crée les FAQs manquantes — c\'est le KPI le plus actionnable du bandeau.' },
+              ]}
+            />
             <span className="ai-stats__metric-sublabel">{stats.unsureCount} sur {stats.totalShown}</span>
           </span>
         </div>
