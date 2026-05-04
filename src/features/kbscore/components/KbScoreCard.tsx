@@ -51,7 +51,7 @@ const DIM_META: Array<{
   },
   {
     key:   'activation',
-    label: 'Activation',
+    label: 'Utilisation',
     hint:  'Membres actifs sur 7 jours',
     tooltip: [
       { label: 'Quoi',   text: '% des membres internes (conseillers, managers, admins) qui ont utilisé KnowDesk dans les 7 derniers jours.' },
