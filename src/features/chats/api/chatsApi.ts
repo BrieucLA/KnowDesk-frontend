@@ -1,6 +1,8 @@
 import { apiClient } from '../../../shared/lib/apiClient';
 
-export type ChatStatus = 'active' | 'resolved' | 'escalated' | 'abandoned';
+// Phase D — 'abandoned' supprimé : chaque conv close est resolved/unresolved/escalated.
+// 'abandoned' peut encore apparaître côté front pour les vieilles rows non recalculées.
+export type ChatStatus = 'active' | 'resolved' | 'unresolved' | 'escalated' | 'abandoned';
 
 export interface ChatListItem {
   id:                 string;
@@ -8,6 +10,7 @@ export interface ChatListItem {
   status:             ChatStatus;
   csat:               number | null;
   resolvedHelpful:    boolean | null;
+  resolutionReason:   string | null;
   startedAt:          string;
   endedAt:            string | null;
   visitorFingerprint: string | null;
@@ -36,6 +39,7 @@ export interface ChatDetail {
   status:             ChatStatus;
   csat:               number | null;
   resolvedHelpful:    boolean | null;
+  resolutionReason:   string | null;
   channel:            string;
   visitorFingerprint: string | null;
   startedAt:          string;

@@ -9,18 +9,35 @@ import { chatsApi, type ChatListItem, type ChatStatus } from '../api/chatsApi';
 import { TranscriptModal } from './TranscriptModal';
 
 const STATUS_OPTIONS: Array<{ value: '' | ChatStatus; label: string }> = [
-  { value: '',          label: 'Tous les statuts' },
-  { value: 'active',    label: 'Actives' },
-  { value: 'resolved',  label: 'Résolues' },
-  { value: 'escalated', label: 'Escaladées' },
-  { value: 'abandoned', label: 'Abandonnées' },
+  { value: '',           label: 'Tous les statuts' },
+  { value: 'active',     label: 'En cours' },
+  { value: 'resolved',   label: 'Résolues' },
+  { value: 'unresolved', label: 'Non résolues' },
+  { value: 'escalated',  label: 'Escaladées' },
 ];
 
 const STATUS_LABEL: Record<ChatStatus, { label: string; tone: 'neutral' | 'success' | 'warning' | 'danger' }> = {
-  active:    { label: 'En cours',  tone: 'neutral' },
-  resolved:  { label: 'Résolue',   tone: 'success' },
-  escalated: { label: 'Escaladée', tone: 'warning' },
-  abandoned: { label: 'Abandonnée', tone: 'neutral' },
+  active:     { label: 'En cours',     tone: 'neutral' },
+  resolved:   { label: 'Résolue',      tone: 'success' },
+  unresolved: { label: 'Non résolue',  tone: 'danger'  },
+  escalated:  { label: 'Escaladée',    tone: 'warning' },
+  // Legacy : peut apparaître pour les rows pas encore recalculées
+  abandoned:  { label: 'Abandonnée',   tone: 'neutral' },
+};
+
+/** Libellé humain de resolution_reason (Phase D). */
+const REASON_LABEL: Record<string, string> = {
+  handoff:           'Demande humain',
+  positive_signal:   'Emoji positif',
+  negative_signal:   'Emoji négatif',
+  csat_high:         'CSAT élevé',
+  csat_low:          'CSAT bas',
+  llm_positive:      'Analyse IA positive',
+  llm_negative:      'Analyse IA négative',
+  fallback_message:  'Bot a ré-orienté',
+  short_answered:    'Réponse rapide',
+  no_signal:         'Aucun signal exploitable',
+  no_interaction:    'Aucune interaction',
 };
 
 const PER_PAGE = 20;
@@ -151,23 +168,23 @@ export function ChatsPage() {
                       )}
                     </div>
                     <div className="chats-page__row-meta">
-                      <span className={`chats-page__status chats-page__status--${meta.tone}`}>
+                      <span
+                        className={`chats-page__status chats-page__status--${meta.tone}`}
+                        title={c.resolutionReason ? (REASON_LABEL[c.resolutionReason] ?? c.resolutionReason) : undefined}
+                      >
                         {meta.label}
                       </span>
+                      {c.resolutionReason && REASON_LABEL[c.resolutionReason] && (
+                        <span className="chats-page__row-reason">
+                          {REASON_LABEL[c.resolutionReason]}
+                        </span>
+                      )}
                       <span className="chats-page__row-turns">
                         {c.turnsCount} {c.turnsCount === 1 ? 'message' : 'messages'}
                       </span>
                       {c.csat !== null && (
                         <span className="chats-page__row-csat" title={`CSAT ${c.csat}/5`}>
                           {'★'.repeat(c.csat)}{'☆'.repeat(5 - c.csat)}
-                        </span>
-                      )}
-                      {c.resolvedHelpful !== null && (
-                        <span
-                          className="chats-page__row-thumb"
-                          title={c.resolvedHelpful ? 'Marqué utile' : 'Marqué non utile'}
-                        >
-                          {c.resolvedHelpful ? '👍' : '👎'}
                         </span>
                       )}
                       <span className="chats-page__row-date">

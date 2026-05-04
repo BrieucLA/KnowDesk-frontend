@@ -121,27 +121,11 @@
       + '}'
       + '.header__logo { width: 32px; height: 32px; border-radius: 6px; object-fit: cover; flex-shrink: 0; background: rgba(255,255,255,.15); }'
       + '.header__title { flex: 1; font-size: 14px; font-weight: 600; }'
-      + '.header__close, .header__reset, .header__end, .header__human { background: transparent; border: none; color: white; cursor: pointer; padding: 4px 8px; font-size: 18px; line-height: 1; opacity: 0.85; }'
-      + '.header__close:hover, .header__reset:hover, .header__end:hover, .header__human:hover { opacity: 1; }'
-      + '.header__reset, .header__end, .header__human { font-size: 16px; }'
-      + '.feedback { padding: 18px 16px; background: white; border-top: 1px solid #eaecef; }'
-      + '.feedback__title { font-size: 13.5px; color: #1a1a1a; margin: 0 0 10px; line-height: 1.45; }'
-      + '.feedback__choices { display: flex; flex-direction: column; gap: 6px; }'
-      + '.feedback__choices button { padding: 9px 12px; background: white; border: 1px solid #d6dae0; border-radius: 8px; font-size: 13px; cursor: pointer; text-align: left; transition: all 0.12s; }'
-      + '.feedback__choices button:hover { border-color: var(--kd-primary, #5B6CFF); background: #f6f7ff; }'
-      + '.feedback__stars { display: flex; gap: 4px; justify-content: center; margin: 8px 0 4px; }'
-      + '.feedback__stars button { background: transparent; border: none; cursor: pointer; font-size: 28px; color: #d6dae0; padding: 2px 4px; transition: color 0.1s, transform 0.1s; }'
-      + '.feedback__stars button:hover { transform: scale(1.15); }'
-      + '.feedback__stars button.is-active, .feedback__stars button.is-active ~ button:not(.is-active) { color: var(--kd-primary, #5B6CFF); }'
-      + '.feedback__stars--hovering button { color: #d6dae0; }'
-      + '.feedback__stars--hovering button.hover-up-to { color: var(--kd-primary, #5B6CFF); }'
-      + '.feedback__escalate-msg { font-size: 13px; color: #4a4a4a; line-height: 1.5; margin: 8px 0 14px; padding: 10px 12px; background: #f6f7fb; border-radius: 8px; white-space: pre-wrap; }'
-      + '.feedback__close-btn, .feedback__close-btn-2, .feedback__submit-btn { padding: 9px 16px; background: var(--kd-primary, #5B6CFF); color: white; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; width: 100%; }'
-      + '.feedback__close-btn:disabled, .feedback__submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }'
-      + '.feedback__subtitle { font-size: 12.5px; color: #4a4a4a; margin: 4px 0 8px; line-height: 1.45; }'
-      + '.feedback__email { width: 100%; padding: 9px 12px; border: 1px solid #d6dae0; border-radius: 8px; font-size: 13px; outline: none; margin-bottom: 10px; box-sizing: border-box; font-family: inherit; }'
-      + '.feedback__email:focus { border-color: var(--kd-primary, #5B6CFF); box-shadow: 0 0 0 3px rgba(91,108,255,.15); }'
-      + '.feedback__handoff-done-msg { font-size: 12.5px; color: #4a4a4a; line-height: 1.45; margin: 6px 0 14px; padding: 10px 12px; background: #f6f7fb; border-radius: 8px; white-space: pre-wrap; }'
+      + '.header__close, .header__reset, .header__human { background: transparent; border: none; color: white; cursor: pointer; padding: 4px 8px; font-size: 18px; line-height: 1; opacity: 0.85; }'
+      + '.header__close:hover, .header__reset:hover, .header__human:hover { opacity: 1; }'
+      + '.header__reset, .header__human { font-size: 16px; }'
+      // Phase D — panel feedback supprimé (CSAT/escalate/handoff-form)
+      // au profit du flux conversationnel pur. Tout est dans le canal.
       + '.messages { flex: 1; overflow-y: auto; padding: 14px; background: #f8f9fb; display: flex; flex-direction: column; gap: 8px; }'
       + '.msg { display: flex; gap: 6px; max-width: 85%; }'
       + '.msg--user { align-self: flex-end; }'
@@ -165,63 +149,30 @@
       + '.quick-reply:hover { background: var(--kd-primary, #5B6CFF); color: white; }'
       + '.quick-reply:disabled { opacity: 0.5; cursor: not-allowed; }'
       // Pouces inline (Sprint 6) — petits et discrets, sous chaque réponse bot
-      + '.msg-fb { display: flex; gap: 2px; margin: 2px 0 0 6px; align-self: flex-start; }'
-      + '.msg-fb button { background: transparent; border: none; cursor: pointer; padding: 2px 5px; font-size: 13px; opacity: 0.45; transition: opacity 0.12s, transform 0.12s; line-height: 1; font-family: inherit; }'
-      + '.msg-fb button:hover { opacity: 1; transform: scale(1.15); }'
-      + '.msg-fb button.is-voted { opacity: 1; cursor: default; }'
-      + '.msg-fb button.is-voted:hover { transform: none; }'
-      + '.msg-fb button.is-disabled { opacity: 0.2; cursor: default; }'
-      + '.msg-fb button.is-disabled:hover { transform: none; }'
+      // Phase D — barre emoji dans la zone de saisie. 5 emojis preset
+      // visibles à gauche du textarea, un click ajoute l'emoji au message
+      // courant. État "is-active" si le visiteur a sélectionné un emoji.
+      + '.emoji-bar { display: flex; gap: 2px; padding: 4px 8px 0; background: white; }'
+      + '.emoji-bar button { background: transparent; border: 1px solid transparent; cursor: pointer; padding: 3px 6px; font-size: 16px; line-height: 1; border-radius: 6px; transition: all 0.12s; font-family: inherit; }'
+      + '.emoji-bar button:hover { background: #f6f7fb; }'
+      + '.emoji-bar button.is-active { background: #eef0ff; border-color: var(--kd-primary, #5B6CFF); }'
       + '</style>'
       + '<button class="bubble" type="button" aria-label="Ouvrir le chat">💬</button>'
       + '<div class="panel" role="dialog" aria-label="Chat">'
       + '  <div class="header">'
       + '    <div class="header__logo-wrap"></div>'
       + '    <div class="header__title">Discutons</div>'
-      + '    <button class="header__human" type="button" aria-label="Parler à un humain"      title="Parler à un humain">🙋</button>'
-      + '    <button class="header__end"   type="button" aria-label="Terminer la conversation" title="Terminer la conversation">✓</button>'
-      + '    <button class="header__reset" type="button" aria-label="Nouvelle conversation"     title="Nouvelle conversation">↺</button>'
+      + '    <button class="header__human" type="button" aria-label="Parler à un humain"  title="Parler à un humain">🙋</button>'
+      + '    <button class="header__reset" type="button" aria-label="Nouvelle conversation" title="Nouvelle conversation">↺</button>'
       + '    <button class="header__close" type="button" aria-label="Fermer">×</button>'
       + '  </div>'
       + '  <div class="messages" role="log" aria-live="polite"></div>'
-      + '  <div class="feedback" hidden>'
-      + '    <div class="feedback__step feedback__step--1">'
-      + '      <p class="feedback__title">Cette conversation vous a-t-elle aidé&nbsp;?</p>'
-      + '      <div class="feedback__choices">'
-      + '        <button type="button" data-helpful="yes">👍 Oui, parfait</button>'
-      + '        <button type="button" data-helpful="partial">🤷 Pas tout à fait</button>'
-      + '        <button type="button" data-helpful="no">👎 Non, besoin d\'un humain</button>'
-      + '      </div>'
-      + '    </div>'
-      + '    <div class="feedback__step feedback__step--csat" hidden>'
-      + '      <p class="feedback__title">Merci&nbsp;! Notez votre expérience&nbsp;:</p>'
-      + '      <div class="feedback__stars" role="radiogroup" aria-label="Note">'
-      + '        <button type="button" data-csat="1" aria-label="1 étoile">★</button>'
-      + '        <button type="button" data-csat="2" aria-label="2 étoiles">★</button>'
-      + '        <button type="button" data-csat="3" aria-label="3 étoiles">★</button>'
-      + '        <button type="button" data-csat="4" aria-label="4 étoiles">★</button>'
-      + '        <button type="button" data-csat="5" aria-label="5 étoiles">★</button>'
-      + '      </div>'
-      + '    </div>'
-      + '    <div class="feedback__step feedback__step--escalate" hidden>'
-      + '      <p class="feedback__title">Désolé que je n\'aie pas pu vous aider.</p>'
-      + '      <p class="feedback__escalate-msg"></p>'
-      + '      <button type="button" class="feedback__close-btn">Fermer</button>'
-      + '    </div>'
-      + '    <div class="feedback__step feedback__step--handoff-form" hidden>'
-      + '      <p class="feedback__title">Un humain va prendre votre demande en charge.</p>'
-      + '      <p class="feedback__subtitle">Laissez-nous votre email si vous souhaitez une réponse personnalisée (facultatif) :</p>'
-      + '      <input type="email" class="feedback__email" placeholder="vous@exemple.fr" autocomplete="email" />'
-      + '      <button type="button" class="feedback__submit-btn">Transmettre ma demande</button>'
-      + '    </div>'
-      + '    <div class="feedback__step feedback__step--handoff-done" hidden>'
-      + '      <p class="feedback__title">✓ Votre demande a été transmise.</p>'
-      + '      <p class="feedback__handoff-done-msg"></p>'
-      + '      <button type="button" class="feedback__close-btn-2">Fermer</button>'
-      + '    </div>'
-      + '    <div class="feedback__step feedback__step--thanks" hidden>'
-      + '      <p class="feedback__title">Merci pour votre retour&nbsp;! 🙏</p>'
-      + '    </div>'
+      + '  <div class="emoji-bar">'
+      + '    <button type="button" data-emoji="😊" title="Très satisfait">😊</button>'
+      + '    <button type="button" data-emoji="🙂" title="Satisfait">🙂</button>'
+      + '    <button type="button" data-emoji="😐" title="Neutre">😐</button>'
+      + '    <button type="button" data-emoji="☹️" title="Insatisfait">☹️</button>'
+      + '    <button type="button" data-emoji="😡" title="Très insatisfait">😡</button>'
       + '  </div>'
       + '  <form class="input-row">'
       + '    <input type="text" placeholder="Posez votre question…" autocomplete="off" maxlength="500" />'
@@ -280,8 +231,26 @@
           btn.addEventListener('click', function () {
             // Disable pour éviter les double-clics
             chips.querySelectorAll('button').forEach(function (b) { b.disabled = true; });
-            // "Parler à un humain" → ouvre le formulaire de handoff au lieu d'envoyer
-            // un message normal au bot. La fonction est exposée par init().
+
+            // Phase D — chips de la bulle propose_handoff : "Oui parler à un
+            // conseiller" déclenche le flow handoff dans le canal ;
+            // "Non, je continue" insère juste un acquittement bot et la conv
+            // reprend normalement.
+            if (turn.handoffPropose) {
+              if (/^oui/i.test(label) && typeof window.__knowdeskTriggerHandoff === 'function') {
+                window.__knowdeskTriggerHandoff();
+              } else {
+                state.history.push({
+                  role:           'assistant',
+                  content:        'Très bien, je continue à vous aider. Posez-moi votre question.',
+                  handoffConfirm: true,
+                });
+                renderMessages(root);
+              }
+              return;
+            }
+
+            // "Parler à un humain" → ouvre le flow de handoff (legacy quick reply)
             if (label === 'Parler à un humain' && typeof window.__knowdeskTriggerHandoff === 'function') {
               window.__knowdeskTriggerHandoff();
               return;
@@ -293,76 +262,10 @@
         messagesEl.appendChild(chips);
       }
 
-      // Pouces inline (Sprint 6) — sous chaque réponse bot SAUF welcome.
-      // 👍 → marque la conversation 'resolved' (helpful=yes). 👎 → propose
-      // immédiatement le handoff humain. Une fois cliqué, l'état persiste
-      // visuellement (turn.voted) et l'autre bouton est désactivé.
-      var isBot = turn.role === 'assistant' || turn.role === 'bot';
-      if (isBot && !turn.welcome && !turn.handoffPrompt && !turn.handoffConfirm) {
-        var fb = document.createElement('div');
-        fb.className = 'msg-fb';
-
-        var up = document.createElement('button');
-        up.type = 'button';
-        up.setAttribute('aria-label', 'Réponse utile');
-        up.title = 'Cette réponse m\'a aidé';
-        up.textContent = '👍';
-
-        var down = document.createElement('button');
-        down.type = 'button';
-        down.setAttribute('aria-label', 'Réponse pas utile');
-        down.title = 'Je n\'ai pas eu de réponse — parler à un humain';
-        down.textContent = '👎';
-
-        if (turn.voted === 'yes') {
-          up.classList.add('is-voted');
-          down.classList.add('is-disabled');
-        } else if (turn.voted === 'no') {
-          down.classList.add('is-voted');
-          up.classList.add('is-disabled');
-        }
-
-        up.addEventListener('click', function () {
-          if (turn.voted) return;
-          turn.voted = 'yes';
-          if (typeof window.__knowdeskSubmitFeedback === 'function') {
-            window.__knowdeskSubmitFeedback({ helpful: 'yes' });
-          }
-          renderMessages(root);
-        });
-        down.addEventListener('click', function () {
-          if (turn.voted) return;
-          turn.voted = 'no';
-          // Vote enregistré tout de suite (helpful=no ⇒ status=escalated côté DB).
-          if (typeof window.__knowdeskSubmitFeedback === 'function') {
-            window.__knowdeskSubmitFeedback({ helpful: 'no' });
-          }
-          // Sprint 10 : on reste dans le canal de discussion plutôt que d'ouvrir
-          // le panel handoff. On pousse une bulle d'empathie qui propose l'email
-          // pour un contact ultérieur. Le prochain message du user est intercepté
-          // par sendMessage (cf. flag awaitingHandoffEmail).
-          // On évite de spammer plusieurs bulles d'empathie si le user vote 👎
-          // sur plusieurs réponses successives — un seul prompt à la fois.
-          if (!state.awaitingHandoffEmail) {
-            state.history.push({
-              role:    'assistant',
-              content: 'Désolé que cette réponse ne vous ait pas aidé. Si vous souhaitez '
-                     + 'qu\'un membre de notre équipe vous recontacte, indiquez-moi votre '
-                     + 'adresse email. Sinon, vous pouvez continuer à me poser vos questions.',
-              handoffPrompt: true,
-            });
-            state.awaitingHandoffEmail = true;
-          }
-          renderMessages(root);
-          // Focus l'input pour aller direct à la saisie email
-          var inp = root.querySelector('.input-row input');
-          if (inp) inp.focus();
-        });
-
-        fb.appendChild(up);
-        fb.appendChild(down);
-        messagesEl.appendChild(fb);
-      }
+      // Phase D — pouces inline supprimés. La satisfaction se mesure
+      // désormais via l'emoji posé par le visiteur (barre emoji du textarea)
+      // + LLM judge à la clôture. Les bulles handoffPrompt / handoffConfirm
+      // (Sprint 10 et propose_handoff Phase D) restent affichées sans pouces.
     });
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
@@ -440,9 +343,16 @@
 
     var streamedText = '';
     var streamedQuickReplies = null;
+    var streamedProposeHandoff = null;     // Phase D
     setStreamingMessage(root, '');
 
     try {
+      // Phase D — extrait les emojis du message (regex unicode large) pour
+      // les envoyer en payload séparé. Le backend les pose sur le tour
+      // visiteur et déclenche éventuellement la détection negative_streak.
+      var EMOJI_RE = /\p{Extended_Pictographic}/gu;
+      var emojis = (text.match(EMOJI_RE) || []).slice(0, 5);
+
       var resp = await fetch(API_BASE + '/message', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -451,6 +361,7 @@
           conversationId:     state.conversationId || undefined,
           visitorFingerprint: visitorFingerprint(),
           message:            text.trim(),
+          emojis:             emojis.length > 0 ? emojis : undefined,
         }),
       });
       if (!resp.ok || !resp.body) throw new Error('HTTP ' + resp.status);
@@ -490,6 +401,15 @@
             // Les chips sont envoyées juste avant 'done' — on les stocke
             // pour les attacher au tour assistant à l'insertion finale.
             if (Array.isArray(data.items)) streamedQuickReplies = data.items;
+          } else if (name === 'propose_handoff') {
+            // Phase D — backend a détecté un streak négatif (≥ 2 messages
+            // visiteur consécutifs avec emoji négatif ou regex frustration).
+            // On insère une bulle empathie + chips dédiées DANS le canal,
+            // qui sera affichée APRÈS le tour assistant principal.
+            streamedProposeHandoff = {
+              message: data.message || 'Voulez-vous parler à un conseiller ?',
+              replies: Array.isArray(data.replies) ? data.replies : ['Oui, parler à un conseiller', 'Non, je continue'],
+            };
           } else if (name === 'done') {
             break;
           }
@@ -501,6 +421,20 @@
         content:      streamedText || 'Désolé, je n\'ai pas pu répondre.',
         quickReplies: streamedQuickReplies,
       });
+
+      // Phase D — propose_handoff : ajoute une 2e bulle bot empathie + chips
+      // dédiées (« Oui parler à un conseiller » / « Non je continue »). Le
+      // click sur "Oui" déclenche le flow handoff. "Non" insère juste un
+      // accusé-réception.
+      if (streamedProposeHandoff) {
+        state.history.push({
+          role:           'assistant',
+          content:        streamedProposeHandoff.message,
+          quickReplies:   streamedProposeHandoff.replies,
+          handoffPropose: true,
+        });
+      }
+
       renderMessages(root);
     } catch (err) {
       state.history.push({
@@ -514,6 +448,10 @@
       var btn   = root.querySelector('.input-row button');
       if (input) input.disabled = false;
       if (btn)   btn.disabled = false;
+      // Phase D — désélectionne la barre emoji après envoi (signal one-shot
+      // par message ; le visiteur peut re-sélectionner pour le tour suivant).
+      var bar = root.querySelector('.emoji-bar');
+      if (bar) bar.querySelectorAll('button.is-active').forEach(function (b) { b.classList.remove('is-active'); });
     }
   }
 
@@ -676,47 +614,11 @@
     // toute interaction.
     var humanBtn = root.querySelector('.header__human');
 
-    // ── Feedback flow ────────────────────────────────────────────
-    var endBtn       = root.querySelector('.header__end');
-    var feedbackEl   = root.querySelector('.feedback');
-    var fbStep1      = root.querySelector('.feedback__step--1');
-    var fbStepCsat   = root.querySelector('.feedback__step--csat');
-    var fbStepEsc    = root.querySelector('.feedback__step--escalate');
-    var fbStepThanks = root.querySelector('.feedback__step--thanks');
-    var fbHandoffForm = root.querySelector('.feedback__step--handoff-form');
-    var fbHandoffDone = root.querySelector('.feedback__step--handoff-done');
-
-    function hideAllFbSteps() {
-      [fbStep1, fbStepCsat, fbStepEsc, fbStepThanks, fbHandoffForm, fbHandoffDone].forEach(function (el) {
-        if (el) el.hidden = true;
-      });
-    }
-
-    /** Déclenche le flow handoff humain (depuis quick reply ou feedback). */
-    window.__knowdeskTriggerHandoff = function () { triggerHandoffFlow(root); };
-    if (humanBtn) {
-      humanBtn.addEventListener('click', function () {
-        // Ne propose pas le handoff si rien n'a été échangé — évite les escalades
-        // « réflexes » dès l'ouverture du widget.
-        var hasInteracted = state.history.filter(function (t) { return t.role === 'visitor'; }).length > 0;
-        if (!hasInteracted) {
-          // Petit feedback visuel : flash le bouton
-          humanBtn.style.opacity = '0.4';
-          setTimeout(function () { humanBtn.style.opacity = ''; }, 400);
-          return;
-        }
-        triggerHandoffFlow(root);
-      });
-    }
-    function triggerHandoffFlow(rootEl) {
-      // Cache l'input et affiche le formulaire handoff
-      form.style.display = 'none';
-      feedbackEl.hidden = false;
-      hideAllFbSteps();
-      fbHandoffForm.hidden = false;
-      var emailInput = fbHandoffForm.querySelector('.feedback__email');
-      if (emailInput) emailInput.focus();
-    }
+    // ── Phase D — emoji bar + handoff dans le canal ────────────────
+    // Le panel feedback plein écran est supprimé. Le flux est entièrement
+    // dans le canal : émojis pour exprimer l'émotion, bulle propose_handoff
+    // (event SSE backend) si streak négatif détecté, pré-flight email
+    // (Sprint 10) toujours actif.
 
     async function submitHandoff(visitorEmail) {
       if (!state.conversationId) return null;
@@ -735,163 +637,68 @@
         return json.data;
       } catch (e) { return null; }
     }
-    // Exposé pour le pré-flight email du flow 👎 inline (Sprint 10)
+    // Exposé pour le pré-flight email (Sprint 10) toujours utilisé
     window.__knowdeskSubmitHandoff = submitHandoff;
 
-    var submitHandoffBtn = fbHandoffForm.querySelector('.feedback__submit-btn');
-    if (submitHandoffBtn) {
-      submitHandoffBtn.addEventListener('click', async function () {
-        var emailInput = fbHandoffForm.querySelector('.feedback__email');
-        var email = emailInput ? emailInput.value.trim() : '';
-        // Validation email simple si fourni
-        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-          emailInput.focus();
-          emailInput.style.borderColor = '#e74c3c';
-          return;
-        }
-        submitHandoffBtn.disabled = true;
-        submitHandoffBtn.textContent = 'Transmission…';
-        var result = await submitHandoff(email);
-        // Affiche la confirmation, avec ou sans le fallback message admin
-        hideAllFbSteps();
-        fbHandoffDone.hidden = false;
-        var msgEl = fbHandoffDone.querySelector('.feedback__handoff-done-msg');
-        var fallback = (state.config && state.config.fallbackMessage) || '';
-        if (result && result.delivered === 'webhook') {
-          msgEl.textContent = email
-            ? 'Notre équipe vous répondra à ' + email + ' dans les meilleurs délais.'
-            : (fallback || 'Notre équipe va prendre contact via les canaux habituels.');
-        } else if (result && result.delivered === 'email') {
-          msgEl.textContent = email
-            ? 'Notre équipe a reçu votre demande et vous répondra à ' + email + '.'
-            : (fallback || 'Notre équipe a reçu votre demande.');
-        } else {
-          // 'none' ou erreur de livraison → on affiche le fallback admin
-          msgEl.textContent = fallback || 'Merci, votre demande a été enregistrée.';
-        }
+    /**
+     * Déclenche le flow handoff dans le canal :
+     * - pousse une bulle bot empathie qui demande l'email
+     * - lève state.awaitingHandoffEmail pour intercepter le prochain message
+     * Pas de pop-up, tout reste dans la conversation.
+     */
+    function triggerHandoffFlow() {
+      if (state.awaitingHandoffEmail) return;
+      state.history.push({
+        role:    'assistant',
+        content: 'Très bien, je vous mets en relation avec un conseiller. '
+               + 'Indiquez-moi votre adresse email pour qu\'il puisse vous '
+               + 'recontacter, ou envoyez « non merci » si vous préférez ne pas en donner.',
+        handoffPrompt: true,
       });
+      state.awaitingHandoffEmail = true;
+      renderMessages(root);
+      var inp = root.querySelector('.input-row input');
+      if (inp) inp.focus();
     }
+    window.__knowdeskTriggerHandoff = triggerHandoffFlow;
 
-    var closeHandoffDoneBtn = fbHandoffDone.querySelector('.feedback__close-btn-2');
-    if (closeHandoffDoneBtn) {
-      closeHandoffDoneBtn.addEventListener('click', function () {
-        hideFeedback();
-        // Reset complet : la conversation est terminée (escalated côté serveur)
-        state.conversationId = null;
-        state.history = [];
-        saveConversationId(null);
-        closeP();
-      });
-    }
-
-    function showFeedback() {
-      // Cache l'input et affiche le panneau de feedback (étape 1)
-      form.style.display = 'none';
-      feedbackEl.hidden = false;
-      fbStep1.hidden = false;
-      fbStepCsat.hidden = true;
-      fbStepEsc.hidden = true;
-      fbStepThanks.hidden = true;
-    }
-    function hideFeedback() {
-      feedbackEl.hidden = true;
-      form.style.display = '';
-    }
-
-    async function submitFeedback(payload) {
-      if (!state.conversationId) return;
-      try {
-        await fetch(API_BASE + '/conversation/' + encodeURIComponent(state.conversationId) + '/feedback', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(Object.assign({ orgSlug: orgSlug }, payload)),
-        });
-      } catch (e) { /* silencieux : feedback non critique */ }
-    }
-    // Exposé pour les pouces inline (Sprint 6) — renderMessages est au scope
-    // module, submitFeedback au scope init() : on passe par window.
-    window.__knowdeskSubmitFeedback = submitFeedback;
-
-    if (endBtn) {
-      endBtn.addEventListener('click', function () {
-        // Nécessite au moins 1 vrai échange (≥ 2 turns en historique : welcome + 1 réponse bot
-        // c'est minimum pour activer)
+    // Bouton 🙋 du header (raccourci humain explicite)
+    if (humanBtn) {
+      humanBtn.addEventListener('click', function () {
         var hasInteracted = state.history.filter(function (t) { return t.role === 'visitor'; }).length > 0;
         if (!hasInteracted) {
-          // Rien à évaluer → ferme simplement le widget
-          closeP();
+          humanBtn.style.opacity = '0.4';
+          setTimeout(function () { humanBtn.style.opacity = ''; }, 400);
           return;
         }
-        showFeedback();
+        triggerHandoffFlow();
       });
     }
 
-    fbStep1.addEventListener('click', function (e) {
-      var btn = e.target.closest('button[data-helpful]');
-      if (!btn) return;
-      var helpful = btn.getAttribute('data-helpful');
-      fbStep1.hidden = true;
-      if (helpful === 'yes') {
-        fbStepCsat.hidden = false;
-      } else if (helpful === 'no') {
-        // Demande explicite d'un humain → on lance le formulaire handoff
-        // (transmet le transcript via webhook ou email selon conf admin).
-        submitFeedback({ helpful: helpful });
-        triggerHandoffFlow(root);
-      } else {
-        // 'partial' → on affiche juste le fallback admin
-        var escMsg = root.querySelector('.feedback__escalate-msg');
-        var fallback = (state.config && state.config.fallbackMessage)
-          || 'Un de nos conseillers vous répondra dans les meilleurs délais. Merci de patienter.';
-        escMsg.textContent = fallback;
-        fbStepEsc.hidden = false;
-        submitFeedback({ helpful: helpful });
-      }
-    });
-
-    // CSAT — survol et click
-    fbStepCsat.addEventListener('mouseover', function (e) {
-      var btn = e.target.closest('button[data-csat]');
-      if (!btn) return;
-      var n = parseInt(btn.getAttribute('data-csat'), 10);
-      var stars = fbStepCsat.querySelectorAll('button[data-csat]');
-      fbStepCsat.querySelector('.feedback__stars').classList.add('feedback__stars--hovering');
-      stars.forEach(function (s, i) {
-        if (i < n) s.classList.add('hover-up-to'); else s.classList.remove('hover-up-to');
-      });
-    });
-    fbStepCsat.addEventListener('mouseleave', function () {
-      fbStepCsat.querySelector('.feedback__stars').classList.remove('feedback__stars--hovering');
-    });
-    fbStepCsat.addEventListener('click', function (e) {
-      var btn = e.target.closest('button[data-csat]');
-      if (!btn) return;
-      var csat = parseInt(btn.getAttribute('data-csat'), 10);
-      submitFeedback({ helpful: 'yes', csat: csat });
-      fbStepCsat.hidden = true;
-      fbStepThanks.hidden = false;
-      // Fin de la conversation : on RAZ pour la prochaine session
-      setTimeout(function () {
-        hideFeedback();
-        state.conversationId = null;
-        state.history = [];
-        saveConversationId(null);
-        renderMessages(root);
-        if (state.config && state.config.welcomeMessage) {
-          state.history.push({ role: 'assistant', content: state.config.welcomeMessage, welcome: true });
-          renderMessages(root);
+    // Barre emoji — click sur un emoji preset → on l'ajoute au message
+    // courant (concaténé en fin), un seul emoji actif à la fois côté UI.
+    var emojiBar = root.querySelector('.emoji-bar');
+    if (emojiBar) {
+      emojiBar.addEventListener('click', function (e) {
+        var btn = e.target.closest('button[data-emoji]');
+        if (!btn) return;
+        var emoji = btn.getAttribute('data-emoji');
+        // Toggle visuel : si déjà actif, on déselectionne ; sinon on active
+        var alreadyActive = btn.classList.contains('is-active');
+        emojiBar.querySelectorAll('button.is-active').forEach(function (b) { b.classList.remove('is-active'); });
+        if (alreadyActive) {
+          // Retire l'emoji du message si présent
+          input.value = input.value.replace(emoji, '').trim();
+        } else {
+          btn.classList.add('is-active');
+          // Append à la fin du message courant
+          if (!input.value.endsWith(emoji)) {
+            input.value = (input.value.trim() + ' ' + emoji).trim();
+          }
         }
-        closeP();
-      }, 1800);
-    });
-
-    fbStepEsc.querySelector('.feedback__close-btn').addEventListener('click', function () {
-      hideFeedback();
-      state.conversationId = null;
-      state.history = [];
-      saveConversationId(null);
-      closeP();
-    });
+        input.focus();
+      });
+    }
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();

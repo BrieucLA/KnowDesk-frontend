@@ -2096,7 +2096,14 @@
 .chats-page__row-turns,
 .chats-page__row-csat,
 .chats-page__row-thumb,
+.chats-page__row-reason,
 .chats-page__row-date { white-space: nowrap; }
+.chats-page__row-reason {
+  font-size: 11px; color: var(--neutral-600);
+  background: var(--neutral-100); padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-style: italic;
+}
 .chats-page__row-csat { color: #d97706; letter-spacing: 1px; }
 .chats-page__pagination {
   display: flex; align-items: center; justify-content: center; gap: 12px;

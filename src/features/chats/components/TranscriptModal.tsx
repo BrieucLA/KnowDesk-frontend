@@ -11,10 +11,25 @@ interface TranscriptModalProps {
 }
 
 const STATUS_LABEL: Record<string, string> = {
-  active:    'En cours',
-  resolved:  'Résolue',
-  escalated: 'Escaladée',
-  abandoned: 'Abandonnée',
+  active:     'En cours',
+  resolved:   'Résolue',
+  unresolved: 'Non résolue',
+  escalated:  'Escaladée',
+  abandoned:  'Abandonnée', // legacy
+};
+
+const REASON_LABEL: Record<string, string> = {
+  handoff:           'Demande humain',
+  positive_signal:   'Emoji positif',
+  negative_signal:   'Emoji négatif',
+  csat_high:         'CSAT élevé',
+  csat_low:          'CSAT bas',
+  llm_positive:      'Analyse IA positive',
+  llm_negative:      'Analyse IA négative',
+  fallback_message:  'Bot a ré-orienté',
+  short_answered:    'Réponse rapide',
+  no_signal:         'Aucun signal exploitable',
+  no_interaction:    'Aucune interaction',
 };
 
 export function TranscriptModal({ chatId, onClose }: TranscriptModalProps) {
@@ -69,6 +84,12 @@ export function TranscriptModal({ chatId, onClose }: TranscriptModalProps) {
               <dt>Messages</dt>
               <dd>{detail.turns.length}</dd>
             </div>
+            {detail.resolutionReason && (
+              <div>
+                <dt>Motif</dt>
+                <dd title={detail.resolutionReason}>{REASON_LABEL[detail.resolutionReason] ?? detail.resolutionReason}</dd>
+              </div>
+            )}
             {detail.csat !== null && (
               <div>
                 <dt>CSAT</dt>

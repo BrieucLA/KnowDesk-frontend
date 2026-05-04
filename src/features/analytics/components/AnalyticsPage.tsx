@@ -498,8 +498,9 @@ interface ChatStats {
   totalConversations: number;
   active:             number;
   resolved:           number;
+  unresolved:         number;
   escalated:          number;
-  abandoned:          number;
+  abandoned:          number;       // legacy compat
   resolvedRate:       number | null;
   escalationRate:     number | null;
   csatAverage:        number | null;
@@ -539,7 +540,11 @@ function ChatStatsBanner() {
         </div>
         <div className="ai-stats__metric">
           <span className="ai-stats__metric-value">{resolvedPct !== null ? `${resolvedPct}%` : '—'}</span>
-          <span className="ai-stats__metric-label">Résolues ({stats.resolved}/{stats.resolved + stats.escalated + stats.abandoned})</span>
+          <span className="ai-stats__metric-label">Résolues ({stats.resolved}/{stats.resolved + stats.unresolved + stats.escalated})</span>
+        </div>
+        <div className="ai-stats__metric">
+          <span className="ai-stats__metric-value">{stats.unresolved}</span>
+          <span className="ai-stats__metric-label">Non résolues</span>
         </div>
         <div className="ai-stats__metric">
           <span className="ai-stats__metric-value">{stats.escalated}</span>
