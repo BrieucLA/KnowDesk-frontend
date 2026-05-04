@@ -39,7 +39,16 @@ const DIM_META: Array<{
       { label: 'Action', text: 'si < 70%, ouvre FAQs, trie par helpful% croissant et réécris les FAQs mal notées (mauvaise réponse, vocabulaire flou, manque de contexte).' },
     ],
   },
-  { key: 'freshness',    label: 'Fraîcheur',    hint: 'Articles modifiés < 6 mois',                    tooltip: null },
+  {
+    key:   'freshness',
+    label: 'Fraîcheur',
+    hint:  'Articles modifiés < 6 mois',
+    tooltip: [
+      { label: 'Quoi',   text: '% des articles publiés actifs mis à jour dans les 6 derniers mois, pondéré par leur nombre de vues. Concerne uniquement les articles (pas les FAQs ni les processus).' },
+      { label: 'Calcul', text: 'pour chaque article publié actif, poids = 1 + nombre de vues sur 30 jours (un article populaire compte plus). Score = poids des articles « frais » (modifiés il y a < 6 mois) ÷ poids total.' },
+      { label: 'Action', text: 'si bas, ouvre Analytics → « Articles à vérifier » et révise en priorité ceux avec beaucoup de vues qui n\'ont pas été mis à jour récemment.' },
+    ],
+  },
   { key: 'consistency',  label: 'Cohérence',    hint: 'Conversations résolues sans escalade',          tooltip: null },
   { key: 'activation',   label: 'Activation',   hint: 'Membres actifs sur 7 jours',                    tooltip: null },
   { key: 'clarity',      label: 'Clarté',       hint: 'Articles dans la fenêtre 200-2000 mots',        tooltip: null },
