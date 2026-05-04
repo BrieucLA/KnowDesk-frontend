@@ -60,7 +60,9 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
       setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
     } else {
       setSortBy(col);
-      setSortDir(col === 'updated' ? 'desc' : 'desc');
+      // Direction par défaut : ASC pour category (alpha A→Z naturel),
+      // DESC pour les colonnes numériques/dates (du plus haut/récent en haut).
+      setSortDir(col === 'category' ? 'asc' : 'desc');
     }
   };
 
@@ -185,7 +187,11 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
             <thead>
               <tr>
                 <th scope="col" className="faqs-table__th faqs-table__th--question">Question</th>
-                <th scope="col" className="faqs-table__th">Catégorie</th>
+                <th scope="col" className="faqs-table__th">
+                  <button type="button" onClick={() => toggleSort('category')} className="faqs-table__sort">
+                    Catégorie{sortIndicator('category')}
+                  </button>
+                </th>
                 <th scope="col" className="faqs-table__th">Statut</th>
                 <th scope="col" className="faqs-table__th faqs-table__th--num">
                   <button type="button" onClick={() => toggleSort('helpful')} className="faqs-table__sort">

@@ -25,7 +25,7 @@ export interface FaqDetail extends FaqListItem {
   created_at:        string;
 }
 
-export type FaqSortBy  = 'updated' | 'views' | 'helpful';
+export type FaqSortBy  = 'updated' | 'views' | 'helpful' | 'category';
 export type FaqSortDir = 'asc' | 'desc';
 
 export interface FaqListFilters {
