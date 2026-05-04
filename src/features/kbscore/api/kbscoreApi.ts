@@ -22,7 +22,6 @@ export interface KbScoreResult {
     coverage:     DimensionScore;
     satisfaction: DimensionScore;
     freshness:    DimensionScore;
-    consistency:  DimensionScore;
     activation:   DimensionScore;
     clarity:      DimensionScore;
   };

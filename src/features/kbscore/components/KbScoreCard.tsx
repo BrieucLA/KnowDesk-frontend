@@ -49,7 +49,6 @@ const DIM_META: Array<{
       { label: 'Action', text: 'si bas, ouvre Analytics → « Articles à vérifier » et révise en priorité ceux avec beaucoup de vues qui n\'ont pas été mis à jour récemment.' },
     ],
   },
-  { key: 'consistency',  label: 'Cohérence',    hint: 'Conversations résolues sans escalade',          tooltip: null },
   { key: 'activation',   label: 'Activation',   hint: 'Membres actifs sur 7 jours',                    tooltip: null },
   { key: 'clarity',      label: 'Clarté',       hint: 'Articles dans la fenêtre 200-2000 mots',        tooltip: null },
 ];
