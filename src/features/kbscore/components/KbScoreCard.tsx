@@ -29,7 +29,16 @@ const DIM_META: Array<{
       { label: 'Action', text: 'si < 80%, va dans « Recherches sans résultat » et crée une FAQ pour combler — c\'est le levier le plus rapide.' },
     ],
   },
-  { key: 'satisfaction', label: 'Satisfaction', hint: 'CSAT chatbot · helpful% FAQs',                   tooltip: null },
+  {
+    key:   'satisfaction',
+    label: 'Satisfaction',
+    hint:  'helpful% FAQs publiées',
+    tooltip: [
+      { label: 'Quoi',   text: '% de votes « 👍 utile » sur les FAQs publiées de ta base.' },
+      { label: 'Calcul', text: 'votes utiles ÷ (utiles + non utiles) sur toutes les FAQs publiées. Affiché « Pas assez de votes » sous 2 votes au total.' },
+      { label: 'Action', text: 'si < 70%, ouvre FAQs, trie par helpful% croissant et réécris les FAQs mal notées (mauvaise réponse, vocabulaire flou, manque de contexte).' },
+    ],
+  },
   { key: 'freshness',    label: 'Fraîcheur',    hint: 'Articles modifiés < 6 mois',                    tooltip: null },
   { key: 'consistency',  label: 'Cohérence',    hint: 'Conversations résolues sans escalade',          tooltip: null },
   { key: 'activation',   label: 'Activation',   hint: 'Membres actifs sur 7 jours',                    tooltip: null },
