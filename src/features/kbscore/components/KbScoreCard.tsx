@@ -31,7 +31,7 @@ const DIM_META: Array<{
   },
   {
     key:   'satisfaction',
-    label: 'Satisfaction',
+    label: 'Satisfaction FAQ',
     hint:  'helpful% FAQs publiées',
     tooltip: [
       { label: 'Quoi',   text: '% de votes « 👍 utile » sur les FAQs publiées de ta base.' },
@@ -116,7 +116,7 @@ export function KbScoreCard() {
               title="Score de santé de la base"
               rows={[
                 { label: 'Quoi',    text: 'note composite 0-100 reflétant la santé éditoriale globale de ta base de connaissance.' },
-                { label: 'Calcul',  text: 'moyenne pondérée des 5 dimensions ci-dessous (Couverture 30%, Satisfaction 25%, Fraîcheur 20%, Utilisation 15%, Clarté 10%). Une dimension marquée « — » (volume insuffisant) est exclue et son poids redistribué automatiquement sur les autres.' },
+                { label: 'Calcul',  text: 'moyenne pondérée des 5 dimensions ci-dessous (Couverture 30%, Satisfaction FAQ 25%, Fraîcheur 20%, Utilisation 15%, Clarté 10%). Une dimension marquée « — » (volume insuffisant) est exclue et son poids redistribué automatiquement sur les autres.' },
                 { label: 'Niveaux', text: '⚫ < 50 Critique · 🟡 50-74 À améliorer · 🟢 75-89 Bon · 🟣 ≥ 90 Excellent.' },
                 { label: 'Action',  text: 'viser ≥ 75. Concentre-toi sur les 3 actions prioritaires affichées ci-dessous — chacune indique l\'impact estimé en points.' },
               ]}
