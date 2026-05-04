@@ -424,6 +424,11 @@ function AiAnswerStatsBanner({ onCreateFaq }: { onCreateFaq?: (q: string) => voi
   const helpfulPct = stats.helpfulRatio !== null
     ? Math.round(stats.helpfulRatio * 100)
     : null;
+  // Taux à viser : précises / total et sans-réponse / total. Affichés en
+  // métrique principale (% sur les vignettes), avec le détail "X sur Y" en
+  // sublabel. Cohérent avec ce que vise l'admin (un ratio, pas un volume).
+  const precisePct = stats.totalShown > 0 ? Math.round((stats.doneCount   / stats.totalShown) * 100) : null;
+  const unsurePct  = stats.totalShown > 0 ? Math.round((stats.unsureCount / stats.totalShown) * 100) : null;
 
   return (
     <section className="ai-stats" aria-labelledby="ai-stats-title">
@@ -446,22 +451,26 @@ function AiAnswerStatsBanner({ onCreateFaq }: { onCreateFaq?: (q: string) => voi
           </span>
         </div>
         <div className="ai-stats__metric">
-          <span className="ai-stats__metric-value">{stats.doneCount}</span>
+          <span className="ai-stats__metric-value">{precisePct !== null ? `${precisePct}%` : '—'}</span>
           <span className="ai-stats__metric-label">
             Réponses précises
+            <span className="ai-stats__metric-sublabel">{stats.doneCount} sur {stats.totalShown}</span>
             <InfoTooltip
               title="Réponses précises"
               rows={[
-                { label: 'Quoi',   text: 'nombre de fois où l\'IA a réussi à produire une vraie réponse adossée à ta base (avec sources affichées), sur 30 jours. Sous-ensemble de « Réponses générées par IA ».' },
-                { label: 'Calcul', text: 'appels à l\'IA ayant produit une réponse, par opposition aux « Sans réponse » où l\'IA n\'a pas trouvé de matière exploitable dans ta base. Dédup préfixes appliquée.' },
-                { label: 'Action', text: 'viser un ratio Précises / Total ≥ 70%. Si plus bas, l\'IA tombe souvent dans le vide — consulte la carte « Recherches sans résultat » plus bas et crée les FAQs manquantes.' },
+                { label: 'Quoi',   text: 'pourcentage de fois où l\'IA a réussi à produire une vraie réponse adossée à ta base (avec sources affichées), sur 30 jours.' },
+                { label: 'Calcul', text: 'Réponses précises ÷ Réponses générées par IA. Une réponse précise = une réponse réelle, par opposition aux « Sans réponse » où l\'IA n\'a pas trouvé de matière exploitable. Dédup préfixes appliquée sur les deux côtés du ratio.' },
+                { label: 'Action', text: 'viser ≥ 70%. Si plus bas, l\'IA tombe souvent dans le vide — consulte la carte « Recherches sans résultat » plus bas et crée les FAQs manquantes.' },
               ]}
             />
           </span>
         </div>
         <div className="ai-stats__metric">
-          <span className="ai-stats__metric-value">{stats.unsureCount}</span>
-          <span className="ai-stats__metric-label">Sans réponse</span>
+          <span className="ai-stats__metric-value">{unsurePct !== null ? `${unsurePct}%` : '—'}</span>
+          <span className="ai-stats__metric-label">
+            Sans réponse
+            <span className="ai-stats__metric-sublabel">{stats.unsureCount} sur {stats.totalShown}</span>
+          </span>
         </div>
         <div className="ai-stats__metric">
           <span className="ai-stats__metric-value">
