@@ -1674,6 +1674,14 @@
   display: flex; gap: 4px; align-items: center; flex-wrap: wrap;
 }
 .faqs-table__muted { color: var(--neutral-400); }
+/* Les emojis sont rendus plus grands que la font-size par défaut sur
+   beaucoup d'OS — on les ramène à une taille discrète, alignée
+   verticalement avec les chiffres. */
+.faqs-table__emoji {
+  font-size: 11px;
+  vertical-align: middle;
+  margin: 0 1px;
+}
 
 /* ── FAQ Editor ────────────────────────────────────────────── */
 .faq-editor { display: flex; flex-direction: column; min-height: 100%; }

@@ -241,7 +241,9 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
                     </td>
                     <td className="faqs-table__td faqs-table__td--num">
                       <span className={totalVotes < 2 ? 'faqs-table__muted' : ''}>
-                        {faq.helpful_yes}👍 / {faq.helpful_no}👎
+                        {faq.helpful_yes}<span className="faqs-table__emoji">👍</span>
+                        {' / '}
+                        {faq.helpful_no}<span className="faqs-table__emoji">👎</span>
                       </span>
                     </td>
                     <td className="faqs-table__td faqs-table__td--num">{faq.views}</td>
