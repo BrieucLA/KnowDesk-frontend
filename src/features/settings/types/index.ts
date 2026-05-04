@@ -39,6 +39,10 @@ export interface ChatOrgSettings {
   chat_system_prompt?:        string | null;
   /** Calculé côté backend à chaque GET — preview du prompt qui SERAIT généré. */
   chat_system_prompt_default?: string | null;
+  /** Disclaimer RGPD du widget. null = texte par défaut côté widget. */
+  chat_privacy_notice?:        string | null;
+  /** URL externe politique de confidentialité (lien optionnel). null = pas de lien. */
+  chat_privacy_policy_url?:    string | null;
   // Personnalisation IA partagée avec la Réponse IA (table organizations)
   industry?:        string | null;
   ai_tone?:         AiTone | null;

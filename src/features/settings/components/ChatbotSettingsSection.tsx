@@ -40,6 +40,8 @@ export function ChatbotSettingsSection() {
     chat_handoff_webhook_url: '',
     chat_handoff_email:       '',
     chat_system_prompt:        null,
+    chat_privacy_notice:       null,
+    chat_privacy_policy_url:   null,
     industry:                  '',
     ai_tone:                   null,
     ai_address_form:           null,
@@ -136,6 +138,8 @@ export function ChatbotSettingsSection() {
           chat_handoff_webhook_url: o.chat_handoff_webhook_url ?? '',
           chat_handoff_email:       o.chat_handoff_email ?? '',
           chat_system_prompt:        o.chat_system_prompt ?? null,
+          chat_privacy_notice:       o.chat_privacy_notice ?? null,
+          chat_privacy_policy_url:   o.chat_privacy_policy_url ?? null,
           industry:                  o.industry ?? '',
           ai_tone:                   o.ai_tone ?? null,
           ai_address_form:           o.ai_address_form ?? null,
@@ -184,6 +188,8 @@ export function ChatbotSettingsSection() {
           handoffWebhookUrl: (form.chat_handoff_webhook_url ?? '').trim() || null,
           handoffEmail:      (form.chat_handoff_email ?? '').trim() || null,
           systemPrompt:      systemPromptToSave,
+          privacyNotice:     (form.chat_privacy_notice ?? '').trim() || null,
+          privacyPolicyUrl:  (form.chat_privacy_policy_url ?? '').trim() || null,
         }),
         // Personnalisation IA — partagée avec la section Réponse IA
         apiClient.patch('/settings/org/ai', {
@@ -631,6 +637,50 @@ export function ChatbotSettingsSection() {
               helperText="Recevra un POST JSON { conversationId, transcript, visitorEmail, … }. Timeout 8s. Cf documentation handoff dans le help center pour le format exact."
             />
           )}
+
+          {/* ─── Confidentialité (RGPD) ─── */}
+          <div className="settings-section__header" style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--neutral-100)' }}>
+            <div>
+              <h3 className="settings-section__title" style={{ fontSize: 16 }}>Confidentialité (RGPD)</h3>
+              <p className="settings-section__desc">
+                Au tout premier ouverture du widget chez un visiteur, KnowDesk affiche un écran d'information
+                rappelant que la conversation est enregistrée. Le visiteur clique « J'ai compris » avant
+                que le chat démarre. <strong>Cet écran est toujours actif</strong> — c'est une obligation
+                de transparence RGPD que tu ne peux pas désactiver.
+              </p>
+            </div>
+          </div>
+
+          <div className="field">
+            <label htmlFor="privacy-notice" className="field-label">Texte du disclaimer (optionnel)</label>
+            <textarea
+              id="privacy-notice"
+              className="field-input"
+              value={form.chat_privacy_notice ?? ''}
+              maxLength={500}
+              rows={3}
+              placeholder={
+                'Pour améliorer notre service, votre conversation est enregistrée et peut être consultée par notre équipe. '
+              + 'Vous pouvez supprimer la conversation à tout moment via le bouton ↺.'
+              }
+              onChange={e => setForm(f => ({ ...f, chat_privacy_notice: e.target.value }))}
+              style={{ height: 'auto', padding: '10px 14px' }}
+            />
+            <p className="field-helper">
+              Vide → on utilise le texte standard (visible en placeholder ci-dessus). 500 caractères max.
+            </p>
+          </div>
+
+          <Input
+            id="privacy-policy-url"
+            label="Lien vers ta politique de confidentialité (optionnel)"
+            type="url"
+            value={form.chat_privacy_policy_url ?? ''}
+            maxLength={500}
+            placeholder="https://ton-entreprise.fr/confidentialite"
+            onChange={e => setForm(f => ({ ...f, chat_privacy_policy_url: e.target.value }))}
+            helperText="Si fourni, un lien « ▸ En savoir plus » apparaît sous le disclaimer (s'ouvre dans un nouvel onglet). Vide → pas de lien."
+          />
         </fieldset>
 
         <div className="settings-form__actions">

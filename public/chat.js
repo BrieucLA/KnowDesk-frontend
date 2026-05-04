@@ -61,8 +61,24 @@
   // Identifiants persistés côté client : la conversationId pour reprendre
   // une conversation après reload, et le visitorFingerprint pour suivre un
   // visiteur unique (anonyme) cross-conversations.
-  function convIdKey()    { return 'knowdesk_chat_conv_'    + orgSlug; }
-  function fingerprintKey() { return 'knowdesk_chat_fp_'   + orgSlug; }
+  function convIdKey()      { return 'knowdesk_chat_conv_'         + orgSlug; }
+  function fingerprintKey() { return 'knowdesk_chat_fp_'           + orgSlug; }
+  function privacyAckKey()  { return 'knowdesk_chat_privacy_ack_'  + orgSlug; }
+
+  /**
+   * Version du disclaimer RGPD. À incrémenter en 'v2', 'v3' etc. si le texte
+   * par défaut change matériellement (ajout d'une catégorie de données
+   * trackées, etc.) — tous les visiteurs revoient l'écran 1× pour réacquitter.
+   */
+  var PRIVACY_VERSION = 'v1';
+
+  function hasPrivacyAck() {
+    try { return localStorage.getItem(privacyAckKey()) === PRIVACY_VERSION; }
+    catch (e) { return false; }
+  }
+  function savePrivacyAck() {
+    try { localStorage.setItem(privacyAckKey(), PRIVACY_VERSION); } catch (e) {}
+  }
 
   function loadConversationId() {
     try { return localStorage.getItem(convIdKey()) || null; } catch (e) { return null; }
@@ -127,6 +143,25 @@
       // Phase D — panel feedback supprimé (CSAT/escalate/handoff-form)
       // au profit du flux conversationnel pur. Tout est dans le canal.
       + '.messages { flex: 1; overflow-y: auto; padding: 14px; background: #f8f9fb; display: flex; flex-direction: column; gap: 8px; }'
+      // Écran disclaimer RGPD — affiché en lieu et place des messages au 1ᵉʳ ouverture
+      + '.privacy-screen {'
+      + '  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;'
+      + '  padding: 28px 24px; gap: 14px; background: #f8f9fb; text-align: center;'
+      + '}'
+      + '.privacy-screen[hidden] { display: none !important; }'
+      + '.privacy-screen__icon { font-size: 32px; line-height: 1; }'
+      + '.privacy-screen__title { font-size: 15px; font-weight: 600; color: #1a1a1a; margin: 0; }'
+      + '.privacy-screen__notice { font-size: 13px; color: #4a4a4a; line-height: 1.5; margin: 0; max-width: 320px; }'
+      + '.privacy-screen__link { font-size: 12px; color: var(--kd-primary, #5B6CFF); text-decoration: none; }'
+      + '.privacy-screen__link:hover { text-decoration: underline; }'
+      + '.privacy-screen__link[hidden] { display: none !important; }'
+      + '.privacy-screen__ack {'
+      + '  margin-top: 6px; padding: 9px 22px;'
+      + '  background: var(--kd-primary, #5B6CFF); color: white; border: none;'
+      + '  border-radius: 8px; font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer;'
+      + '  transition: opacity 0.12s;'
+      + '}'
+      + '.privacy-screen__ack:hover { opacity: 0.9; }'
       + '.msg { display: flex; gap: 6px; max-width: 85%; }'
       + '.msg--user { align-self: flex-end; }'
       + '.msg--bot { align-self: flex-start; }'
@@ -165,6 +200,13 @@
       + '    <button class="header__human" type="button" aria-label="Parler à un humain"  title="Parler à un humain">🙋</button>'
       + '    <button class="header__reset" type="button" aria-label="Nouvelle conversation" title="Nouvelle conversation">↺</button>'
       + '    <button class="header__close" type="button" aria-label="Fermer">×</button>'
+      + '  </div>'
+      + '  <div class="privacy-screen" hidden role="dialog" aria-labelledby="privacy-title">'
+      + '    <div class="privacy-screen__icon" aria-hidden="true">🔒</div>'
+      + '    <p class="privacy-screen__title" id="privacy-title">Avant de commencer</p>'
+      + '    <p class="privacy-screen__notice"></p>'
+      + '    <a class="privacy-screen__link" hidden target="_blank" rel="noopener noreferrer">▸ En savoir plus</a>'
+      + '    <button class="privacy-screen__ack" type="button">J\'ai compris</button>'
       + '  </div>'
       + '  <div class="messages" role="log" aria-live="polite"></div>'
       + '  <div class="emoji-bar">'
@@ -592,6 +634,58 @@
     var reset  = root.querySelector('.header__reset');
     var form   = root.querySelector('.input-row');
     var input  = root.querySelector('.input-row input');
+
+    // ── Disclaimer RGPD ────────────────────────────────────────────
+    // Affiché en lieu et place des messages tant que le visiteur n'a
+    // pas cliqué « J'ai compris ». Stocké en localStorage par orgSlug
+    // + PRIVACY_VERSION : si la version change, on redemande l'ack.
+    var DEFAULT_PRIVACY_NOTICE = 'Pour améliorer notre service, votre conversation est enregistrée et peut être consultée par notre équipe. Vous pouvez supprimer la conversation à tout moment via le bouton ↺.';
+
+    var privacyScreen   = root.querySelector('.privacy-screen');
+    var privacyNoticeEl = root.querySelector('.privacy-screen__notice');
+    var privacyLinkEl   = root.querySelector('.privacy-screen__link');
+    var privacyAckBtn   = root.querySelector('.privacy-screen__ack');
+    var messagesEl      = root.querySelector('.messages');
+    var emojiBarEl      = root.querySelector('.emoji-bar');
+    var inputRowEl      = root.querySelector('.input-row');
+    var disclaimerEl    = root.querySelector('.disclaimer');
+
+    function showPrivacyScreen() {
+      privacyScreen.hidden = false;
+      messagesEl.style.display   = 'none';
+      emojiBarEl.style.display   = 'none';
+      inputRowEl.style.display   = 'none';
+      disclaimerEl.style.display = 'none';
+    }
+    function hidePrivacyScreen() {
+      privacyScreen.hidden = true;
+      messagesEl.style.display   = '';
+      emojiBarEl.style.display   = '';
+      inputRowEl.style.display   = '';
+      disclaimerEl.style.display = '';
+    }
+
+    // Hydrate le texte et le lien depuis la config admin (fallback default)
+    privacyNoticeEl.textContent =
+      (state.config.privacyNotice && state.config.privacyNotice.trim())
+        ? state.config.privacyNotice
+        : DEFAULT_PRIVACY_NOTICE;
+    if (state.config.privacyPolicyUrl) {
+      privacyLinkEl.href   = state.config.privacyPolicyUrl;
+      privacyLinkEl.hidden = false;
+    } else {
+      privacyLinkEl.hidden = true;
+    }
+
+    if (!hasPrivacyAck()) {
+      showPrivacyScreen();
+    }
+
+    privacyAckBtn.addEventListener('click', function () {
+      savePrivacyAck();
+      hidePrivacyScreen();
+      setTimeout(function () { input.focus(); }, 50);
+    });
 
     function open() {
       panel.classList.add('panel--open');
