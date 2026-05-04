@@ -2470,7 +2470,13 @@
   border-radius: var(--radius-lg);
   display: flex; flex-direction: column; gap: 6px;
 }
-.kbscore__dim--na { opacity: 0.6; }
+/* Phase D — opacity ciblée sur les éléments terminaux (score, bar, detail)
+   et pas sur le label : le label wrap aussi l'InfoTooltip, et l'opacity
+   se cascade dans le stacking context CSS, rendant la bulle tooltip
+   translucide alors que c'est précisément à ce moment qu'il faut la lire. */
+.kbscore__dim--na .kbscore__dim-score,
+.kbscore__dim--na .kbscore__dim-bar,
+.kbscore__dim--na .kbscore__dim-detail { opacity: 0.6; }
 .kbscore__dim-top {
   display: flex; align-items: baseline; justify-content: space-between;
 }
