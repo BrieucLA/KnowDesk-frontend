@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useRef, useState } from 'react';
+import React, { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 
 /**
  * InfoTooltip — petite icône ⓘ qui ouvre une bulle d'aide au hover/focus/tap.
@@ -44,14 +44,17 @@ interface InfoTooltipProps {
 export function InfoTooltip({ title, rows, children, ariaLabel }: InfoTooltipProps) {
   const [open, setOpen] = useState(false);
   /**
-   * Placement choisi à chaque ouverture via le boundingClientRect du
-   * trigger. 'top' par défaut, 'bottom' si l'espace au-dessus est
-   * insuffisant (typiquement quand le trigger est en haut de page).
-   * Évite le débord en haut de viewport.
+   * Placement choisi APRÈS render via la hauteur réelle de la bulle :
+   * - null tant que pas mesuré → bulle rendue avec visibility:hidden
+   *   (mesurable mais invisible, évite le flicker)
+   * - 'top' si l'espace au-dessus du trigger ≥ hauteur réelle de la bulle
+   * - 'bottom' sinon
+   * useLayoutEffect synchrone avant paint = pas de flash visible.
    */
-  const [placement, setPlacement] = useState<'top' | 'bottom'>('top');
-  const wrapRef         = useRef<HTMLSpanElement>(null);
-  const tooltipId       = useId();
+  const [placement, setPlacement] = useState<'top' | 'bottom' | null>(null);
+  const wrapRef    = useRef<HTMLSpanElement>(null);
+  const bubbleRef  = useRef<HTMLDivElement>(null);
+  const tooltipId  = useId();
 
   // Escape pour fermer
   useEffect(() => {
@@ -62,23 +65,26 @@ export function InfoTooltip({ title, rows, children, ariaLabel }: InfoTooltipPro
   }, [open]);
 
   /**
-   * Smart placement calculé AVANT d'ouvrir la bulle (dans les handlers).
-   * Précédemment via useEffect post-mount → 1 frame de flicker en 'top'
-   * quand le bon placement aurait dû être 'bottom'. Maintenant on mesure
-   * juste avant setOpen(true) → render direct avec le bon placement.
-   * Hauteur bulle estimée 200px (4 rangées + marge).
+   * Smart placement avec mesure RÉELLE de la hauteur de bulle :
+   * - À l'ouverture, on render la bulle avec placement=null + visibility:hidden
+   * - useLayoutEffect mesure synchrone la hauteur réelle ET l'espace au-dessus
+   * - Bascule en 'top' ou 'bottom' selon la mesure → bulle devient visible
+   *
+   * Bénéfice vs ancien seuil 200px : marche pour toutes les hauteurs de
+   * tooltip (3 rangées, 4 rangées, contenu libre), pour toutes les
+   * positions verticales (haut de page, milieu, bas) sans réglage.
    */
-  const openTooltip = () => {
-    if (wrapRef.current) {
-      const rect = wrapRef.current.getBoundingClientRect();
-      setPlacement(rect.top >= 200 ? 'top' : 'bottom');
-    }
-    setOpen(true);
-  };
-  const toggleTooltip = () => {
-    if (open) { setOpen(false); return; }
-    openTooltip();
-  };
+  useLayoutEffect(() => {
+    if (!open || !wrapRef.current || !bubbleRef.current) return;
+    const triggerRect = wrapRef.current.getBoundingClientRect();
+    const bubbleHeight = bubbleRef.current.offsetHeight;
+    const GAP_AND_MARGIN = 16;     // 8px gap entre bulle et trigger + 8px marge sécurité viewport
+    const spaceAbove = triggerRect.top - GAP_AND_MARGIN;
+    setPlacement(spaceAbove >= bubbleHeight ? 'top' : 'bottom');
+  }, [open]);
+
+  const openTooltip   = () => { setPlacement(null); setOpen(true); };
+  const toggleTooltip = () => { if (open) setOpen(false); else openTooltip(); };
 
   // Click outside pour fermer
   useEffect(() => {
@@ -120,9 +126,11 @@ export function InfoTooltip({ title, rows, children, ariaLabel }: InfoTooltipPro
       </button>
       {open && (
         <div
+          ref={bubbleRef}
           id={tooltipId}
           role="tooltip"
-          className={`info-tooltip__bubble info-tooltip__bubble--${placement}`}
+          className={`info-tooltip__bubble info-tooltip__bubble--${placement ?? 'top'}`}
+          style={{ visibility: placement ? 'visible' : 'hidden' }}
         >
           <div className="info-tooltip__title">{title}</div>
           {rows && rows.length > 0 && (
@@ -136,7 +144,7 @@ export function InfoTooltip({ title, rows, children, ariaLabel }: InfoTooltipPro
             </dl>
           )}
           {children}
-          <span className={`info-tooltip__arrow info-tooltip__arrow--${placement}`} aria-hidden="true" />
+          <span className={`info-tooltip__arrow info-tooltip__arrow--${placement ?? 'top'}`} aria-hidden="true" />
         </div>
       )}
     </span>
