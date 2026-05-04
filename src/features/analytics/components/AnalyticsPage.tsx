@@ -525,6 +525,11 @@ function ChatStatsBanner() {
   if (!stats || stats.totalConversations === 0) return null;
 
   const resolvedPct = stats.resolvedRate !== null ? Math.round(stats.resolvedRate * 100) : null;
+  const closed = stats.resolved + stats.unresolved + stats.escalated;
+  const totalParts = closed + stats.active;     // = stats.totalConversations en pratique
+
+  // Largeurs des segments de la barre empilée (proportions des fermées)
+  const barW = (n: number) => (closed > 0 ? `${(n / closed) * 100}%` : '0%');
 
   return (
     <section className="ai-stats" aria-labelledby="chat-stats-title">
@@ -533,30 +538,76 @@ function ChatStatsBanner() {
           💬 Chatbot — {stats.windowDays} derniers jours
         </h2>
       </header>
+
+      {/* Rangée principale : total / taux résolution / CSAT */}
       <div className="ai-stats__row">
         <div className="ai-stats__metric">
           <span className="ai-stats__metric-value">{stats.totalConversations}</span>
-          <span className="ai-stats__metric-label">Conversations</span>
+          <span className="ai-stats__metric-label">
+            Conversations
+            {totalParts > 0 && (
+              <span className="ai-stats__metric-sublabel">
+                {stats.active} en cours · {closed} fermée{closed > 1 ? 's' : ''}
+              </span>
+            )}
+          </span>
         </div>
         <div className="ai-stats__metric">
           <span className="ai-stats__metric-value">{resolvedPct !== null ? `${resolvedPct}%` : '—'}</span>
-          <span className="ai-stats__metric-label">Résolues ({stats.resolved}/{stats.resolved + stats.unresolved + stats.escalated})</span>
-        </div>
-        <div className="ai-stats__metric">
-          <span className="ai-stats__metric-value">{stats.unresolved}</span>
-          <span className="ai-stats__metric-label">Non résolues</span>
-        </div>
-        <div className="ai-stats__metric">
-          <span className="ai-stats__metric-value">{stats.escalated}</span>
-          <span className="ai-stats__metric-label">Escaladées</span>
+          <span className="ai-stats__metric-label">
+            Taux de résolution
+            <span className="ai-stats__metric-sublabel">
+              {stats.resolved} sur {closed} fermée{closed > 1 ? 's' : ''}
+            </span>
+          </span>
         </div>
         <div className="ai-stats__metric">
           <span className="ai-stats__metric-value">
             {stats.csatAverage !== null ? `${stats.csatAverage.toFixed(1)} ⭐` : '—'}
           </span>
-          <span className="ai-stats__metric-label">CSAT moyen ({stats.csatRated} note{stats.csatRated > 1 ? 's' : ''})</span>
+          <span className="ai-stats__metric-label">
+            CSAT moyen
+            <span className="ai-stats__metric-sublabel">
+              {stats.csatRated} note{stats.csatRated > 1 ? 's' : ''} explicite{stats.csatRated > 1 ? 's' : ''}
+            </span>
+          </span>
         </div>
       </div>
+
+      {/* Décomposition des fermées : barre empilée + légende */}
+      {closed > 0 && (
+        <div className="ai-stats__breakdown">
+          <div className="ai-stats__breakdown-title">Détail des {closed} conversations fermées</div>
+          <div className="ai-stats__bar" role="img" aria-label={`${stats.resolved} résolues, ${stats.escalated} escaladées, ${stats.unresolved} non résolues`}>
+            {stats.resolved > 0 && (
+              <div className="ai-stats__bar-seg ai-stats__bar-seg--resolved" style={{ width: barW(stats.resolved) }} title={`${stats.resolved} résolue${stats.resolved > 1 ? 's' : ''}`} />
+            )}
+            {stats.escalated > 0 && (
+              <div className="ai-stats__bar-seg ai-stats__bar-seg--escalated" style={{ width: barW(stats.escalated) }} title={`${stats.escalated} escaladée${stats.escalated > 1 ? 's' : ''}`} />
+            )}
+            {stats.unresolved > 0 && (
+              <div className="ai-stats__bar-seg ai-stats__bar-seg--unresolved" style={{ width: barW(stats.unresolved) }} title={`${stats.unresolved} non résolue${stats.unresolved > 1 ? 's' : ''}`} />
+            )}
+          </div>
+          <div className="ai-stats__breakdown-legend">
+            <span className="ai-stats__legend-item">
+              <span className="ai-stats__legend-dot ai-stats__legend-dot--resolved" aria-hidden="true" />
+              ✓ {stats.resolved} résolue{stats.resolved > 1 ? 's' : ''}
+              <span className="ai-stats__legend-hint">le bot a répondu, visiteur satisfait</span>
+            </span>
+            <span className="ai-stats__legend-item">
+              <span className="ai-stats__legend-dot ai-stats__legend-dot--escalated" aria-hidden="true" />
+              ↗ {stats.escalated} escaladée{stats.escalated > 1 ? 's' : ''}
+              <span className="ai-stats__legend-hint">passée à un humain</span>
+            </span>
+            <span className="ai-stats__legend-item">
+              <span className="ai-stats__legend-dot ai-stats__legend-dot--unresolved" aria-hidden="true" />
+              ✗ {stats.unresolved} non résolue{stats.unresolved > 1 ? 's' : ''}
+              <span className="ai-stats__legend-hint">le bot n'a pas su répondre</span>
+            </span>
+          </div>
+        </div>
+      )}
 
       {stats.topQuestions.length > 0 && (
         <div className="ai-stats__queries">
