@@ -7,7 +7,7 @@ import { formatRelative }  from '../../../shared/lib/formatDate';
 export function SuperadminApp() {
   const {
     session, orgs, loading, error, loginErr,
-    login, logout, disableOrg, enableOrg, impersonate, reindexSearch,
+    login, logout, disableOrg, enableOrg, impersonate, reindexSearch, recomputeResolutions,
   } = useSuperadmin();
 
   const [email,        setEmail]        = useState('');
@@ -15,6 +15,10 @@ export function SuperadminApp() {
   const [confirm,      setConfirm]      = useState<{ orgId: string; action: 'disable' | 'enable' } | null>(null);
   const [reindexState, setReindexState] = useState<'idle' | 'running' | 'done' | 'error'>('idle');
   const [reindexInfo,  setReindexInfo]  = useState<string>('');
+  // Phase D — recalcul rétroactif des statuts conversation
+  const [recomputeState, setRecomputeState] = useState<'idle' | 'running' | 'done' | 'error'>('idle');
+  const [recomputeInfo,  setRecomputeInfo]  = useState<string>('');
+  const [recomputeConfirm, setRecomputeConfirm] = useState(false);
 
   const runReindex = async () => {
     setReindexState('running');
@@ -28,6 +32,38 @@ export function SuperadminApp() {
     } catch (err) {
       setReindexState('error');
       setReindexInfo(err instanceof Error ? err.message : 'Réindexation impossible.');
+    }
+  };
+
+  /**
+   * Phase D — rejoue le calcul de statut sur l'historique. Le backend
+   * traite par batch de 200 (limite côté Zod). Si plus de 200 conversations
+   * sont à recalculer, on relance jusqu'à épuisement (ce qui peut arriver
+   * sur de grosses orgs). Mistral est appelé ~80 tokens/conv.
+   */
+  const runRecompute = async () => {
+    setRecomputeConfirm(false);
+    setRecomputeState('running');
+    setRecomputeInfo('Recalcul en cours… cela peut prendre quelques minutes pour des historiques importants.');
+    try {
+      let totalProcessed = 0;
+      let totalFailed    = 0;
+      let pass           = 0;
+      // Boucle jusqu'à ce qu'un batch retourne 0 conv à traiter, max 20 passes
+      // (= 4000 conversations) pour éviter une boucle infinie en cas d'anomalie.
+      while (pass < 20) {
+        pass++;
+        const r = await recomputeResolutions();
+        totalProcessed += r.processed;
+        totalFailed    += r.failed;
+        if (r.total === 0) break;     // plus rien à recalculer
+      }
+      setRecomputeState('done');
+      setRecomputeInfo(`✓ Statuts recalculés : ${totalProcessed} conversation${totalProcessed !== 1 ? 's' : ''} traitée${totalProcessed !== 1 ? 's' : ''}${totalFailed > 0 ? `, ${totalFailed} échec${totalFailed !== 1 ? 's' : ''}` : ''}.`);
+      setTimeout(() => setRecomputeState('idle'), 12000);
+    } catch (err) {
+      setRecomputeState('error');
+      setRecomputeInfo(err instanceof Error ? err.message : 'Recalcul impossible.');
     }
   };
 
@@ -96,6 +132,16 @@ export function SuperadminApp() {
           >
             🔄 Réindexer
           </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            loading={recomputeState === 'running'}
+            disabled={recomputeState === 'running'}
+            onClick={() => setRecomputeConfirm(true)}
+            title="Phase D — rejoue resolveStatus + LLM judge sur les conversations sans resolution_reason"
+          >
+            🧮 Recalculer les statuts
+          </Button>
           <Button variant="ghost" size="sm" onClick={logout}>Déconnexion</Button>
         </div>
         {reindexInfo && (
@@ -116,6 +162,29 @@ export function SuperadminApp() {
             }}
           >
             {reindexInfo}
+          </div>
+        )}
+        {recomputeInfo && (
+          <div
+            role="status"
+            style={{
+              position:   'absolute',
+              top:        56,
+              left:       0,
+              right:      0,
+              padding:    '8px 16px',
+              background: recomputeState === 'error'   ? 'oklch(0.95 0.05 25)'
+                        : recomputeState === 'running' ? 'oklch(0.96 0.04 250)'
+                        :                                'oklch(0.94 0.08 155)',
+              color:      recomputeState === 'error'   ? 'oklch(0.45 0.18 25)'
+                        : recomputeState === 'running' ? 'oklch(0.40 0.10 250)'
+                        :                                'oklch(0.30 0.14 155)',
+              fontSize:   13,
+              borderBottom: '1px solid var(--neutral-200)',
+              textAlign:  'center',
+            }}
+          >
+            {recomputeInfo}
           </div>
         )}
       </header>
@@ -226,6 +295,24 @@ export function SuperadminApp() {
             setConfirm(null);
           }}
           onCancel={() => setConfirm(null)}
+        />
+      )}
+
+      {/* Phase D — confirmation recalcul rétroactif */}
+      {recomputeConfirm && (
+        <ConfirmDialog
+          title="Recalculer tous les statuts conversation"
+          description={
+            'Pour chaque conversation close sans resolution_reason, KnowDesk va '
+          + 'rejouer resolveStatus + un appel Mistral (LLM judge) afin d\'aligner '
+          + 'les statuts sur les nouvelles règles métier (Phase D). '
+          + 'Coût estimé : ~80 tokens par conversation. '
+          + 'Le traitement est itératif (batch de 200) et peut prendre quelques minutes.'
+          }
+          confirmLabel="Lancer le recalcul"
+          variant="primary"
+          onConfirm={runRecompute}
+          onCancel={() => setRecomputeConfirm(false)}
         />
       )}
     </div>

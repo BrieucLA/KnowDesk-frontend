@@ -30,6 +30,13 @@ export interface ReindexResult {
   faqs:     number;
 }
 
+/** Phase D — résultat du recalcul rétroactif des statuts conversation. */
+export interface RecomputeResult {
+  processed: number;
+  failed:    number;
+  total:     number;
+}
+
 export function useSuperadmin() {
   const [session,  setSession]  = useState<SuperadminSession | null>(() => {
     const token = getSavedToken();
@@ -143,9 +150,23 @@ export function useSuperadmin() {
     });
   }, [session]);
 
+  /**
+   * Phase D — relance resolveStatus + LLM judge sur les conversations qui
+   * n'ont pas encore de resolution_reason. Utilisé pour aligner
+   * l'historique sur les nouvelles règles après un déploiement majeur.
+   * Renvoie le nombre traité dans CE batch (limit=200 par appel par défaut).
+   */
+  const recomputeResolutions = useCallback(async (orgId?: string, limit = 200): Promise<RecomputeResult> => {
+    if (!session) throw new Error('Non connecté.');
+    return saFetch<RecomputeResult>('/recompute-resolutions', session.accessToken, {
+      method: 'POST',
+      body:   JSON.stringify({ ...(orgId ? { orgId } : {}), limit }),
+    });
+  }, [session]);
+
   return {
     session, orgs, loading, error, loginErr,
     login, logout, loadOrgs, disableOrg, enableOrg, impersonate,
-    reindexSearch,
+    reindexSearch, recomputeResolutions,
   };
 }
