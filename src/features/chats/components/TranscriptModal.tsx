@@ -65,6 +65,13 @@ export function TranscriptModal({ chatId, onClose }: TranscriptModalProps) {
         </div>
       ) : (
         <div className="chat-transcript">
+          <div
+            className="chat-transcript__redaction-notice"
+            title="Email, téléphone, IBAN, n° de carte et n° de sécurité sociale sont automatiquement masqués dans cette interface admin."
+          >
+            🔒 Coordonnées masquées
+          </div>
+
           <dl className="chat-transcript__meta">
             <div>
               <dt>Statut</dt>

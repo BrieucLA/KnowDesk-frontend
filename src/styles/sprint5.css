@@ -2327,6 +2327,16 @@
 
 /* ───── Modale transcript ───── */
 .chat-transcript { display: flex; flex-direction: column; gap: 16px; }
+.chat-transcript__redaction-notice {
+  display: inline-flex; align-items: center; gap: 6px;
+  align-self: flex-start;
+  padding: 4px 10px;
+  background: var(--neutral-50, #f8f9fb);
+  border: 1px solid var(--neutral-200, #e5e7eb);
+  border-radius: var(--radius-full);
+  font-size: 11px; color: var(--neutral-600, #6b7280);
+  cursor: help;
+}
 .chat-transcript__loading { padding: 8px 0; }
 .chat-transcript__loading-row { height: 16px; margin-bottom: 8px; }
 .chat-transcript__loading-row--short { width: 70%; }
