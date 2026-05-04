@@ -485,7 +485,21 @@ function AiAnswerStatsBanner({ onCreateFaq }: { onCreateFaq?: (q: string) => voi
             {helpfulPct !== null ? `${helpfulPct}%` : '—'}
           </span>
           <span className="ai-stats__metric-label">
-            Utiles ({stats.helpfulYes}👍 / {stats.helpfulNo}👎)
+            Satisfaction
+            <InfoTooltip
+              title="Satisfaction"
+              rows={[
+                { label: 'Quoi',   text: 'pourcentage de réponses IA jugées utiles par les collaborateurs via les boutons 👍 / 👎 de la carte de réponse, sur 30 jours.' },
+                { label: 'Calcul', text: 'nombre de votes 👍 sur nombre total de votes (👍 + 👎). Affiché « — » sous 2 votes au total. Les réponses sans vote ne comptent ni au numérateur ni au dénominateur.' },
+                { label: 'Action', text: 'viser ≥ 70%. Si plus bas, ajuste les réglages dans Paramètres → ✨ IA recherche (secteur, tonalité, glossaire) pour mieux cadrer l\'IA, et regarde « Top questions » plus bas pour identifier les sujets où l\'IA répond mal.' },
+              ]}
+            />
+            <span className="ai-stats__metric-sublabel">
+              {stats.helpfulYes}👍 / {stats.helpfulNo}👎
+              {helpfulPct === null && (stats.helpfulYes + stats.helpfulNo) < 2 && (
+                <> · pas assez de votes</>
+              )}
+            </span>
           </span>
         </div>
       </div>
