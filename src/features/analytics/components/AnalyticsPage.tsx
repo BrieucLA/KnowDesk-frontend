@@ -10,7 +10,7 @@ import { InfoTooltip } from '../../../shared/components/ui/Tooltip';
 import type {
   AnalyticsOverview, ArticleSummary, TopContributor,
   CategoryCoverage, TopTag, UnusedTag,
-  ViewedArticle, LowViewedArticle, SearchQueryStat, Engagement,
+  ViewedArticle, LowViewedArticle, SearchQueryStat,
 } from '../types';
 
 interface AnalyticsPageProps {
@@ -54,7 +54,6 @@ export function AnalyticsPage({ onOpenArticle, onCreateFaq }: AnalyticsPageProps
       <KbScoreCard />
 
       <InventoryRow inventory={data.inventory} />
-      <EngagementRow engagement={data.engagement} windowDays={data.windowDays} />
 
       <AiAnswerStatsBanner onCreateFaq={onCreateFaq} />
       <ChatStatsBanner />
@@ -73,25 +72,6 @@ export function AnalyticsPage({ onOpenArticle, onCreateFaq }: AnalyticsPageProps
         <CoverageCard           items={data.coverageByCategory}  />
         <TopTagsCard            items={data.topTags}             />
         <UnusedTagsCard         items={data.unusedTags}          />
-      </div>
-    </div>
-  );
-}
-
-function EngagementRow({ engagement, windowDays }: { engagement: Engagement; windowDays: number }) {
-  return (
-    <div className="analytics-stats analytics-stats--engagement" aria-label="Activité de l'équipe">
-      <div className="analytics-stat">
-        <span className="analytics-stat__value">{engagement.dau}</span>
-        <span className="analytics-stat__label">Actifs aujourd'hui</span>
-      </div>
-      <div className="analytics-stat">
-        <span className="analytics-stat__value">{engagement.wau}</span>
-        <span className="analytics-stat__label">Actifs sur 7 jours</span>
-      </div>
-      <div className="analytics-stat">
-        <span className="analytics-stat__value">{engagement.mau}</span>
-        <span className="analytics-stat__label">Actifs sur {windowDays} jours</span>
       </div>
     </div>
   );

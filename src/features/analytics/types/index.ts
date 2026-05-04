@@ -57,12 +57,6 @@ export interface SearchQueryStat {
   count: number;
 }
 
-export interface Engagement {
-  dau: number;
-  wau: number;
-  mau: number;
-}
-
 export interface AnalyticsOverview {
   inventory:           AnalyticsInventory;
   articlesToReview:    ArticleSummary[];
@@ -76,6 +70,5 @@ export interface AnalyticsOverview {
   lowViewedArticles:   LowViewedArticle[];
   topSearchQueries:    SearchQueryStat[];
   zeroResultsSearches: SearchQueryStat[];
-  engagement:          Engagement;
   windowDays:          number;
 }
