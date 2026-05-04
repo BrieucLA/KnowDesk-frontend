@@ -49,7 +49,16 @@ const DIM_META: Array<{
       { label: 'Action', text: 'si bas, ouvre Analytics → « Articles à vérifier » et révise en priorité ceux avec beaucoup de vues qui n\'ont pas été mis à jour récemment.' },
     ],
   },
-  { key: 'activation',   label: 'Activation',   hint: 'Membres actifs sur 7 jours',                    tooltip: null },
+  {
+    key:   'activation',
+    label: 'Activation',
+    hint:  'Membres actifs sur 7 jours',
+    tooltip: [
+      { label: 'Quoi',   text: '% des membres internes (conseillers, managers, admins) qui ont utilisé KnowDesk dans les 7 derniers jours.' },
+      { label: 'Calcul', text: 'membres ayant consulté ≥ 1 article OU lancé ≥ 1 recherche dans la barre Cmd+K, sur 7 jours, ÷ total des membres actifs de l\'organisation. Fenêtre courte (7 jours, pas 30) pour refléter l\'usage récent.' },
+      { label: 'Action', text: 'si bas, fais une démo Cmd+K en réunion d\'équipe et identifie les sujets manquants — les conseillers reviennent quand ils trouvent leurs réponses.' },
+    ],
+  },
   { key: 'clarity',      label: 'Clarté',       hint: 'Articles dans la fenêtre 200-2000 mots',        tooltip: null },
 ];
 
