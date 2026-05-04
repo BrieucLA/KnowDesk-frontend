@@ -120,6 +120,14 @@ DATABASE_URL="postgresql://..." npm run migrate            # Production Railway
 # Build
 cd ~/KDProject/knowdesk && npm run build
 cd ~/KDProject/knowdesk-backend && npm run build
+
+# Tests frontend (vitest + jsdom)
+cd ~/KDProject/knowdesk && npm test                        # run unique, exit propre
+cd ~/KDProject/knowdesk && npm run test:watch              # mode watch (re-run sur save)
+
+# Tests backend (vitest + supertest)
+cd ~/KDProject/knowdesk-backend && npm test                # run unique
+cd ~/KDProject/knowdesk-backend && npm run test:watch      # mode watch
 ```
 
 ## Conventions de code
@@ -202,6 +210,42 @@ Aucune variable d'env requise côté Vercel. Le frontend appelle l'API en chemin
 
 Conséquence : **le navigateur voit toutes les requêtes comme same-origin**, ce qui permet l'usage de cookies HTTP-only `sameSite=lax` pour transporter l'access token (cf. backend `auth.controller.ts`).
 
+## Tests
+
+Stack : **vitest + jsdom + @testing-library/react + @testing-library/jest-dom**.
+
+```bash
+npm test            # run unique, exit propre (CI ready)
+npm run test:watch  # mode watch (re-run à chaque save)
+```
+
+Organisation :
+- Tests **co-localisés** : `authStore.test.ts` à côté de `authStore.ts`. Pas de dossier `__tests__/` séparé.
+- `vitest.config.ts` configure jsdom + setupFiles.
+- `src/test-setup.ts` : import des matchers jest-dom + cleanup auto entre tests (DOM + sessionStorage).
+
+Pattern de mock pour `apiClient` (essentiel pour tester les composants qui font des appels API) :
+
+```ts
+vi.mock('../shared/lib/apiClient', () => ({
+  apiClient: { post: vi.fn(() => Promise.resolve({})), /* etc. */ },
+}));
+```
+
+Pattern reset Zustand entre tests :
+
+```ts
+beforeEach(() => {
+  useAuthStore.setState({ session: null, isLoaded: false, /* ... */ });
+});
+```
+
+État au 2026-05-04 : **8 tests passants** (~1s).
+- `src/store/authStore.test.ts` (5) : setSession, clearSession, setOnboardingDone (+ side-effect API), setImpersonating, persistence sessionStorage
+- `src/router/ProtectedRoute.test.tsx` (3) : loader rehydration, redirect non-loggé (mock `window.location.replace`), rend children si loggé
+
+Cibles à étendre (par valeur, dans cet ordre) : `apiClient` refresh + retry, `TagsInput`, `AnalyticsPage`, `ConfirmDialog`, autres composants critiques.
+
 ## Roadmap — État actuel (mai 2026)
 
 ### En production ✅
@@ -259,7 +303,7 @@ Conséquence : **le navigateur voit toutes les requêtes comme same-origin**, ce
 - **Retirer le fallback Bearer** dans `auth.middleware` une fois que tous les clients utilisent les cookies (~1 sprint après stabilisation). Retirer aussi `accessToken` du retour JSON de `auth.controller` et du type `AuthSession` côté frontend.
 - **Hook `useApi` générique** côté frontend (~7 hooks de fetch redupliqués) : pattern uniforme loading/error/data, intégration apiClient, retour typé.
 - **Custom domain** (`app.knowdesk.fr` + `api.knowdesk.fr`) : remplacer le proxy Vercel par des sous-domaines de la même TLD+1, pour éviter le hop supplémentaire et avoir des cookies natifs sans rewrite.
-- **Tests frontend** : zéro test côté frontend ; vitest installé. Cibler ArticleEditor (sauvegarde + tags), TagsInput (autocomplete), AnalyticsPage, ProtectedRoute, le bridge router. Côté backend, **65 tests passants** (auth + multi-tenancy + permissions + FAQs) couvrent les chemins critiques.
+- **Tests frontend** : socle posé (8 tests sur authStore + ProtectedRoute, vitest + jsdom + Testing Library — voir section « Tests » ci-dessus). Cibles à étendre : `apiClient` refresh+retry, `TagsInput` autocomplete, `ArticleEditor`, `AnalyticsPage`, le bridge router. Côté backend, **65 tests passants** (auth + multi-tenancy + permissions + FAQs).
 - **Multilingue FR + EN** (~5-7 sprints au total, à challenger) — projet ambitieux mis en backlog. Découpé en 4 phases :
   - **Phase 1 — i18n UI** (~2-3 sprints) : `react-i18next` ou équivalent, extraction des ~600-800 strings hardcodées, 2 fichiers `fr.json`/`en.json`, setting `language` user (default depuis `navigator.language`), templates emails Resend par langue, aide en ligne (53 articles markdown) traduite **manuellement** par humain (qualité prime).
   - **Phase 2 — Articles avec langue déclarée** (~1 sprint) : champ `language` sur `articles` et `faqs` (default `fr` pour l'existant), détection auto au save (LLM court) avec override, filtre dans liste/search, bandeau « Cet article est en anglais » sans traduction encore.
