@@ -34,8 +34,16 @@ export function AiAnswerCard({ state, query, onSelectSource }: AiAnswerCardProps
   useEffect(() => { setFeedback(null); }, [query]);
 
   const handleCopy = useCallback(async () => {
-    // Strip HTML/markdown au cas où le LLM en a glissé, garde les références [n]
-    const plain = state.answer.replace(/<[^>]*>/g, '').trim();
+    // Strip HTML/markdown au cas où le LLM en a glissé, ET strip les
+    // références [n] / [n, m] / [n][m] : elles ne servent qu'à l'affichage
+    // dans la carte (cliquables vers les sources). Au copier-coller dans
+    // un mail/chat, elles polluent inutilement.
+    const plain = state.answer
+      .replace(/<[^>]*>/g, '')
+      .replace(/\s*\[\d+(?:\s*,\s*\d+)*\]/g, '')   // [1], [1, 2], [1,2,3]
+      .replace(/\s+([.,;:!?])/g, '$1')              // recolle ponctuation orpheline
+      .replace(/[ \t]{2,}/g, ' ')                   // double espaces résiduels
+      .trim();
     try {
       await navigator.clipboard.writeText(plain);
       toast.success('Réponse copiée');
