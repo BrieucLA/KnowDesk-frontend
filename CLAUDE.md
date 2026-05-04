@@ -26,7 +26,7 @@ KnowDesk est un SaaS de base de connaissance pour les équipes service client. I
 
 - Production backend : `https://knowdesk-production.up.railway.app`
 - Production frontend : `https://know-desk-frontend.vercel.app`
-- DB Railway (public) : `postgresql://postgres:WoTivcNBsUnOykDqzBwnFqvgzFCAGtoK@shinkansen.proxy.rlwy.net:46631/railway`
+- DB Railway (public) : voir variable `DATABASE_URL` dans Railway → service Postgres → onglet Variables. **Ne JAMAIS commit le mot de passe en clair** (cf incident sécurité — rotation effectuée).
 
 ## Structure des projets
 
@@ -172,8 +172,12 @@ Après chaque nouvelle migration, lancer :
 
 ```bash
 cd ~/KDProject/knowdesk-backend
-DATABASE_URL="postgresql://postgres:WoTivcNBsUnOykDqzBwnFqvgzFCAGtoK@shinkansen.proxy.rlwy.net:46631/railway" npm run migrate
+# Récupère DATABASE_URL depuis Railway → service Postgres → Variables.
+# Stocke-le localement dans ~/.zshrc ou un fichier .env.local non commité.
+DATABASE_URL="$DATABASE_URL_PROD" npm run migrate
 ```
+
+> ⚠️ **Sécurité** : ne JAMAIS commit la valeur réelle de `DATABASE_URL` dans le repo, ni dans aucun fichier markdown (CLAUDE.md, README, docs). Variables d'env uniquement, ou bien export shell local ignoré par git.
 
 ## Variables d'environnement Railway (backend)
 
