@@ -25,6 +25,8 @@ export interface AiOrgSettings {
 
 export type ChatHandoffMode = 'none' | 'webhook' | 'email';
 
+export type ChatRetentionDays = 30 | 60 | 90 | 180;
+
 export interface ChatOrgSettings {
   chat_enabled:             boolean;
   chat_welcome_message:     string | null;
@@ -43,6 +45,9 @@ export interface ChatOrgSettings {
   chat_privacy_notice?:        string | null;
   /** URL externe politique de confidentialité (lien optionnel). null = pas de lien. */
   chat_privacy_policy_url?:    string | null;
+  /** Durée de conservation des conversations chat avant hard-delete (RGPD).
+   *  Valeurs autorisées : 30 / 60 / 90 / 180. Default 90. */
+  chat_retention_days?:        ChatRetentionDays;
   // Personnalisation IA partagée avec la Réponse IA (table organizations)
   industry?:        string | null;
   ai_tone?:         AiTone | null;

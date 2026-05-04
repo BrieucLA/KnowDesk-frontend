@@ -2,11 +2,12 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Button }            from '../../../shared/components/ui/Button';
 import { Input }             from '../../../shared/components/ui/Input';
 import { Skeleton }          from '../../../shared/components/ui/Skeleton';
+import { ConfirmDialog }     from '../../../shared/components/ui/ConfirmDialog';
 import { apiClient, ApiError } from '../../../shared/lib/apiClient';
 import { useToast }          from '../../../shared/lib/useToast';
 import { useAuthStore }      from '../../../store/authStore';
 import type {
-  ChatOrgSettings, ChatHandoffMode,
+  ChatOrgSettings, ChatHandoffMode, ChatRetentionDays,
   AiTone, AiAddressForm, AiGlossaryEntry,
 } from '../types';
 
@@ -42,11 +43,22 @@ export function ChatbotSettingsSection() {
     chat_system_prompt:        null,
     chat_privacy_notice:       null,
     chat_privacy_policy_url:   null,
+    chat_retention_days:       90,
     industry:                  '',
     ai_tone:                   null,
     ai_address_form:           null,
     ai_glossary:               [],
   });
+  /** Valeur de rétention au chargement — sert de référence pour détecter
+   *  une baisse et déclencher la confirmation avec preview du count. */
+  const [initialRetention, setInitialRetention] = useState<ChatRetentionDays>(90);
+  /** Données du ConfirmDialog quand l'admin baisse la rétention.
+   *  null = pas de dialog ouvert. */
+  const [retentionConfirm, setRetentionConfirm] = useState<{
+    days:    ChatRetentionDays;
+    count:   number;
+    loading: boolean;
+  } | null>(null);
   const [domainsDraft, setDomainsDraft] = useState('');
   const [widgetMounted, setWidgetMounted] = useState(false);
   /** Prompt généré par défaut côté backend — sert au pré-remplissage et au reset. */
@@ -140,12 +152,14 @@ export function ChatbotSettingsSection() {
           chat_system_prompt:        o.chat_system_prompt ?? null,
           chat_privacy_notice:       o.chat_privacy_notice ?? null,
           chat_privacy_policy_url:   o.chat_privacy_policy_url ?? null,
+          chat_retention_days:       (o.chat_retention_days as ChatRetentionDays) ?? 90,
           industry:                  o.industry ?? '',
           ai_tone:                   o.ai_tone ?? null,
           ai_address_form:           o.ai_address_form ?? null,
           ai_glossary:               Array.isArray(o.ai_glossary) ? o.ai_glossary : [],
         });
         setDomainsDraft((o.chat_allowed_domains ?? []).join('\n'));
+        setInitialRetention((o.chat_retention_days as ChatRetentionDays) ?? 90);
         setDefaultPrompt(o.chat_system_prompt_default ?? '');
         // Si custom prompt en DB → on l'affiche, sinon on pré-remplit avec le défaut
         // pour transparence (l'admin VOIT ce qui est utilisé). Le flag hasCustomPrompt
@@ -158,8 +172,9 @@ export function ChatbotSettingsSection() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleSave = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Save réel — appelé soit directement (cas standard), soit après
+  // confirmation de l'admin (baisse de rétention).
+  const doSave = useCallback(async () => {
     setSaving(true);
     try {
       const allowedDomains = domainsDraft
@@ -190,6 +205,7 @@ export function ChatbotSettingsSection() {
           systemPrompt:      systemPromptToSave,
           privacyNotice:     (form.chat_privacy_notice ?? '').trim() || null,
           privacyPolicyUrl:  (form.chat_privacy_policy_url ?? '').trim() || null,
+          retentionDays:     form.chat_retention_days ?? 90,
         }),
         // Personnalisation IA — partagée avec la section Réponse IA
         apiClient.patch('/settings/org/ai', {
@@ -215,6 +231,9 @@ export function ChatbotSettingsSection() {
         chat_allowed_domains: allowedDomains,
         chat_system_prompt:   systemPromptToSave,
       }));
+      // Mémorise la nouvelle rétention comme baseline — un save ultérieur
+      // qui la rebaisse re-déclenchera la confirmation, sinon non.
+      setInitialRetention((form.chat_retention_days ?? 90) as ChatRetentionDays);
       // Re-verrouille automatiquement le prompt après une sauvegarde
       // réussie : l'admin doit cliquer "Modifier" à nouveau pour repasser
       // en édition (cohérent avec le défaut "lecture seule").
@@ -228,6 +247,41 @@ export function ChatbotSettingsSection() {
       setSaving(false);
     }
   }, [form, domainsDraft, promptDraft, hasCustomPrompt, defaultPrompt, toast]);
+
+  // Submit handler du formulaire — détecte la baisse de rétention et
+  // déclenche la confirmation avant l'appel save réel.
+  const handleSave = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    const newRetention = (form.chat_retention_days ?? 90) as ChatRetentionDays;
+    if (newRetention < initialRetention) {
+      try {
+        const preview = await apiClient.get<{ days: number; count: number; cutoff: string }>(
+          `/settings/org/chat/retention-preview?days=${newRetention}`,
+        );
+        // 0 conv concernée → on saute la confirmation, c'est juste un changement de réglage
+        if (preview.count === 0) {
+          await doSave();
+          return;
+        }
+        setRetentionConfirm({ days: newRetention, count: preview.count, loading: false });
+      } catch (err) {
+        toast.error(err instanceof ApiError ? err.message : 'Impossible d\'estimer le nombre de conversations à supprimer.');
+      }
+      return;
+    }
+    await doSave();
+  }, [form.chat_retention_days, initialRetention, doSave, toast]);
+
+  const confirmRetentionChange = useCallback(async () => {
+    if (!retentionConfirm) return;
+    setRetentionConfirm(c => c ? { ...c, loading: true } : c);
+    try {
+      await doSave();
+      setRetentionConfirm(null);
+    } catch {
+      setRetentionConfirm(c => c ? { ...c, loading: false } : c);
+    }
+  }, [retentionConfirm, doSave]);
 
   const restorePromptDefault = useCallback(() => {
     setPromptDraft(defaultPrompt);
@@ -681,6 +735,30 @@ export function ChatbotSettingsSection() {
             onChange={e => setForm(f => ({ ...f, chat_privacy_policy_url: e.target.value }))}
             helperText="Si fourni, un lien « ▸ En savoir plus » apparaît sous le disclaimer (s'ouvre dans un nouvel onglet). Vide → pas de lien."
           />
+
+          <div className="field">
+            <label htmlFor="chat-retention-days" className="field-label">
+              Durée de conservation des conversations
+            </label>
+            <select
+              id="chat-retention-days"
+              className="field-input"
+              value={form.chat_retention_days ?? 90}
+              onChange={e => setForm(f => ({
+                ...f,
+                chat_retention_days: Number(e.target.value) as ChatRetentionDays,
+              }))}
+            >
+              <option value={30}>30 jours</option>
+              <option value={60}>60 jours</option>
+              <option value={90}>90 jours (par défaut)</option>
+              <option value={180}>180 jours</option>
+            </select>
+            <p className="field-helper">
+              Au-delà de cette durée, les conversations sont définitivement supprimées
+              de notre base (purge quotidienne RGPD).
+            </p>
+          </div>
         </fieldset>
 
         <div className="settings-form__actions">
@@ -765,6 +843,27 @@ export function ChatbotSettingsSection() {
           Copier le snippet
         </Button>
       </form>
+
+      {retentionConfirm && (
+        <ConfirmDialog
+          title="Réduire la durée de conservation"
+          description={
+            `${retentionConfirm.count} conversation${retentionConfirm.count > 1 ? 's' : ''} `
+          + `de plus de ${retentionConfirm.days} jours `
+          + `${retentionConfirm.count > 1 ? 'seront supprimées' : 'sera supprimée'} définitivement `
+          + `lors de la prochaine purge quotidienne. Cette action est irréversible.`
+          }
+          confirmLabel="Confirmer"
+          variant="danger"
+          loading={retentionConfirm.loading}
+          onConfirm={confirmRetentionChange}
+          onCancel={() => {
+            // Restaure la valeur initiale dans le form
+            setForm(f => ({ ...f, chat_retention_days: initialRetention }));
+            setRetentionConfirm(null);
+          }}
+        />
+      )}
     </section>
   );
 }
