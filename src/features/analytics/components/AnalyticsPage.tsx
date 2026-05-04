@@ -6,6 +6,7 @@ import { apiClient }       from '../../../shared/lib/apiClient';
 import { useAnalytics }    from '../hooks/useAnalytics';
 import { analyticsApi, type FaqSuggestion } from '../api/analyticsApi';
 import { KbScoreCard } from '../../kbscore/components/KbScoreCard';
+import { InfoTooltip } from '../../../shared/components/ui/Tooltip';
 import type {
   AnalyticsOverview, ArticleSummary, TopContributor,
   CategoryCoverage, TopTag, UnusedTag,
@@ -432,7 +433,17 @@ function AiAnswerStatsBanner({ onCreateFaq }: { onCreateFaq?: (q: string) => voi
       <div className="ai-stats__row">
         <div className="ai-stats__metric">
           <span className="ai-stats__metric-value">{stats.totalShown}</span>
-          <span className="ai-stats__metric-label">Réponses générées</span>
+          <span className="ai-stats__metric-label">
+            Réponses générées par IA
+            <InfoTooltip
+              title="Réponses générées par IA"
+              rows={[
+                { label: 'Quoi',   text: 'nombre total de réponses IA produites par la barre Cmd+K (conseillers internes) sur 30 jours, qu\'elles aient abouti ou non.' },
+                { label: 'Calcul', text: 'appels à l\'IA agrégés sur 30 jours, après déduplication des frappes intermédiaires (une recherche tapée en plusieurs étapes compte 1, pas N).' },
+                { label: 'Action', text: 'ce n\'est pas un objectif chiffré en soi — c\'est un volume d\'usage. Il sert de dénominateur aux KPI suivants (Réponses précises / Sans réponse / Utiles). Si très bas par rapport au nombre de conseillers actifs, la fonction IA est sous-utilisée — fais une démo Cmd+K en réunion.' },
+              ]}
+            />
+          </span>
         </div>
         <div className="ai-stats__metric">
           <span className="ai-stats__metric-value">{stats.doneCount}</span>
