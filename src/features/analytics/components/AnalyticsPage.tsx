@@ -5,6 +5,7 @@ import { formatRelative }  from '../../../shared/lib/formatDate';
 import { apiClient }       from '../../../shared/lib/apiClient';
 import { useAnalytics }    from '../hooks/useAnalytics';
 import { analyticsApi, type FaqSuggestion } from '../api/analyticsApi';
+import { KbScoreCard } from '../../kbscore/components/KbScoreCard';
 import type {
   AnalyticsOverview, ArticleSummary, TopContributor,
   CategoryCoverage, TopTag, UnusedTag,
@@ -48,6 +49,8 @@ export function AnalyticsPage({ onOpenArticle, onCreateFaq }: AnalyticsPageProps
           Vue d'ensemble de la santé éditoriale de votre base de connaissance.
         </p>
       </header>
+
+      <KbScoreCard />
 
       <InventoryRow inventory={data.inventory} />
       <EngagementRow engagement={data.engagement} windowDays={data.windowDays} />
