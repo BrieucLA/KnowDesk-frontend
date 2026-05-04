@@ -59,7 +59,16 @@ const DIM_META: Array<{
       { label: 'Action', text: 'si bas, fais une démo Cmd+K en réunion d\'équipe et identifie les sujets manquants — les conseillers reviennent quand ils trouvent leurs réponses.' },
     ],
   },
-  { key: 'clarity',      label: 'Clarté',       hint: 'Articles dans la fenêtre 200-2000 mots',        tooltip: null },
+  {
+    key:   'clarity',
+    label: 'Clarté',
+    hint:  'Articles dans la fenêtre 200-2000 mots',
+    tooltip: [
+      { label: 'Quoi',   text: '% des articles publiés actifs dont la longueur est dans la fenêtre lisible (200 à 2000 mots). Concerne uniquement les articles.' },
+      { label: 'Calcul', text: 'pour chaque article publié actif, on compte les mots du contenu (HTML retiré). Les articles trop courts (< 200 mots, stubs probables) ou trop longs (> 2000 mots, rarement lus jusqu\'au bout) sortent du score.' },
+      { label: 'Action', text: 'si bas, ouvre la liste des articles, identifie les très courts (à enrichir avec un exemple ou une procédure complète) et les très longs (à scinder en plusieurs articles plus ciblés).' },
+    ],
+  },
 ];
 
 function dimTone(score: number | null): string {
