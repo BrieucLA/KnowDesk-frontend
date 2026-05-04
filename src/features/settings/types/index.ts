@@ -6,6 +6,7 @@ export type SettingsSection =
   | 'api'
   | 'search'
   | 'tags'
+  | 'imports'
   | 'billing'
   | 'danger';
 

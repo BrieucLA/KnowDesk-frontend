@@ -141,12 +141,18 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
   }, []);
 
   // Query params depuis la palette : `?cat=<id>` sélectionne, `?action=new-category` ouvre la modale.
+  // location.state.preselectCategoryId : navigation programmatique (ex. depuis Settings → Imports → "Voir les articles").
   // On consomme le param puis on nettoie l'URL pour qu'un F5 ne réapplique pas l'effet.
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const catParam    = params.get('cat');
     const actionParam = params.get('action');
+    const stateCatId  = (location.state as { preselectCategoryId?: string } | null)?.preselectCategoryId;
     let consumed = false;
+    if (stateCatId) {
+      setSelectedCatId(stateCatId);
+      consumed = true;
+    }
     if (catParam) {
       setSelectedCatId(catParam);
       consumed = true;

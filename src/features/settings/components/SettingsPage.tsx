@@ -10,6 +10,7 @@ import { SearchSettingsSection } from './SearchSettingsSection';
 import { TagsSettingsSection }   from './TagsSettingsSection';
 import { AiSettingsSection }     from './AiSettingsSection';
 import { ChatbotSettingsSection } from './ChatbotSettingsSection';
+import { ImportsSettingsSection } from './ImportsSettingsSection';
 import type { SettingsSection, NotifPreferences } from '../types';
 
 interface SettingsPageProps {
@@ -51,6 +52,7 @@ export function SettingsPage({ initialSection = 'general' }: SettingsPageProps) 
         {activeSection === 'api' && <ApiKeysSection />}
         {activeSection === 'search'        && <SearchSettingsSection />}
         {activeSection === 'tags'          && <TagsSettingsSection />}
+        {activeSection === 'imports'       && <ImportsSettingsSection />}
         {activeSection === 'billing'       && <SectionBilling />}
         {activeSection === 'danger'        && <SectionDanger />}
       </div>
@@ -66,6 +68,7 @@ const SECTIONS: { id: SettingsSection; label: string; adminOnly?: boolean }[] = 
   { id: 'api',           label: 'API'                 },
   { id: 'search',        label: 'Recherche', adminOnly: true },
   { id: 'tags',          label: 'Tags',      adminOnly: true },
+  { id: 'imports',       label: '📥 Imports', adminOnly: true },
   { id: 'billing',       label: 'Facturation'         },
   { id: 'danger',        label: 'Zone de danger'      },
 ];
