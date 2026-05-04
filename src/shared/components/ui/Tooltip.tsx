@@ -61,15 +61,24 @@ export function InfoTooltip({ title, rows, children, ariaLabel }: InfoTooltipPro
     return () => window.removeEventListener('keydown', onKey);
   }, [open]);
 
-  // Smart placement : à l'ouverture, on regarde si le trigger a au moins
-  // ~200px d'espace au-dessus dans le viewport. Sinon on bascule la bulle
-  // en dessous. Hauteur estimée d'une bulle 4 rangées ≈ 180px + marge.
-  useEffect(() => {
-    if (!open || !wrapRef.current) return;
-    const rect = wrapRef.current.getBoundingClientRect();
-    const ESTIMATED_HEIGHT = 200;
-    setPlacement(rect.top >= ESTIMATED_HEIGHT ? 'top' : 'bottom');
-  }, [open]);
+  /**
+   * Smart placement calculé AVANT d'ouvrir la bulle (dans les handlers).
+   * Précédemment via useEffect post-mount → 1 frame de flicker en 'top'
+   * quand le bon placement aurait dû être 'bottom'. Maintenant on mesure
+   * juste avant setOpen(true) → render direct avec le bon placement.
+   * Hauteur bulle estimée 200px (4 rangées + marge).
+   */
+  const openTooltip = () => {
+    if (wrapRef.current) {
+      const rect = wrapRef.current.getBoundingClientRect();
+      setPlacement(rect.top >= 200 ? 'top' : 'bottom');
+    }
+    setOpen(true);
+  };
+  const toggleTooltip = () => {
+    if (open) { setOpen(false); return; }
+    openTooltip();
+  };
 
   // Click outside pour fermer
   useEffect(() => {
@@ -91,7 +100,7 @@ export function InfoTooltip({ title, rows, children, ariaLabel }: InfoTooltipPro
     <span
       ref={wrapRef}
       className="info-tooltip"
-      onMouseEnter={() => setOpen(true)}
+      onMouseEnter={openTooltip}
       onMouseLeave={() => setOpen(false)}
     >
       <button
@@ -100,9 +109,9 @@ export function InfoTooltip({ title, rows, children, ariaLabel }: InfoTooltipPro
         aria-label={ariaLabel ?? `À propos de ${title}`}
         aria-describedby={open ? tooltipId : undefined}
         aria-expanded={open}
-        onFocus={() => setOpen(true)}
+        onFocus={openTooltip}
         onBlur={() => setOpen(false)}
-        onClick={e => { e.stopPropagation(); setOpen(o => !o); }}
+        onClick={e => { e.stopPropagation(); toggleTooltip(); }}
       >
         <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
           <circle cx="7" cy="7" r="6" fill="none" stroke="currentColor" strokeWidth="1.2" />
