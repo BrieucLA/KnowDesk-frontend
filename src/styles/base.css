@@ -58,3 +58,22 @@ html, body, #root {
   .tree-question__text { font-size: 16px; }
   .article-editor__title-input { font-size: 24px; }
 }
+
+/* ── Full-screen loader (ProtectedRoute pendant rehydratation) ── */
+/* ── Full-screen loader ─────────────────────────────────────── */
+.loader-fullscreen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--neutral-0);
+}
+
+.loader-fullscreen__spinner {
+  width: 28px; height: 28px;
+  border: 2.5px solid var(--neutral-200);
+  border-top-color: var(--brand-500);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+

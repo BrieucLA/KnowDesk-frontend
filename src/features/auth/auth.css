@@ -12,3 +12,303 @@
 .forgot-success__title { font-size: 22px; font-weight: 500; color: var(--neutral-900); letter-spacing: -0.02em; }
 .forgot-success__desc  { font-size: 14px; color: var(--neutral-500); line-height: 1.5; max-width: 320px; }
 
+
+/* ── LoginPage + LoginForm + animations + responsive ──────── */
+/* ── Feature: LoginPage ─────────────────────────────────────── */
+.login-page {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  min-height: 100vh;
+}
+
+/* Left brand panel */
+.login-page__brand {
+  background: var(--brand-900);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Subtle geometric texture — top-left */
+.login-page__brand::before {
+  content: '';
+  position: absolute;
+  top: -80px; left: -80px;
+  width: 360px; height: 360px;
+  border: 1.5px solid rgba(255,255,255,.06);
+  border-radius: 50%;
+}
+.login-page__brand::after {
+  content: '';
+  position: absolute;
+  bottom: -120px; right: -120px;
+  width: 500px; height: 500px;
+  border: 1.5px solid rgba(255,255,255,.04);
+  border-radius: 50%;
+}
+
+.login-page__brand-inner {
+  position: relative;
+  z-index: 1;
+  padding: 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.login-page__logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.login-page__logo-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px; height: 44px;
+  background: var(--brand-500);
+  border-radius: var(--radius-md);
+  font-size: 20px;
+  font-weight: 500;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.login-page__logo-mark--sm {
+  width: 32px; height: 32px;
+  font-size: 15px;
+  border-radius: 7px;
+}
+
+.login-page__quote {
+  font-family: var(--font-brand);
+  font-size: 26px;
+  font-style: italic;
+  line-height: 1.4;
+  color: rgba(255,255,255,.85);
+  max-width: 280px;
+}
+
+.login-page__quote p::before { content: '\201C'; }
+.login-page__quote p::after  { content: '\201D'; }
+
+.login-page__brand-dots {
+  display: flex;
+  gap: 6px;
+}
+.login-page__brand-dots span {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.25);
+}
+.login-page__brand-dots span:first-child { background: rgba(255,255,255,.7); }
+
+/* Right form panel */
+.login-page__form-panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--neutral-0);
+}
+
+.login-page__form-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 48px;
+  max-width: 440px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.login-page__mobile-logo {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.login-page__app-name {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--neutral-900);
+  letter-spacing: -0.02em;
+}
+
+.login-page__header { margin-bottom: 32px; }
+
+.login-page__title {
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  color: var(--neutral-900);
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+
+.login-page__subtitle {
+  font-size: 14px;
+  color: var(--neutral-500);
+  line-height: 1.5;
+}
+
+/* Page footer */
+.login-page__footer {
+  padding: 20px 48px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border-top: 1px solid var(--neutral-100);
+}
+
+.login-page__footer-link {
+  font-size: 12px;
+  color: var(--neutral-400);
+  transition: color var(--t-fast);
+}
+.login-page__footer-link:hover { color: var(--neutral-700); }
+
+.login-page__footer-copy {
+  font-size: 12px;
+  color: var(--neutral-300);
+  margin-left: auto;
+}
+
+/* ── Feature: LoginForm ─────────────────────────────────────── */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.login-form__error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--color-danger-bg);
+  border: 1.5px solid var(--color-danger-border);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--color-danger);
+  line-height: 1.4;
+  animation: shake 0.4s ease;
+}
+
+.login-form__error-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px; height: 18px;
+  min-width: 18px;
+  border-radius: 50%;
+  background: var(--color-danger);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 1px;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-4px); }
+  60%       { transform: translateX(4px); }
+  80%       { transform: translateX(-2px); }
+}
+
+.login-form__password-wrap { position: relative; }
+
+.login-form__toggle-password {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--brand-600);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  transition: color var(--t-fast);
+  /* Account for the label above the input — shift into input area */
+  margin-top: 13px;
+}
+.login-form__toggle-password:hover { color: var(--brand-700); }
+.login-form__toggle-password:focus-visible {
+  outline: 2px solid var(--brand-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Offset input padding so text doesn't go under the toggle */
+.login-form__password-wrap .field-input { padding-right: 80px; }
+
+/* RegisterForm — toggle posé après l'<Input/> et superposé sur le champ */
+.input-toggle-pw {
+  margin-top: -32px;
+  float: right;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 14px;
+  position: relative;
+  z-index: 1;
+}
+.input-toggle-pw:focus-visible {
+  outline: 2px solid var(--brand-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.login-form__forgot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -6px;
+}
+
+.login-form__link {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--brand-600);
+  transition: color var(--t-fast);
+}
+.login-form__link:hover { color: var(--brand-700); text-decoration: underline; }
+
+.login-form__signup {
+  text-align: center;
+  font-size: 13px;
+  color: var(--neutral-500);
+}
+
+/* ── Page entry animation ───────────────────────────────────── */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.login-page__form-container > * {
+  animation: fade-up 0.35s ease both;
+}
+.login-page__header       { animation-delay: 0.05s; }
+.login-form               { animation-delay: 0.1s;  }
+
+/* ── Responsive — collapse to single column below 720px ─────── */
+@media (max-width: 720px) {
+  .login-page {
+    grid-template-columns: 1fr;
+  }
+  .login-page__brand { display: none; }
+  .login-page__form-container {
+    padding: 32px 24px;
+    justify-content: flex-start;
+    padding-top: 56px;
+  }
+  .login-page__mobile-logo { display: flex; }
+  .login-page__footer { padding: 20px 24px; }
+}
+

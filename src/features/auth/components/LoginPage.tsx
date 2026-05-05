@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { LoginForm }    from './LoginForm';
+import '../auth.css';
 import { RegisterForm } from './RegisterForm';
 import { useLogin }     from '../hooks/useLogin';
 import { useRegister }  from '../hooks/useRegister';
