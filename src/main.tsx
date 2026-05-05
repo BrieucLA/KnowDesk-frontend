@@ -3,15 +3,14 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { initSentry, Sentry } from './shared/lib/monitoring/sentry';
 import { App } from './App';
-// Foundation : tokens (variables CSS) + base (reset, root) — d'abord, pour que
-// les autres feuilles puissent utiliser les variables sans soucis de cascade.
+// Foundation : tokens (variables CSS) + base (reset, root) + layout (sidenav,
+// topbar) — d'abord, pour que les autres feuilles puissent utiliser les
+// variables sans soucis de cascade. Toutes les autres CSS sont co-localisées
+// avec leur composant/feature et chargées par les imports ESM (Vite les
+// concatène automatiquement dans le bundle final).
 import './styles/tokens.css';
 import './styles/base.css';
 import './styles/layout.css';
-import './styles/app.css';
-import './styles/sprint3.css';
-import './styles/sprint4.css';
-import './styles/sprint5.css';
 
 // Initialisé avant tout — capture les erreurs de boot React.
 initSentry();
