@@ -9,8 +9,18 @@ export function ImpersonateBanner() {
 
   if (!impersonating) return null;
 
-const handleReturn = () => {
+const handleReturn = async () => {
   const saToken = impersonating.saToken;
+  // CRUCIAL : appelle le backend pour clear le cookie HTTP-only access_token.
+  // Sans ça, le cookie d'impersonation reste valide 1h et toutes les actions
+  // suivantes (même en compte admin classique) sont attribuées au superadmin
+  // dans l'audit log via metadata.impersonatedBy.
+  try {
+    await fetch('/api/v1/superadmin/impersonate/stop', {
+      method:      'POST',
+      credentials: 'include',
+    });
+  } catch { /* best-effort, on continue le flow même en cas d'échec */ }
   setImpersonating(null);
   // Efface la session impersonnifiée sans toucher au store superadmin
   clearSession();
