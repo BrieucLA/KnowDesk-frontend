@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { formatRelative } from '../../../shared/lib/formatDate';
+import '../notifications.css';
 import type { Notification } from '../types';
 
 interface NotificationPanelProps {

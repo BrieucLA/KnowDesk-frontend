@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { MemberRow }     from './MemberRow';
+import '../members.css';
 import { InviteModal }   from './InviteModal';
 import { EmptyState }    from '../../../shared/components/ui/EmptyState';
 import { Skeleton }      from '../../../shared/components/ui/Skeleton';

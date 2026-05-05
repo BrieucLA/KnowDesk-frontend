@@ -1,0 +1,39 @@
+/* ─────────────────────────────────────────────────────────────
+   Feature Account — page Mon compte (mot de passe, email).
+   ───────────────────────────────────────────────────────────── */
+
+/* ── Account page ───────────────────────────────────────────── */
+.account-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+.account-page__title {
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--neutral-900);
+  letter-spacing: -0.02em;
+  margin-bottom: 24px;
+}
+.account-section {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-100);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.account-section__header { margin-bottom: 20px; }
+.account-section__title  { font-size: 15px; font-weight: 500; color: var(--neutral-900); }
+.account-section__desc   { font-size: 13px; color: var(--neutral-500); margin-top: 4px; }
+.account-form__row       { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.account-form__info      { margin: 12px 0; font-size: 13px; color: var(--neutral-500); }
+.account-form__email     { font-weight: 500; color: var(--neutral-700); }
+.account-form__actions   { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+.account-form__saved     { font-size: 13px; color: var(--color-success); }
+.account-success {
+  padding: 16px;
+  background: var(--color-success-bg, #EAF7F0);
+  color: var(--color-success, #1A6B3C);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+}

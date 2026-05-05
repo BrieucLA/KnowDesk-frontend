@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Input } from '../../../shared/components/ui/Input';
+import '../chats.css';
 import { Button } from '../../../shared/components/ui/Button';
 import { EmptyState } from '../../../shared/components/ui/EmptyState';
 import { Skeleton } from '../../../shared/components/ui/Skeleton';

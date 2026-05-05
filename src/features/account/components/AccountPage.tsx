@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useAccount }  from '../hooks/useAccount';
+import '../account.css';
 import { Button }      from '../../../shared/components/ui/Button';
 import { Input }       from '../../../shared/components/ui/Input';
 

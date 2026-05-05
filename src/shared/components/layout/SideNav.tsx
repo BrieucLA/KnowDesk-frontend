@@ -3,6 +3,8 @@ import { cn } from '../../lib/cn';
 import { useAuthStore, selectUserRole } from '../../../store/authStore';
 import { useNotifications } from '../../../features/notifications/hooks/useNotifications';
 import { NotificationPanel } from '../../../features/notifications/components/NotificationPanel';
+// .sidenav__badge est défini dans notifications.css (couplage badge ↔ feature notif)
+import '../../../features/notifications/notifications.css';
 
 export type NavRoute = 'dashboard' | 'search' | 'knowledge' | 'faqs' | 'trees' | 'team' | 'analytics' | 'chats' | 'audit' | 'settings' | 'account';
 
