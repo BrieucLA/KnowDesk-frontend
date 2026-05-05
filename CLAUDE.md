@@ -210,6 +210,31 @@ Aucune variable d'env requise côté Vercel. Le frontend appelle l'API en chemin
 
 Conséquence : **le navigateur voit toutes les requêtes comme same-origin**, ce qui permet l'usage de cookies HTTP-only `sameSite=lax` pour transporter l'access token (cf. backend `auth.controller.ts`).
 
+## Monitoring (Sentry)
+
+Backend et frontend sont équipés du SDK Sentry (`@sentry/node`, `@sentry/react`).
+Init conditionnelle : si `SENTRY_DSN` (backend) ou `VITE_SENTRY_DSN` (frontend)
+n'est pas posée, le SDK n'est pas initialisé (cas dev local par défaut).
+
+**2 projets Sentry séparés** : `knowdesk-backend` (Node) + `knowdesk-frontend` (React Vite).
+
+Choix RGPD/sécurité durcis :
+- `sendDefaultPii: false` — pas d'IP, pas de cookies, pas de headers PII
+- `beforeSend` redact via `redactPii.ts` (email, téléphone, IBAN, carte, sécu)
+- Strip systématique de `request.headers.authorization`, `cookie`, `x-api-key`, `request.data`
+- Pas de Sentry Replay (trop de surface RGPD pour du contenu chat/auth)
+- Pas d'upload source maps frontend (à activer ad hoc si besoin debug prod)
+
+Sample rates :
+- `tracesSampleRate: 0.1` (10%) en prod, `1.0` en dev
+- Événements 401/403/422 ignorés (déjà filtrés au errorHandler côté back, 2ᵉ ligne ici)
+
+Configuration prod :
+- Railway → KnowDesk → variable `SENTRY_DSN=https://xxx@oXXX.ingest.sentry.io/YYY`
+- Vercel → KnowDesk-frontend → variable `VITE_SENTRY_DSN=...`
+
+Frontend : `<Sentry.ErrorBoundary>` enveloppe l'app, fallback "Une erreur s'est produite".
+
 ## Tests
 
 Stack : **vitest + jsdom + @testing-library/react + @testing-library/jest-dom**.
