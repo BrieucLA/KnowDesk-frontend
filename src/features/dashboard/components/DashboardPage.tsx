@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { StatCard }            from './StatCard';
+import '../dashboard.css';
 import { ArticleRow }          from './ArticleRow';
 import { ActivationChecklist } from './ActivationChecklist';
 import { Skeleton }            from '../../../shared/components/ui/Skeleton';

@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { useOnboarding }  from '../hooks/useOnboarding';
+import '../onboarding.css';
 import { Input }          from '../../../shared/components/ui/Input';
 import { Button }         from '../../../shared/components/ui/Button';
 import { STEPS }          from '../types';

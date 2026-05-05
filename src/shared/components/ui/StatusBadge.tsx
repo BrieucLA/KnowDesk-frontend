@@ -1,4 +1,5 @@
 import React from 'react';
+import './StatusBadge.css';
 
 type Status = 'draft' | 'published' | 'archived';
 

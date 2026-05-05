@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { SearchResultItem }    from './SearchResultItem';
+import '../search.css';
 import { FaqResultExpansion }  from './FaqResultExpansion';
 import { AiAnswerCard }        from './AiAnswerCard';
 import { useSearch }           from '../hooks/useSearch';

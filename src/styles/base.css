@@ -23,3 +23,26 @@ html, body, #root {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* ── Accessibility utility ────────────────────────────────── */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0;
+  margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;
+}
+
+/* ── Responsive — collapse to single column below 720px ───── */
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .dashboard__grid { grid-template-columns: 1fr; }
+  .dashboard__sidebar { display: none; }
+  .dashboard__stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 720px) {
+  .app-layout { grid-template-columns: 1fr; }
+  .sidenav { display: none; }
+  .app-layout__content { padding: 20px 16px; }
+  .topbar { padding: 0 16px; }
+  .dashboard__stats { grid-template-columns: repeat(2, 1fr); }
+  .article-page { padding: 24px 20px; }
+}
+

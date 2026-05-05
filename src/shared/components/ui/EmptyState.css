@@ -1,0 +1,30 @@
+/* ─────────────────────────────────────────────────────────────
+   EmptyState — composant partagé "rien à afficher".
+   ───────────────────────────────────────────────────────────── */
+
+/* EmptyState */
+.empty-state {
+  text-align: center; padding: 48px 24px;
+  color: var(--neutral-400);
+}
+.empty-state__icon {
+  width: 48px; height: 48px; margin: 0 auto 12px;
+  background: var(--neutral-100); border-radius: var(--radius-lg);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--neutral-300);
+}
+.empty-state__title {
+  font-size: 15px; font-weight: 500; color: var(--neutral-700);
+  margin-bottom: 6px;
+}
+.empty-state__desc {
+  font-size: 13px; color: var(--neutral-400); max-width: 320px;
+  margin: 0 auto 20px; line-height: 1.5;
+}
+.empty-state__cta {
+  display: inline-flex; align-items: center;
+  padding: 8px 20px; background: var(--brand-600);
+  color: #fff; font-size: 13px; font-weight: 500;
+  border-radius: var(--radius-md); transition: background var(--t-fast);
+}
+.empty-state__cta:hover { background: var(--brand-700); }

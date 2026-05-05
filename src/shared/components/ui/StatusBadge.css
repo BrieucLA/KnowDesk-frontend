@@ -1,0 +1,15 @@
+/* ─────────────────────────────────────────────────────────────
+   StatusBadge (Badge) — composant partagé.
+   ───────────────────────────────────────────────────────────── */
+
+/* Badge */
+.badge {
+  display: inline-flex; align-items: center;
+  font-size: 11px; font-weight: 500; letter-spacing: .01em;
+  padding: 2px 8px; border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+.badge--success   { background: #EAF7F0; color: #1A6B3C; }
+.badge--secondary { background: var(--neutral-100); color: var(--neutral-500); }
+.badge--warning   { background: #FEF6E7; color: #7A4800; }
+.badge--info      { background: var(--brand-50); color: var(--brand-700); }
