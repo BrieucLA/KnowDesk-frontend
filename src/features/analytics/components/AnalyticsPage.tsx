@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Skeleton }       from '../../../shared/components/ui/Skeleton';
 import '../analytics.css';
+// Suggesteur "Créer une FAQ" et stats helpful : classes vivent dans faqs.css
+import '../../faqs/faqs.css';
 import { Button }          from '../../../shared/components/ui/Button';
 import { formatRelative }  from '../../../shared/lib/formatDate';
 import { apiClient }       from '../../../shared/lib/apiClient';

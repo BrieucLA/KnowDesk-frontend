@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useLocation }  from 'react-router-dom';
+import '../faqs.css';
 import { useFaq }       from '../hooks/useFaq';
 import { Button }       from '../../../shared/components/ui/Button';
 import { Input }        from '../../../shared/components/ui/Input';

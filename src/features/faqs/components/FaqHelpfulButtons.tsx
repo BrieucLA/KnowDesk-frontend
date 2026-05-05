@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { faqsApi }      from '../api/faqsApi';
+import '../faqs.css';
 import { useToast }     from '../../../shared/lib/useToast';
 import { ApiError }     from '../../../shared/lib/apiClient';
 import { cn }           from '../../../shared/lib/cn';
