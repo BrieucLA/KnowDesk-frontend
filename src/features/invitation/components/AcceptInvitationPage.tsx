@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAcceptInvitation } from '../hooks/useAcceptInvitation';
+import '../invitation.css';
 import { Button }  from '../../../shared/components/ui/Button';
 import { Input }   from '../../../shared/components/ui/Input';
 

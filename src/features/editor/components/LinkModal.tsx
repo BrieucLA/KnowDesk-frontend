@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button }     from '../../../shared/components/ui/Button';
+import '../editor.css';
 import { Input }      from '../../../shared/components/ui/Input';
 import { Modal }      from '../../../shared/components/ui/Modal';
 import { apiClient }  from '../../../shared/lib/apiClient';

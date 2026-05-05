@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button } from './Button';
+import './NotFoundPage.css';
 
 interface NotFoundPageProps {
   title?:       string;

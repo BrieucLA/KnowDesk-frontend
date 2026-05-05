@@ -1,0 +1,14 @@
+/* ─────────────────────────────────────────────────────────────
+   Feature Auth — login, register, forgot/reset password.
+   Note : la page Login est encore dans app.css (Sprint 4 lot final).
+   ───────────────────────────────────────────────────────────── */
+
+/* ── Forgot password ────────────────────────────────────────── */
+.forgot-success {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 16px; text-align: center; padding: 8px 0;
+}
+.forgot-success__icon  { font-size: 48px; line-height: 1; }
+.forgot-success__title { font-size: 22px; font-weight: 500; color: var(--neutral-900); letter-spacing: -0.02em; }
+.forgot-success__desc  { font-size: 14px; color: var(--neutral-500); line-height: 1.5; max-width: 320px; }
+

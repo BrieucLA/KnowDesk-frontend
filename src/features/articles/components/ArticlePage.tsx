@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { ArticleVersionHistory } from './ArticleVersionHistory';
+import '../articles.css';
 import { ArticleFaqSection }    from './ArticleFaqSection';
 import { StatusBadge }          from '../../../shared/components/ui/StatusBadge';
 import { Skeleton }       from '../../../shared/components/ui/Skeleton';

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useSuperadmin }   from '../hooks/useSuperadmin';
+import '../superadmin.css';
 import { Button }          from '../../../shared/components/ui/Button';
 import { ConfirmDialog }   from '../../../shared/components/ui/ConfirmDialog';
 import { formatRelative }  from '../../../shared/lib/formatDate';

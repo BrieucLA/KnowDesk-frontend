@@ -1,5 +1,6 @@
 import React from 'react';
 import { useForgotPassword } from '../hooks/useForgotPassword';
+import '../auth.css';
 import { Button }            from '../../../shared/components/ui/Button';
 import { Input }             from '../../../shared/components/ui/Input';
 

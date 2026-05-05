@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { formatRelative } from '../../../shared/lib/formatDate';
+import '../articles.css';
 import type { ArticleVersion } from '../types';
 
 interface ArticleVersionHistoryProps {
