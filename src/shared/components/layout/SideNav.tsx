@@ -4,7 +4,7 @@ import { useAuthStore, selectUserRole } from '../../../store/authStore';
 import { useNotifications } from '../../../features/notifications/hooks/useNotifications';
 import { NotificationPanel } from '../../../features/notifications/components/NotificationPanel';
 
-export type NavRoute = 'dashboard' | 'search' | 'knowledge' | 'faqs' | 'trees' | 'team' | 'analytics' | 'chats' | 'settings' | 'account';
+export type NavRoute = 'dashboard' | 'search' | 'knowledge' | 'faqs' | 'trees' | 'team' | 'analytics' | 'chats' | 'audit' | 'settings' | 'account';
 
 interface NavItem {
   id:        NavRoute;
@@ -12,6 +12,9 @@ interface NavItem {
   href:      string;
   icon:      React.ReactNode;
   adminOnly?: boolean;
+  /** True : visible UNIQUEMENT pour role='admin' (exclut manager).
+   *  Sert pour les pages où le backend exige role strict ('admin' seul). */
+  adminStrict?: boolean;
 }
 
 interface SideNavProps {
@@ -28,6 +31,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'team',      label: 'Équipe',    href: '/team',       icon: <TeamIcon />,  adminOnly: true },
   { id: 'analytics', label: 'Analytics', href: '/analytics',  icon: <ChartIcon />, adminOnly: true },
   { id: 'chats',     label: 'Chats',     href: '/chats',      icon: <ChatIcon />,  adminOnly: true },
+  { id: 'audit',     label: 'Audit',     href: '/audit',      icon: <AuditIcon />, adminOnly: true, adminStrict: true },
 ];
 
 const BOTTOM_ITEMS: NavItem[] = [
@@ -63,6 +67,7 @@ const initials = (() => {
 
   const renderItem = (item: NavItem) => {
     if (item.adminOnly && !isAdmin) return null;
+    if (item.adminStrict && role !== 'admin') return null;
     const isActive = item.id === active;
 
     return (
@@ -294,6 +299,16 @@ function ChatIcon() {
       <circle cx="6" cy="7" r="0.7" fill="currentColor"/>
       <circle cx="9" cy="7" r="0.7" fill="currentColor"/>
       <circle cx="12" cy="7" r="0.7" fill="currentColor"/>
+    </svg>
+  );
+}
+function AuditIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <rect x="3" y="2" width="11" height="14" rx="1.5"
+        stroke="currentColor" strokeWidth="1.4" fill="none"/>
+      <path d="M6 6h6M6 9h6M6 12h4"
+        stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
     </svg>
   );
 }
