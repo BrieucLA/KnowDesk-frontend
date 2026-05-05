@@ -3,6 +3,10 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { initSentry, Sentry } from './shared/lib/monitoring/sentry';
 import { App } from './App';
+// Foundation : tokens (variables CSS) + base (reset, root) — d'abord, pour que
+// les autres feuilles puissent utiliser les variables sans soucis de cascade.
+import './styles/tokens.css';
+import './styles/base.css';
 import './styles/app.css';
 import './styles/sprint3.css';
 import './styles/sprint4.css';

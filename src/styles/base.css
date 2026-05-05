@@ -1,0 +1,25 @@
+/* ─────────────────────────────────────────────────────────────
+   KnowDesk — Base styles
+   Reset CSS + html/body root + accessibilité globale (motion).
+   À importer juste après tokens.css pour que les variables soient dispo.
+   ───────────────────────────────────────────────────────────── */
+
+/* ── Reset ──────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; cursor: pointer; border: none; background: none; }
+
+/* ── Root ───────────────────────────────────────────────────── */
+html, body, #root {
+  height: 100%;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--neutral-900);
+  background: var(--neutral-0);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Accessibility: reduced motion ─────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

@@ -1,71 +1,9 @@
 /* ─────────────────────────────────────────────────────────────
-   KnowDesk — Design System CSS
-   Aesthetic: refined enterprise minimalism with warm accents.
-   Font pairing: DM Sans (UI) + DM Serif Display (brand quote)
+   KnowDesk — Atoms + features residual
+   Tokens et base ont migré vers tokens.css / base.css.
+   Ce fichier accueille temporairement les atoms (Button, Input) et la
+   feature LoginPage en attendant leur extraction (Axe F Sprint 2 + 4).
    ───────────────────────────────────────────────────────────── */
-
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap');
-
-/* ── Reset ──────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-a { color: inherit; text-decoration: none; }
-button { font: inherit; cursor: pointer; border: none; background: none; }
-
-/* ── Tokens ─────────────────────────────────────────────────── */
-:root {
-  /* Brand */
-  --brand-50:  #F0F4FF;
-  --brand-100: #D6E0FF;
-  --brand-200: #A8BCFF;
-  --brand-500: #3D5FD9;
-  --brand-600: #2D4BB8;
-  --brand-700: #1E3490;
-  --brand-900: #0D1B5A;
-
-  /* Neutrals — warm gray tint */
-  --neutral-0:   #FFFFFF;
-  --neutral-50:  #F8F7F5;
-  --neutral-100: #F0EEE9;
-  --neutral-200: #E3E0D9;
-  --neutral-300: #C8C5BC;
-  --neutral-400: #9E9B93;
-  --neutral-500: #6B6862;
-  --neutral-700: #3A3834;
-  --neutral-900: #1A1917;
-
-  /* Semantic */
-  --color-danger:     #C0392B;
-  --color-danger-bg:  #FEF2F0;
-  --color-danger-border: #FAC5BF;
-  --color-success:    #1A6B3C;
-  --color-success-bg: #EDFAF3;
-
-  /* Typography */
-  --font-ui:    'DM Sans', sans-serif;
-  --font-brand: 'DM Serif Display', serif;
-
-  /* Sizing */
-  --radius-sm:  4px;
-  --radius-md:  8px;
-  --radius-lg:  12px;
-  --radius-xl:  16px;
-  --input-h:    42px;
-  --sidebar-w:  420px;
-
-  /* Transitions */
-  --t-fast:   120ms ease;
-  --t-normal: 200ms ease;
-}
-
-/* ── Base ───────────────────────────────────────────────────── */
-html, body, #root {
-  height: 100%;
-  font-family: var(--font-ui);
-  font-size: 14px;
-  color: var(--neutral-900);
-  background: var(--neutral-0);
-  -webkit-font-smoothing: antialiased;
-}
 
 /* ── Atoms: Button ──────────────────────────────────────────── */
 .btn {
@@ -508,7 +446,3 @@ html, body, #root {
   .login-page__footer { padding: 20px 24px; }
 }
 
-/* ── Accessibility: reduced motion ─────────────────────────── */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
-}
