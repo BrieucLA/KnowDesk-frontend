@@ -1,0 +1,74 @@
+/* ─────────────────────────────────────────────────────────────
+   InfoTooltip — bulle d'aide réutilisable (composant Tooltip.tsx).
+   ───────────────────────────────────────────────────────────── */
+
+/* ───── InfoTooltip — bulle d'aide réutilisable ───── */
+.info-tooltip {
+  display: inline-flex; align-items: center; position: relative;
+  vertical-align: middle;
+  margin-left: 4px;
+  /* Casse les héritages de casse/spacing depuis le contexte parent
+     (ex: .ai-stats__metric-label qui a text-transform: uppercase). */
+  text-transform: none;
+  letter-spacing: normal;
+}
+.info-tooltip__trigger {
+  background: transparent; border: none; padding: 2px;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--neutral-500);
+  cursor: help;
+  border-radius: 50%;
+  line-height: 0;
+  transition: color var(--t-fast), background var(--t-fast);
+}
+.info-tooltip__trigger:hover,
+.info-tooltip__trigger:focus-visible {
+  color: var(--brand-600, #5B6CFF);
+  background: var(--neutral-100);
+  outline: none;
+}
+.info-tooltip__bubble {
+  position: absolute;
+  left: 50%; transform: translateX(-50%);
+  width: max-content;
+  max-width: 320px;
+  padding: 10px 12px;
+  background: #1f2937;
+  color: white;
+  border-radius: var(--radius-md);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+  font-size: 12.5px; line-height: 1.5;
+  text-align: left;
+  z-index: 100;
+  cursor: default;
+  pointer-events: auto;
+}
+.info-tooltip__bubble--top    { bottom: calc(100% + 8px); }
+.info-tooltip__bubble--bottom { top:    calc(100% + 8px); }
+.info-tooltip__title {
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: white;
+}
+.info-tooltip__rows { margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.info-tooltip__row  { display: flex; gap: 6px; align-items: flex-start; }
+.info-tooltip__row dt {
+  flex-shrink: 0;
+  font-weight: 600;
+  color: #d1d5db;
+  min-width: 48px;
+}
+.info-tooltip__row dd {
+  margin: 0;
+  color: white;
+}
+.info-tooltip__arrow {
+  position: absolute;
+  left: 50%;
+  width: 10px; height: 10px;
+  background: #1f2937;
+}
+.info-tooltip__arrow--top    { bottom: -5px; transform: translateX(-50%) rotate(45deg); }
+.info-tooltip__arrow--bottom { top:    -5px; transform: translateX(-50%) rotate(45deg); }
+
+

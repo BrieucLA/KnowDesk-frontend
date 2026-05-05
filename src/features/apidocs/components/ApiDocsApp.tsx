@@ -1,5 +1,6 @@
 import React from 'react';
 import { ENDPOINTS }     from '../data/endpoints';
+import '../apidocs.css';
 import { Sidebar }       from './Sidebar';
 import { EndpointCard }  from './EndpointCard';
 import { GettingStarted } from './GettingStarted';

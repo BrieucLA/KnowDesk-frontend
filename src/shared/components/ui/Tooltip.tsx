@@ -1,4 +1,5 @@
 import React, { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import './Tooltip.css';
 
 /**
  * InfoTooltip — petite icône ⓘ qui ouvre une bulle d'aide au hover/focus/tap.

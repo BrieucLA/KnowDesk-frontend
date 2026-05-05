@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useId } from 'react';
 import { apiClient, ApiError } from '../../../shared/lib/apiClient';
+import '../settings.css';
 import { useToast }     from '../../../shared/lib/useToast';
 import { Button }       from '../../../shared/components/ui/Button';
 import { Input }        from '../../../shared/components/ui/Input';
