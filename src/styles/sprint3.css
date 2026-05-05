@@ -12,15 +12,6 @@
 
 /* ── Shared atoms ─────────────────────────────────────────────── */
 
-/* Skeleton */
-.skeleton {
-  display: block;
-  background: var(--neutral-100);
-  border-radius: var(--radius-sm);
-  animation: shimmer 1.4s ease-in-out infinite;
-}
-@keyframes shimmer { 0%,100%{opacity:.5} 50%{opacity:1} }
-
 /* Badge */
 .badge {
   display: inline-flex; align-items: center;

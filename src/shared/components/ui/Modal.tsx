@@ -1,5 +1,6 @@
 import React, { useEffect, useId, useRef } from 'react';
 import { cn } from '../../lib/cn';
+import './Modal.css';
 
 export type ModalSize = 'sm' | 'md' | 'lg';
 

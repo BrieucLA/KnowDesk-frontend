@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import './ChipsInput.css';
 
 export interface ChipsInputProps {
   value:        string[];

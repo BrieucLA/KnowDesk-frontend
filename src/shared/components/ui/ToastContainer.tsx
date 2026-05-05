@@ -1,6 +1,7 @@
 import React from 'react';
 import { useToastList } from '../../lib/useToast';
 import type { Toast }   from '../../lib/useToast';
+import './Toast.css';
 
 export function ToastContainer() {
   const { toasts, remove } = useToastList();
