@@ -3,6 +3,7 @@ import { Modal }   from '../../../shared/components/ui/Modal';
 import { Button }  from '../../../shared/components/ui/Button';
 import { useToast } from '../../../shared/lib/useToast';
 import { importsApi, type ImportItem, type ImportSplitMode } from '../api/importsApi';
+import '../imports.css';
 
 interface ImportModalProps {
   onClose: () => void;

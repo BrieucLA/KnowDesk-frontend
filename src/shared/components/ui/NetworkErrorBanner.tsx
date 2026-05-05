@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import './NetworkErrorBanner.css';
 
 /**
  * Bannière qui apparaît quand la connexion est perdue.

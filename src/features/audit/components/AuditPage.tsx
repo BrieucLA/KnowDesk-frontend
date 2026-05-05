@@ -4,6 +4,7 @@ import { Modal }    from '../../../shared/components/ui/Modal';
 import { useToast } from '../../../shared/lib/useToast';
 import { formatRelative } from '../../../shared/lib/formatDate';
 import { auditApi, type AuditAction, type AuditLogItem } from '../api/auditApi';
+import '../audit.css';
 
 const PER_PAGE = 30;
 

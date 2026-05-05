@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuthStore } from '../../../store/authStore';
+import './ImpersonateBanner.css';
 
 export function ImpersonateBanner() {
   const impersonating    = useAuthStore(s => s.impersonating);

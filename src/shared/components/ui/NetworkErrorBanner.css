@@ -1,0 +1,25 @@
+/* ─────────────────────────────────────────────────────────────
+   NetworkErrorBanner — bandeau d'alerte réseau en haut d'écran.
+   ───────────────────────────────────────────────────────────── */
+
+.network-banner {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  background: #7A4800;
+  color: #fff;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  animation: slide-down 0.2s ease;
+}
+@keyframes slide-down {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(0); }
+}
+.network-banner__icon { font-size: 16px; }
