@@ -43,16 +43,27 @@ const ACTION_LABEL: Record<AuditAction, string> = {
 const ACTION_OPTIONS: AuditAction[] = Object.keys(ACTION_LABEL) as AuditAction[];
 
 function userLabel(item: AuditLogItem): string {
+  // Impersonation : action exécutée par un superadmin en peau d'un admin.
+  // user_id = admin (cohérent DB), metadata.impersonatedByEmail = superadmin.
+  const meta = (item.metadata ?? {}) as {
+    superadminEmail?:    string;
+    impersonatedByEmail?: string;
+  };
+
   if (!item.user) {
-    // user_id = NULL → action superadmin. L'identité est dans metadata.
-    const meta = item.metadata ?? {};
-    const email = (meta as { superadminEmail?: string }).superadminEmail;
+    // user_id NULL → action superadmin pure (ex: impersonate.start).
+    const email = meta.superadminEmail;
     if (email) return `${email} (superadmin)`;
     return '—';
   }
   const { firstName, lastName, email } = item.user;
   const fullName = [firstName, lastName].filter(Boolean).join(' ').trim();
-  return fullName.length > 0 ? `${fullName} (${email})` : email;
+  const base = fullName.length > 0 ? `${fullName} (${email})` : email;
+
+  if (meta.impersonatedByEmail) {
+    return `${base} — via ${meta.impersonatedByEmail} (superadmin)`;
+  }
+  return base;
 }
 
 export function AuditPage() {

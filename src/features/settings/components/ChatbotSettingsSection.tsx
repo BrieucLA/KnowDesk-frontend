@@ -52,6 +52,15 @@ export function ChatbotSettingsSection() {
   /** Valeur de rétention au chargement — sert de référence pour détecter
    *  une baisse et déclencher la confirmation avec preview du count. */
   const [initialRetention, setInitialRetention] = useState<ChatRetentionDays>(90);
+  /** Snapshot des champs IA au chargement — permet de skipper le PATCH /ai
+   *  quand rien n'a changé côté perso (évite un audit log parasite à chaque
+   *  save où seul le bloc chatbot a été touché). */
+  const [initialAi, setInitialAi] = useState<{
+    industry: string;
+    ai_tone: AiTone | null;
+    ai_address_form: AiAddressForm | null;
+    ai_glossary: AiGlossaryEntry[];
+  }>({ industry: '', ai_tone: null, ai_address_form: null, ai_glossary: [] });
   /** Données du ConfirmDialog quand l'admin baisse la rétention.
    *  null = pas de dialog ouvert. */
   const [retentionConfirm, setRetentionConfirm] = useState<{
@@ -160,6 +169,12 @@ export function ChatbotSettingsSection() {
         });
         setDomainsDraft((o.chat_allowed_domains ?? []).join('\n'));
         setInitialRetention((o.chat_retention_days as ChatRetentionDays) ?? 90);
+        setInitialAi({
+          industry:        o.industry ?? '',
+          ai_tone:         o.ai_tone ?? null,
+          ai_address_form: o.ai_address_form ?? null,
+          ai_glossary:     Array.isArray(o.ai_glossary) ? o.ai_glossary : [],
+        });
         setDefaultPrompt(o.chat_system_prompt_default ?? '');
         // Si custom prompt en DB → on l'affiche, sinon on pré-remplit avec le défaut
         // pour transparence (l'admin VOIT ce qui est utilisé). Le flag hasCustomPrompt
@@ -191,7 +206,18 @@ export function ChatbotSettingsSection() {
       const isStillDefault = !hasCustomPrompt && trimmedDraft === defaultPrompt.trim();
       const systemPromptToSave = isStillDefault ? null : (trimmedDraft.length >= 50 ? trimmedDraft : null);
 
-      await Promise.all([
+      // Détecte si la perso IA a changé depuis le chargement. Si non, on
+      // skip le PATCH /ai pour éviter un appel réseau ET une ligne audit log
+      // inutile (le PATCH /ai aurait sinon créé un audit log "IA modifiée"
+      // alors que rien n'a vraiment changé).
+      const currentGlossary = (form.ai_glossary ?? []).filter(g => g.from.trim() && g.to.trim());
+      const aiChanged =
+        (form.industry ?? '').trim()  !== (initialAi.industry ?? '').trim() ||
+        (form.ai_tone ?? null)         !== (initialAi.ai_tone ?? null) ||
+        (form.ai_address_form ?? null) !== (initialAi.ai_address_form ?? null) ||
+        JSON.stringify(currentGlossary) !== JSON.stringify(initialAi.ai_glossary);
+
+      const calls: Promise<unknown>[] = [
         apiClient.patch('/settings/org/chat', {
           enabled:           form.chat_enabled,
           welcomeMessage:    (form.chat_welcome_message  ?? '').trim() || null,
@@ -207,14 +233,16 @@ export function ChatbotSettingsSection() {
           privacyPolicyUrl:  (form.chat_privacy_policy_url ?? '').trim() || null,
           retentionDays:     form.chat_retention_days ?? 90,
         }),
-        // Personnalisation IA — partagée avec la section Réponse IA
-        apiClient.patch('/settings/org/ai', {
+      ];
+      if (aiChanged) {
+        calls.push(apiClient.patch('/settings/org/ai', {
           industry:    (form.industry ?? '').trim() || null,
           tone:        form.ai_tone ?? null,
           addressForm: form.ai_address_form ?? null,
-          glossary:    (form.ai_glossary ?? []).filter(g => g.from.trim() && g.to.trim()),
-        }),
-      ]);
+          glossary:    currentGlossary,
+        }));
+      }
+      await Promise.all(calls);
 
       // Recharge le prompt par défaut (les champs perso ont peut-être changé)
       const refreshed = await apiClient.get<ChatOrgSettings>('/settings/org');
@@ -234,6 +262,14 @@ export function ChatbotSettingsSection() {
       // Mémorise la nouvelle rétention comme baseline — un save ultérieur
       // qui la rebaisse re-déclenchera la confirmation, sinon non.
       setInitialRetention((form.chat_retention_days ?? 90) as ChatRetentionDays);
+      // Met à jour la baseline IA pour que le prochain save ne re-PATCH /ai
+      // que si l'admin re-modifie effectivement la perso.
+      setInitialAi({
+        industry:        (form.industry ?? '').trim(),
+        ai_tone:         form.ai_tone ?? null,
+        ai_address_form: form.ai_address_form ?? null,
+        ai_glossary:     currentGlossary,
+      });
       // Re-verrouille automatiquement le prompt après une sauvegarde
       // réussie : l'admin doit cliquer "Modifier" à nouveau pour repasser
       // en édition (cohérent avec le défaut "lecture seule").
