@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useTrees }    from '../hooks/useTrees';
+import '../trees.css';
 import { Button }      from '../../../shared/components/ui/Button';
 import { Input }       from '../../../shared/components/ui/Input';
 import { Modal }       from '../../../shared/components/ui/Modal';

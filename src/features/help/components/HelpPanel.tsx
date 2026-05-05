@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { HELP_CONTENT, HELP_INDEX } from '../content';
+import '../help.css';
 import type { HelpSection, HelpArticle } from '../content';
 
 interface HelpPanelProps {

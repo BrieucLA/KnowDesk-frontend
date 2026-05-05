@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useTreeEditor }  from '../hooks/useTreeEditor';
+import '../trees.css';
 import { Button }         from '../../../shared/components/ui/Button';
 import { Skeleton }       from '../../../shared/components/ui/Skeleton';
 import { ConfirmDialog }  from '../../../shared/components/ui/ConfirmDialog';

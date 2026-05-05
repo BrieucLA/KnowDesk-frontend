@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import '../search.css';
 import { apiClient } from '../../../shared/lib/apiClient';
 import { useAuthStore, selectUserRole } from '../../../store/authStore';
 import type { Category }     from '../../knowledge/types';
