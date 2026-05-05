@@ -10,11 +10,14 @@ function getSavedToken(): string | null {
 }
 
 async function saFetch<T>(path: string, token: string, options?: RequestInit): Promise<T> {
-  const base = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api/v1';
-  const res  = await fetch(`${base}/superadmin${path}`, {
+  // Chemin relatif : Vercel rewrite (prod) ou Vite proxy (dev) route vers Railway.
+  // credentials:include permet au navigateur d'accepter les Set-Cookie posés
+  // par le backend (cookie d'impersonation) ET d'envoyer les cookies existants.
+  const res = await fetch(`/api/v1/superadmin${path}`, {
     ...options,
+    credentials: 'include',
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type':  'application/json',
       'Authorization': `Bearer ${token}`,
       ...options?.headers,
     },
