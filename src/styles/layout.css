@@ -1,0 +1,125 @@
+/* ─────────────────────────────────────────────────────────────
+   KnowDesk — Layout
+   AppLayout (grid 56px sidebar + body), SideNav (vertical, sticky),
+   TopBar (search + actions). Importé en global depuis main.tsx.
+   ───────────────────────────────────────────────────────────── */
+
+/* ── AppLayout ────────────────────────────────────────────────── */
+.app-layout {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  min-height: 100vh;
+}
+.app-layout__body {
+  display: flex; flex-direction: column;
+  min-width: 0; background: var(--neutral-50);
+}
+.app-layout__content {
+  flex: 1; padding: 32px 40px;
+  max-width: 1200px; width: 100%;
+  outline: none;
+}
+
+/* ── SideNav ──────────────────────────────────────────────────── */
+.sidenav {
+  background: var(--neutral-0);
+  border-right: 1px solid var(--neutral-100);
+  display: flex; flex-direction: column;
+  align-items: center; padding: 16px 0;
+  position: sticky; top: 0; height: 100vh;
+}
+.sidenav__logo {
+  margin-bottom: 24px;
+}
+.sidenav__logo-mark {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; background: var(--brand-600);
+  border-radius: 8px; font-size: 15px; font-weight: 500; color: #fff;
+}
+.sidenav__list {
+  list-style: none; display: flex; flex-direction: column;
+  align-items: center; gap: 2px; flex: 1; width: 100%;
+  padding: 0 8px;
+}
+.sidenav__list--bottom {
+  flex: 0; margin-top: auto; padding-bottom: 4px;
+}
+.sidenav__item {
+  display: flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: var(--radius-md);
+  color: var(--neutral-400); transition: all var(--t-fast);
+  border: none; background: none; cursor: pointer;
+  position: relative;
+}
+.sidenav__item:hover { background: var(--neutral-100); color: var(--neutral-700); }
+.sidenav__item--active {
+  background: var(--brand-50); color: var(--brand-600);
+}
+.sidenav__item--active:hover { background: var(--brand-100); }
+.sidenav__label {
+  /* Label shown only for screen-readers in collapsed mode */
+  position: absolute; left: 48px; white-space: nowrap;
+  font-size: 12px; font-weight: 500; pointer-events: none;
+  background: var(--neutral-900); color: #fff;
+  padding: 4px 8px; border-radius: var(--radius-sm);
+  opacity: 0; transition: opacity var(--t-fast);
+  z-index: 100;
+}
+.sidenav__item:hover .sidenav__label,
+.sidenav__item:focus-visible .sidenav__label { opacity: 1; }
+.sidenav__icon { display: flex; align-items: center; justify-content: center; }
+.sidenav__avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--brand-100); color: var(--brand-700);
+  font-size: 12px; font-weight: 500;
+  display: flex; align-items: center; justify-content: center;
+  border: none; cursor: pointer; transition: all var(--t-fast);
+  margin: 4px;
+}
+.sidenav__avatar:hover { background: var(--brand-200); }
+.sidenav__avatar:focus-visible { outline: 2px solid var(--brand-500); outline-offset: 2px; }
+
+/* ── TopBar ───────────────────────────────────────────────────── */
+.topbar {
+  height: 56px; background: var(--neutral-0);
+  border-bottom: 1px solid var(--neutral-100);
+  display: flex; align-items: center;
+  padding: 0 40px; position: sticky; top: 0; z-index: 10;
+}
+.topbar__search-wrap { flex: 1; max-width: 540px; margin: 0 auto; }
+.topbar__search {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 12px; height: 34px;
+  background: var(--neutral-50); border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-full); transition: all var(--t-fast);
+  cursor: text;
+}
+.topbar__search:focus-within {
+  background: var(--neutral-0); border-color: var(--brand-400);
+  box-shadow: 0 0 0 3px var(--brand-100);
+}
+.topbar__search-icon { color: var(--neutral-400); flex-shrink: 0; }
+.topbar__search-input {
+  flex: 1; background: none; border: none; outline: none;
+  font-family: var(--font-ui); font-size: 13px; color: var(--neutral-900);
+}
+.topbar__search-input::placeholder { color: var(--neutral-400); }
+.topbar__kbd {
+  font-size: 10px; padding: 2px 5px; border-radius: 4px;
+  border: 1px solid var(--neutral-200); color: var(--neutral-400);
+  background: var(--neutral-0); font-family: var(--font-ui);
+}
+
+/* ── TopBar actions (logout, etc.) ─────────────────────────── */
+.topbar__actions {
+  display: flex; align-items: center; gap: 8px;
+  margin-left: auto; flex-shrink: 0;
+}
+.topbar__logout {
+  font-size: 13px; color: var(--neutral-400);
+  background: none; border: none; cursor: pointer;
+  font-family: var(--font-ui); padding: 4px 8px;
+  border-radius: var(--radius-md);
+  transition: all var(--t-fast);
+}
+.topbar__logout:hover { background: var(--neutral-100); color: var(--neutral-700); }
