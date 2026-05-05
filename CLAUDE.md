@@ -176,16 +176,26 @@ Règles essentielles :
 
 ## Migrations en production
 
-Après chaque nouvelle migration, lancer :
-
 ```bash
 cd ~/KDProject/knowdesk-backend
-# Récupère DATABASE_URL depuis Railway → service Postgres → Variables.
-# Stocke-le localement dans ~/.zshrc ou un fichier .env.local non commité.
+# Étape 1 : déplacer le .env local pour qu'il n'écrase pas DATABASE_URL_PROD.
+# node-pg-migrate (et son wrapper "npm run migrate") chargent automatiquement
+# le .env présent dans le cwd et la valeur du .env local prend le dessus.
+mv .env .env.bak
+
+# Étape 2 : appliquer la migration sur prod (DATABASE_URL_PROD doit être
+# exporté dans ton shell, par ex. via ~/.zshrc — ne JAMAIS commit la valeur).
 DATABASE_URL="$DATABASE_URL_PROD" npm run migrate
+
+# Étape 3 : restaurer le .env (à faire même si la migration échoue).
+mv .env.bak .env
 ```
 
 > ⚠️ **Sécurité** : ne JAMAIS commit la valeur réelle de `DATABASE_URL` dans le repo, ni dans aucun fichier markdown (CLAUDE.md, README, docs). Variables d'env uniquement, ou bien export shell local ignoré par git.
+
+> ⚠️ **Ordre push/migrate** : appliquer la migration AVANT de push le code qui en dépend. Sinon Railway redéploye, le service crashe au premier appel sur les colonnes manquantes (`SELECT new_col` sur table sans la colonne) et la prod est down jusqu'à la migration. Pattern safe : `migrate prod` → `git push` → Railway redéploye sur DB déjà schemée.
+
+> 🔄 **Rotation password Postgres** : utiliser le bouton **Regenerate** sur la variable `POSTGRES_PASSWORD` du service Postgres dans Railway (pas l'éditer manuellement). Ça déclenche un `ALTER USER` côté DB + propagation aux services qui référencent `${{ Postgres.DATABASE_URL }}`. Mettre à jour `DATABASE_URL_PROD` dans `~/.zshrc` puis `source ~/.zshrc`.
 
 ## Variables d'environnement Railway (backend)
 
@@ -303,6 +313,11 @@ Cibles à étendre (par valeur, dans cet ordre) : `apiClient` refresh + retry, `
 - **Page admin Chats** (`/chats`, admin only) — nouvelle entrée sidebar entre Analytics et Settings. Liste paginée 20/page triée date desc, filtre statut (all / active / resolved / escalated / abandoned), recherche full-text dans les transcripts (Postgres ILIKE sur `conversation_turns.content`). Chaque ligne affiche thématique + 1ʳᵉ question italique + badge statut + nb messages + CSAT/👍👎 si voté + date relative. Modale plein écran (`<Modal size="lg">`) avec bandeau métadonnées + bulles chat (visiteur droite/brand, bot gauche/blanc) scrollables max 60vh. URL deep-linkable.
 - **Prompt système chatbot personnalisable (Sprint 9, migration 21 `chat_system_prompt`)** — Settings → ✨ IA chatbot enrichi de 2 nouveaux blocs : **Personnalisation** (les 4 champs `industry` / `tone` / `addressForm` / `glossary` apparaissent ici aussi, partagés avec Réponse IA — note explicite affichée, 2 PATCHs en parallèle au save) et **Prompt système** (textarea pré-rempli avec le prompt actuellement utilisé : custom s'il existe, sinon le défaut généré par `buildSystemPrompt(perso, fallback)`). Édition libre = override total. Bouton **↺ Restaurer le défaut** repose `null` en DB. Min 50 chars, max 8000. Le défaut est recalculé à chaque GET `/settings/org` pour rester en phase avec les valeurs perso courantes.
 - **Analytics — dédup préfixes Réponse IA (Sprint 8)** — la section "Top questions" et "Questions sans réponse" filtre désormais les events `ai_answer.shown` "intermédiaires" : pour chaque user, un event dont la `query` est strictement préfixe d'un autre event du même user dans une fenêtre 60s est considéré comme keystroke en cours et écarté. Implémenté en post-processing JS sur ≤ 5000 events (lisible vs NOT EXISTS imbriqué). Rétro-actif. Côté frontend, debounce `useAiAnswer` monté 600 → 1200ms pour limiter à la source.
+- **Disclaimer RGPD chatbot (mai 2026)** — au 1ᵉʳ ouverture du widget chez un visiteur, écran dédié « Avant de commencer » avec icône, texte de transparence (configurable depuis Settings → Chatbot → Confidentialité RGPD, sinon défaut), lien optionnel vers la politique de confidentialité, bouton « J'ai compris ». Acquittement persisté localStorage par orgSlug + version (`PRIVACY_VERSION='v1'`). Migration `25_chat_privacy.js` ajoute `chat_privacy_notice` + `chat_privacy_policy_url` sur organizations.
+- **Rétention conversations chat + purge RGPD (mai 2026)** — Settings → Chatbot expose un sélecteur **30 / 60 / 90 / 180 jours** (default 90, CHECK SQL). Au save d'une valeur plus basse, `GET /settings/org/chat/retention-preview?days=N` renvoie le compte de conversations qui seront purgées et un ConfirmDialog en avertit l'admin. Worker BullMQ `chat-purge` quotidien à 3h hard-delete les conversations dont `started_at < NOW() - retention_days` (CASCADE FK supprime turns + state). Migration `24_chat_retention_days.js`.
+- **PII redaction admin chats (mai 2026)** — `shared/redactPii.ts` (côté backend) applique 5 regex (sécu, IBAN, carte, téléphone, email) sur les content du transcript admin Chats. Email et téléphone reçoivent un masque partiel (`j****@e****.com`, `06 ** ** ** 78`), IBAN/carte/sécu un token générique. Badge « 🔒 Coordonnées masquées » en tête de modale transcript. **Pas appliqué** : pipeline RAG (besoin du contexte brut), widget public, stockage DB.
+- **Audit log admin (mai 2026)** — page `/audit` (admin only, pas managers — `adminStrict` dans NavItem) avec tableau filtrable (action, dates), modal détail metadata JSON. Couverture étendue : 29 actions tracées (articles, members, account, apikeys, tags, synonyms, faqs, trees, categories, settings org chat/ai/general, superadmin.impersonate.start/stop). Endpoint `GET /api/v1/audit-logs` avec hydratation user + emails superadmins. Worker `audit-purge` quotidien retient 1 an. **Immuable côté admin** (aucun POST/DELETE exposé). Voir CLAUDE.md backend pour le pattern d'écriture (`auditLog` middleware factory + `writeAuditLog` helper).
+- **Impersonation superadmin tracée (mai 2026)** — JWT d'impersonation porte `impersonated_by` + `impersonated_by_email` + `impersonated:true`. Backend `/superadmin/impersonate/:orgId` pose le cookie HTTP-only `access_token` (sinon le navigateur garde l'ancien cookie admin et toutes les actions sont mal attribuées). Endpoint `/superadmin/impersonate/stop` clear le cookie côté serveur (appelé par `ImpersonateBanner.handleReturn`). Toute action effectuée en impersonation est marquée dans audit log avec `metadata.impersonatedBy/Email`. Cookies same-site lax via Vercel rewrite — `saFetch` côté frontend utilise `/api/v1/superadmin` relatif + `credentials:include` (cohérent avec apiClient).
 - **Refacto UI/UX (axes A→E)** — `<ConfirmDialog>` (4 `confirm()` natifs remplacés), `<Modal>` partagé avec focus trap (8 modales unifiées), 2 `<input>` bruts → `<Input>`, `fetch()` direct → `apiClient`, error handling unifié (toasts partout, plus aucun silent failure côté UI), 16 styles inline → 8 (tous légitimes runtime)
 - **React Router v6** côté frontend (Phases G1+G2) — toutes les vues (`/dashboard`, `/knowledge`, `/articles/:id`, `/articles/:id/edit`, `/articles/new`, `/trees`, `/trees/:id`, `/trees/:id/edit`, `/members`, `/analytics`, `/settings`, `/account`) ont une URL canonique : deep-linking, F5 préserve l'écran, bouton Précédent fonctionnel, partage de liens. Bridge URL ↔ `useState<View>` dans `App.tsx` (cleanup vers `<Routes>` direct prévu en G3)
 - Pool PG résilient — `pool.on('error')` listener (empêche les crashs silencieux quand un client idle perd sa connexion), `max: 20`, `keepAlive`. Rate limiter skippé en `NODE_ENV=development` pour ne pas gêner le dev local
@@ -359,8 +374,9 @@ Cibles à étendre (par valeur, dans cet ordre) : `apiClient` refresh + retry, `
 - V2 : import PPTX, import en lot
 
 ### Infrastructure
-- Sentry DSN configuré
-- Tests automatisés frontend
+- ~~Sentry DSN configuré~~ ✅ activé mai 2026 (2 projets : `knowdesk-backend`, `knowdesk-frontend`, voir section Monitoring)
+- ~~Tests frontend~~ socle posé mai 2026 (8 tests authStore + ProtectedRoute, voir section Tests)
+- CI/CD GitHub Actions (gratuit jusqu'à 2000 min/mois sur compte free, voir https://github.com/BrieucLA pour activation)
 - CI/CD GitHub Actions
 
 ## Cloudflare R2
