@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '../../../shared/components/ui/Skeleton';
+import '../kbscore.css';
 import { InfoTooltip, type InfoTooltipRow } from '../../../shared/components/ui/Tooltip';
 import { useToast } from '../../../shared/lib/useToast';
 import { kbscoreApi, type KbScoreResult, type DimensionScore } from '../api/kbscoreApi';
