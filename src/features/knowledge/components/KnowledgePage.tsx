@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CategoryTree, type CategoryActions } from './CategoryTree';
+import '../knowledge.css';
 import { EmptyState }       from '../../../shared/components/ui/EmptyState';
 import { StatusBadge }      from '../../../shared/components/ui/StatusBadge';
 import { Skeleton }         from '../../../shared/components/ui/Skeleton';

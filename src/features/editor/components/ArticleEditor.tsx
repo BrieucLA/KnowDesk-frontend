@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useId, useRef } from 'react';
 import { RichTextEditor } from './RichTextEditor';
+import '../editor.css';
 import { SaveIndicator }  from './SaveIndicator';
 import { useAutoSave }    from '../hooks/useAutoSave';
 import { Input }          from '../../../shared/components/ui/Input';

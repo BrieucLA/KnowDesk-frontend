@@ -46,3 +46,15 @@ html, body, #root {
   .article-page { padding: 24px 20px; }
 }
 
+
+/* ── Sprint 4 Responsive (breakpoint complémentaire) ──────── */
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .knowledge-page { grid-template-columns: 1fr; }
+  .knowledge-page__sidebar { display: none; }
+}
+@media (max-width: 720px) {
+  .tree-question { padding: 16px; }
+  .tree-question__text { font-size: 16px; }
+  .article-editor__title-input { font-size: 24px; }
+}
