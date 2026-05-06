@@ -1,77 +1,71 @@
 /* ─────────────────────────────────────────────────────────────
-   NotFoundPage — composant d'erreur 404 partagé.
-   Note : 2 blocs (.not-found et .not-found__*) cohabitent par le
-   "copier-coller-déplacer" — à nettoyer en sprint d'homogénéisation.
+   NotFoundPage — composants 404 partagés.
+   Deux variantes distinctes (pas de doublon) :
+   - .not-found        : page 404 fullscreen (route inconnue côté serveur)
+   - .not-found-page   : 404 inline (vue inconnue côté app router)
    ───────────────────────────────────────────────────────────── */
 
-/* ── 404 page ────────────────────────────────────────────────── */
+/* ── 404 fullscreen ──────────────────────────────────────── */
 .not-found {
+  display: flex; align-items: center; justify-content: center;
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   background: var(--neutral-50);
 }
 .not-found__content {
-  text-align: center;
   padding: 40px 24px;
+  text-align: center;
 }
 .not-found__code {
   display: block;
-  font-size: 96px;
-  font-weight: 700;
-  color: var(--neutral-200);
-  letter-spacing: -0.04em;
-  line-height: 1;
   margin-bottom: 16px;
+  font-size: 96px; font-weight: 700; line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--neutral-200);
 }
 .not-found__title {
-  font-size: 24px;
-  font-weight: 500;
-  color: var(--neutral-900);
-  letter-spacing: -0.02em;
   margin-bottom: 8px;
+  font-size: 24px; font-weight: 500; letter-spacing: -0.02em;
+  color: var(--neutral-900);
 }
 .not-found__desc {
-  font-size: 14px;
-  color: var(--neutral-500);
   margin-bottom: 32px;
+  font-size: 14px; color: var(--neutral-500);
 }
 .not-found__btn {
-  display: inline-flex;
-  align-items: center;
+  display: inline-flex; align-items: center;
   padding: 10px 20px;
-  background: var(--brand-600);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 500;
-  border: none;
-  border-radius: var(--radius-md);
+  background: var(--brand-600); color: #fff;
+  font-family: var(--font-ui); font-size: 14px; font-weight: 500;
+  border: none; border-radius: var(--radius-md);
   cursor: pointer;
-  font-family: var(--font-ui);
   transition: background var(--t-fast);
 }
 .not-found__btn:hover { background: var(--brand-700); }
 
-
-/* ── Not found page ─────────────────────────────────────────── */
+/* ── 404 inline (route app inconnue) ─────────────────────── */
 .not-found-page {
   display: flex; align-items: center; justify-content: center;
   height: 100%; min-height: 400px;
 }
 .not-found-page__content {
-  text-align: center; max-width: 400px; padding: 48px 24px;
+  max-width: 400px;
+  padding: 48px 24px;
+  text-align: center;
 }
 .not-found-page__code {
-  display: block; font-size: 72px; font-weight: 700;
-  color: var(--neutral-200); line-height: 1; margin-bottom: 16px;
+  display: block;
+  margin-bottom: 16px;
+  font-size: 72px; font-weight: 700; line-height: 1;
   letter-spacing: -0.04em;
+  color: var(--neutral-200);
 }
 .not-found-page__title {
-  font-size: 22px; font-weight: 500; color: var(--neutral-900);
-  margin-bottom: 8px; letter-spacing: -0.02em;
+  margin-bottom: 8px;
+  font-size: 22px; font-weight: 500; letter-spacing: -0.02em;
+  color: var(--neutral-900);
 }
 .not-found-page__desc {
-  font-size: 14px; color: var(--neutral-500); margin-bottom: 24px; line-height: 1.6;
+  margin-bottom: 24px;
+  font-size: 14px; line-height: 1.6;
+  color: var(--neutral-500);
 }
-

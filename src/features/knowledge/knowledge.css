@@ -197,6 +197,7 @@
 .cat-sk--item { height: 28px; border-radius: 6px; margin-bottom: 2px; }
 
 .cat-item {
+  position: relative;
   display: flex; align-items: center; gap: 8px;
   height: 32px; border-radius: 6px; cursor: pointer;
   margin: 0 8px; padding-right: 10px;
@@ -229,7 +230,6 @@
 .cat-item__children { list-style: none; }
 
 /* Menu actions admin — visible au hover seulement */
-.cat-item { position: relative; }
 .cat-item__menu-btn {
   flex-shrink: 0; width: 22px; height: 22px;
   background: transparent; border: none; cursor: pointer;
