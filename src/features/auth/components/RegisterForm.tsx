@@ -54,25 +54,27 @@ export function RegisterForm({
         autoComplete="email"
       />
 
-<Input
-  id="password"
-  name="password"
-  type={showPassword ? 'text' : 'password'}
-  label="Mot de passe"
-  placeholder="8 caractères minimum"
-  value={form.password}
-  onChange={onChange}
-  error={errors.password}
-  autoComplete="new-password"
-/>
-<button
-  type="button"
-  className="input-toggle-pw"
-  onClick={onTogglePassword}
-  aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
->
-  {showPassword ? '🙈' : '👁'}
-</button>
+      <div className="login-form__password-wrap">
+        <Input
+          id="password"
+          name="password"
+          type={showPassword ? 'text' : 'password'}
+          label="Mot de passe"
+          placeholder="8 caractères minimum"
+          value={form.password}
+          onChange={onChange}
+          error={errors.password}
+          autoComplete="new-password"
+        />
+        <button
+          type="button"
+          className="login-form__toggle-password"
+          onClick={onTogglePassword}
+          aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+        >
+          {showPassword ? 'Masquer' : 'Afficher'}
+        </button>
+      </div>
 
       <Input
         id="confirmPassword"
