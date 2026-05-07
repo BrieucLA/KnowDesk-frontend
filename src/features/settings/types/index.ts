@@ -2,6 +2,7 @@ export type SettingsSection =
   | 'general'
   | 'ai'
   | 'chatbot'
+  | 'ai-models'
   | 'notifications'
   | 'api'
   | 'search'
@@ -9,6 +10,37 @@ export type SettingsSection =
   | 'imports'
   | 'billing'
   | 'danger';
+
+export type ChatModelId =
+  | 'mistral-small-latest'
+  | 'mistral-medium-latest'
+  | 'mistral-large-latest'
+  | 'ministral-8b-latest';
+
+export interface ChatModelMeta {
+  id:           ChatModelId;
+  label:        string;
+  provider:     'mistral';
+  region:       'FR';
+  latencyClass: 'fast' | 'medium' | 'slow';
+  costRelative: number;
+  description:  string;
+}
+
+export type AiServiceKey = 'chat-response' | 'search-ai' | 'slot-filling' | 'topic-clustering';
+
+export interface AiServiceItem {
+  key:         AiServiceKey;
+  label:       string;
+  description: string;
+  modifiable:  boolean;
+  model:       ChatModelId;
+}
+
+export interface AiServicesPayload {
+  services:        AiServiceItem[];
+  availableModels: ChatModelMeta[];
+}
 
 export type AiTone        = 'professional' | 'warm' | 'direct' | 'empathetic' | 'casual';
 export type AiAddressForm = 'tu' | 'vous';

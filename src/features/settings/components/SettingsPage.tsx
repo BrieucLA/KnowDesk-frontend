@@ -12,6 +12,7 @@ import { TagsSettingsSection }   from './TagsSettingsSection';
 import { AiSettingsSection }     from './AiSettingsSection';
 import { ChatbotSettingsSection } from './ChatbotSettingsSection';
 import { ImportsSettingsSection } from './ImportsSettingsSection';
+import { AiModelsSection }        from './AiModelsSection';
 import type { SettingsSection, NotifPreferences } from '../types';
 
 interface SettingsPageProps {
@@ -49,6 +50,7 @@ export function SettingsPage({ initialSection = 'general' }: SettingsPageProps) 
         {activeSection === 'general'       && <SectionGeneral />}
         {activeSection === 'ai'            && <AiSettingsSection />}
         {activeSection === 'chatbot'       && <ChatbotSettingsSection />}
+        {activeSection === 'ai-models'     && <AiModelsSection />}
         {activeSection === 'notifications' && <SectionNotifications />}
         {activeSection === 'api' && <ApiKeysSection />}
         {activeSection === 'search'        && <SearchSettingsSection />}
@@ -65,6 +67,7 @@ const SECTIONS: { id: SettingsSection; label: string; adminOnly?: boolean }[] = 
   { id: 'general',       label: 'Général'             },
   { id: 'ai',            label: '✨ IA recherche',    adminOnly: true },
   { id: 'chatbot',       label: '✨ IA chatbot',      adminOnly: true },
+  { id: 'ai-models',     label: '🧠 Modèles IA',     adminOnly: true },
   { id: 'notifications', label: 'Notifications'       },
   { id: 'api',           label: 'API'                 },
   { id: 'search',        label: 'Recherche', adminOnly: true },
