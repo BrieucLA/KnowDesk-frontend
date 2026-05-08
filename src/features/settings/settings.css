@@ -647,3 +647,7 @@
   color: var(--brand-700);
   font-weight: 500;
 }
+
+/* ── SettingsListSection (S3-T2 mutualisation) ──────────────────── */
+.settings-list  { display: flex; flex-direction: column; gap: 8px; list-style: none; margin-top: 16px; }
+.settings-list__empty { padding: 24px; text-align: center; color: var(--neutral-400); font-size: 13px; }

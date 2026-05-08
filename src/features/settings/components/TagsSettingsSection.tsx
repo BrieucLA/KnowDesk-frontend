@@ -2,8 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { Button }         from '../../../shared/components/ui/Button';
 import { Input }          from '../../../shared/components/ui/Input';
 import { Modal }          from '../../../shared/components/ui/Modal';
-import { Skeleton }       from '../../../shared/components/ui/Skeleton';
 import { ConfirmDialog }  from '../../../shared/components/ui/ConfirmDialog';
+import { SettingsListSection } from '../../../shared/components/ui/SettingsListSection';
 import { useTags }        from '../hooks/useTags';
 import type { OrgTag }    from '../../articles/api/tagsApi';
 
@@ -13,18 +13,39 @@ export function TagsSettingsSection() {
   const [confirmDelete,  setConfirmDelete] = useState<OrgTag | null>(null);
 
   return (
-    <section className="settings-section" aria-labelledby="tags-title">
-      <div className="settings-section__header">
-        <div>
-          <h2 id="tags-title" className="settings-section__title">Tags</h2>
-          <p className="settings-section__desc">
-            Gérez les étiquettes utilisées par votre équipe sur les articles.
-            Les nouveaux tags se créent automatiquement depuis l'éditeur ;
-            ici vous pouvez les renommer ou les retirer.
-          </p>
-        </div>
-      </div>
-
+    <SettingsListSection<OrgTag>
+      title="Tags"
+      titleId="tags-title"
+      description={
+        <>Gérez les étiquettes utilisées par votre équipe sur les articles.
+        Les nouveaux tags se créent automatiquement depuis l'éditeur ;
+        ici vous pouvez les renommer ou les retirer.</>
+      }
+      loading={loading}
+      error={error}
+      items={items}
+      emptyMessage="Aucun tag pour l'instant. Les tags se créent automatiquement quand un contributeur en saisit dans l'éditeur d'article."
+      listClassName="tags-list"
+      renderItem={tag => (
+        <li key={tag.id} className="tag-row">
+          <span className="tag-row__label">{tag.display_name}</span>
+          <span className="tag-row__count">
+            {tag.articles_count} article{tag.articles_count === 1 ? '' : 's'}
+          </span>
+          <div className="tag-row__actions">
+            <Button variant="ghost" size="sm" onClick={() => setEditing(tag)}>
+              Renommer
+            </Button>
+            <Button
+              variant="ghost" size="sm"
+              onClick={() => setConfirmDelete(tag)}
+            >
+              Supprimer
+            </Button>
+          </div>
+        </li>
+      )}
+    >
       {confirmDelete && (
         <ConfirmDialog
           title={`Supprimer « ${confirmDelete.display_name} » ?`}
@@ -39,7 +60,6 @@ export function TagsSettingsSection() {
           onCancel={() => setConfirmDelete(null)}
         />
       )}
-
       {editing && (
         <RenameTagModal
           tag={editing}
@@ -50,44 +70,7 @@ export function TagsSettingsSection() {
           }}
         />
       )}
-
-      {error && <p className="field-error settings-section__error" role="alert">{error}</p>}
-
-      {loading ? (
-        <div className="api-keys-list">
-          {[1, 2].map(i => <Skeleton key={i} className="sk-card" />)}
-        </div>
-      ) : items.length === 0 ? (
-        <div className="api-keys-empty">
-          <p>
-            Aucun tag pour l'instant. Les tags se créent automatiquement
-            quand un contributeur en saisit dans l'éditeur d'article.
-          </p>
-        </div>
-      ) : (
-        <ul className="tags-list">
-          {items.map(tag => (
-            <li key={tag.id} className="tag-row">
-              <span className="tag-row__label">{tag.display_name}</span>
-              <span className="tag-row__count">
-                {tag.articles_count} article{tag.articles_count === 1 ? '' : 's'}
-              </span>
-              <div className="tag-row__actions">
-                <Button variant="ghost" size="sm" onClick={() => setEditing(tag)}>
-                  Renommer
-                </Button>
-                <Button
-                  variant="ghost" size="sm"
-                  onClick={() => setConfirmDelete(tag)}
-                >
-                  Supprimer
-                </Button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
+    </SettingsListSection>
   );
 }
 

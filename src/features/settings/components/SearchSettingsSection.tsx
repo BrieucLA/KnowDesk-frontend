@@ -1,33 +1,41 @@
 import React, { useState, useCallback } from 'react';
 import { Button }        from '../../../shared/components/ui/Button';
 import { Input }         from '../../../shared/components/ui/Input';
-import { Skeleton }      from '../../../shared/components/ui/Skeleton';
 import { ChipsInput }    from '../../../shared/components/ui/ChipsInput';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { Modal }         from '../../../shared/components/ui/Modal';
+import { SettingsListSection } from '../../../shared/components/ui/SettingsListSection';
 import { useSynonyms }   from '../hooks/useSynonyms';
 import type { Synonym }  from '../types';
 
 export function SearchSettingsSection() {
   const { items, loading, error, create, update, remove } = useSynonyms();
-  const [showCreate,      setShowCreate]      = useState(false);
-  const [confirmDelete,   setConfirmDelete]   = useState<Synonym | null>(null);
+  const [showCreate,    setShowCreate]    = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<Synonym | null>(null);
 
   return (
-    <section className="settings-section" aria-labelledby="search-title">
-      <div className="settings-section__header">
-        <div>
-          <h2 id="search-title" className="settings-section__title">Recherche</h2>
-          <p className="settings-section__desc">
-            Définissez des synonymes propres à votre organisation. Une recherche sur un terme
-            remontera aussi les contenus contenant ses synonymes (et vice-versa).
-          </p>
-        </div>
-        <Button variant="primary" size="sm" onClick={() => setShowCreate(true)}>
-          + Ajouter un synonyme
-        </Button>
-      </div>
-
+    <SettingsListSection<Synonym>
+      title="Recherche"
+      titleId="search-title"
+      description={
+        <>Définissez des synonymes propres à votre organisation. Une recherche sur un terme
+        remontera aussi les contenus contenant ses synonymes (et vice-versa).</>
+      }
+      createCta={{ label: '+ Ajouter un synonyme', onClick: () => setShowCreate(true) }}
+      loading={loading}
+      error={error}
+      items={items}
+      emptyMessage="Aucun synonyme configuré. Ajoutez-en un par exemple pour relier « annulation » et « résiliation »."
+      listClassName="synonyms-list"
+      renderItem={item => (
+        <SynonymItem
+          key={item.id}
+          item={item}
+          onSave={syn => update(item.id, syn)}
+          onDelete={() => setConfirmDelete(item)}
+        />
+      )}
+    >
       {confirmDelete && (
         <ConfirmDialog
           title={`Supprimer « ${confirmDelete.term} » ?`}
@@ -38,7 +46,6 @@ export function SearchSettingsSection() {
           onCancel={() => setConfirmDelete(null)}
         />
       )}
-
       {showCreate && (
         <CreateSynonymModal
           existingTerms={items.map(i => i.term.toLowerCase())}
@@ -49,33 +56,7 @@ export function SearchSettingsSection() {
           }}
         />
       )}
-
-      {error && <p className="field-error settings-section__error" role="alert">{error}</p>}
-
-      {loading ? (
-        <div className="api-keys-list">
-          {[1, 2].map(i => <Skeleton key={i} className="sk-card" />)}
-        </div>
-      ) : items.length === 0 ? (
-        <div className="api-keys-empty">
-          <p>
-            Aucun synonyme configuré. Ajoutez-en un par exemple pour relier
-            « annulation » et « résiliation ».
-          </p>
-        </div>
-      ) : (
-        <ul className="synonyms-list">
-          {items.map(item => (
-            <SynonymItem
-              key={item.id}
-              item={item}
-              onSave={syn => update(item.id, syn)}
-              onDelete={() => setConfirmDelete(item)}
-            />
-          ))}
-        </ul>
-      )}
-    </section>
+    </SettingsListSection>
   );
 }
 
@@ -109,9 +90,9 @@ function SynonymItem({
 
       {editing ? (
         <div className="synonym-item__edit">
-          <ChipsInput value={draft} onChange={setDraft} placeholder="Ajouter un synonyme" />
+          <ChipsInput value={draft} onChange={setDraft} placeholder="Ajouter un synonyme…" />
           <div className="synonym-item__actions">
-            <Button variant="ghost"   size="sm" onClick={cancel}>Annuler</Button>
+            <Button variant="ghost" size="sm" onClick={cancel} disabled={saving}>Annuler</Button>
             <Button variant="primary" size="sm" onClick={save} loading={saving} disabled={draft.length === 0}>
               Enregistrer
             </Button>
@@ -119,8 +100,8 @@ function SynonymItem({
         </div>
       ) : (
         <>
-          <div className="synonym-item__chips">
-            {item.synonyms.map(s => <span key={s} className="chip chip--readonly">{s}</span>)}
+          <div className="synonym-item__list">
+            {item.synonyms.map(s => <span key={s} className="synonym-chip">{s}</span>)}
           </div>
           <div className="synonym-item__actions">
             <Button variant="ghost" size="sm" onClick={startEdit}>Modifier</Button>
@@ -132,7 +113,7 @@ function SynonymItem({
   );
 }
 
-// ── Modal de création ──────────────────────────────────────────
+// ── Modal de création ───────────────────────────────────────────
 
 function CreateSynonymModal({
   existingTerms, onClose, onCreate,
@@ -142,23 +123,29 @@ function CreateSynonymModal({
   onCreate:      (term: string, synonyms: string[]) => Promise<void>;
 }) {
   const [term,     setTerm]     = useState('');
-  const [chips,    setChips]    = useState<string[]>([]);
+  const [synonyms, setSynonyms] = useState<string[]>([]);
   const [saving,   setSaving]   = useState(false);
+  const [error,    setError]    = useState<string | null>(null);
 
   const trimmed = term.trim();
-  const duplicate = trimmed.length > 0 && existingTerms.includes(trimmed.toLowerCase());
-  const canSubmit = trimmed.length > 0 && chips.length > 0 && !duplicate;
+  const canSubmit = trimmed.length > 0 && synonyms.length > 0 && !existingTerms.includes(trimmed.toLowerCase());
 
-  const submit = async () => {
-    if (!canSubmit) return;
+  const submit = useCallback(async () => {
+    if (!canSubmit) {
+      if (existingTerms.includes(trimmed.toLowerCase())) {
+        setError('Un synonyme existe déjà pour ce terme. Modifiez-le plutôt que d\'en créer un autre.');
+      }
+      return;
+    }
     setSaving(true);
-    await onCreate(trimmed, chips);
+    setError(null);
+    await onCreate(trimmed, synonyms);
     setSaving(false);
-  };
+  }, [canSubmit, trimmed, synonyms, existingTerms, onCreate]);
 
   return (
     <Modal
-      title="Nouveau synonyme"
+      title="Ajouter un synonyme"
       onClose={onClose}
       asForm
       onSubmit={submit}
@@ -166,30 +153,29 @@ function CreateSynonymModal({
         <>
           <Button type="button" variant="ghost" size="md" onClick={onClose}>Annuler</Button>
           <Button type="submit" variant="primary" size="md" loading={saving} disabled={!canSubmit}>
-            Créer
+            Ajouter
           </Button>
         </>
       }
     >
       <Input
-        id="syn-term"
+        id="synonym-term"
         type="text"
-        label="Terme"
-        placeholder="annulation"
+        label="Terme principal"
         value={term}
-        error={duplicate ? 'Un synonyme existe déjà pour ce terme.' : undefined}
         onChange={e => setTerm(e.target.value)}
+        placeholder="ex. annulation"
         autoFocus
       />
-
       <div className="field">
         <label className="field-label">Synonymes</label>
-        <ChipsInput value={chips} onChange={setChips} placeholder="résiliation, clôture…" />
-        <p className="field-hint">
-          Tapez Entrée ou virgule après chaque synonyme. La relation est bidirectionnelle.
+        <ChipsInput value={synonyms} onChange={setSynonyms} placeholder="ex. résiliation, désabonnement…" />
+        <p className="field-helper">
+          Le matching est bidirectionnel : une recherche sur n'importe lequel de ces termes
+          remontera tous les contenus contenant un autre terme du groupe.
         </p>
       </div>
+      {error && <p className="field-error" role="alert">{error}</p>}
     </Modal>
   );
 }
-
