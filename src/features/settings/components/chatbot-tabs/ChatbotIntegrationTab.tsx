@@ -1,0 +1,66 @@
+import React from 'react';
+import { Button } from '../../../../shared/components/ui/Button';
+import type { ChatbotTabContext } from './types';
+
+/**
+ * Tab "Test & intégrer" — test live du widget sur cette page +
+ * snippet d'intégration copiable. Toujours active (pas de fieldset
+ * disabled), même si chat_enabled=false (pour pouvoir préparer
+ * l'intégration avant l'activation).
+ */
+export function ChatbotIntegrationTab({ ctx }: { ctx: ChatbotTabContext }) {
+  const { form, widgetMounted, mountWidget, unmountWidget, embedSnippet, toast } = ctx;
+
+  return (
+    <>
+      <h3 className="settings-section__title chatbot-settings__subsection-title">Tester le chatbot sur cette page</h3>
+      <p className="settings-section__desc">
+        Charge le widget directement dans cette page d'administration pour valider l'apparence et
+        les réponses, sans avoir à intégrer le snippet sur ton site web.
+      </p>
+
+      <div className="chatbot-settings__test-prerequisite">
+        <strong>⚠ Pré-requis :</strong> ajoute le domaine <code>{typeof window !== 'undefined' ? window.location.host : 'know-desk-frontend.vercel.app'}</code> dans la liste des domaines autorisés (onglet Apparence), sinon le widget ne s'affichera pas (CORS bloqué côté serveur).
+      </div>
+      <div className="chatbot-settings__test-actions">
+        <Button
+          type="button"
+          variant={widgetMounted ? 'ghost' : 'primary'}
+          size="sm"
+          onClick={widgetMounted ? unmountWidget : mountWidget}
+          disabled={!form.chat_enabled}
+          title={form.chat_enabled ? '' : 'Activez le chatbot d\'abord (onglet Activation & messages)'}
+        >
+          {widgetMounted ? '✕ Retirer le widget' : '💬 Tester sur cette page'}
+        </Button>
+      </div>
+
+      <div className="settings-section__header chatbot-settings__subsection">
+        <div>
+          <h3 className="settings-section__title chatbot-settings__subsection-title">Intégrer le widget sur votre site</h3>
+          <p className="settings-section__desc">
+            Copiez le snippet ci-dessous et collez-le juste avant la fermeture de la balise <code>&lt;/body&gt;</code>
+            de votre site. Le widget se charge automatiquement et tient compte de tous les paramètres définis ici.
+          </p>
+        </div>
+      </div>
+      <pre className="chatbot-settings__embed-snippet">
+        <code>{embedSnippet}</code>
+      </pre>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="chatbot-settings__embed-copy"
+        onClick={() => {
+          navigator.clipboard?.writeText(embedSnippet).then(
+            () => toast.success('Snippet copié'),
+            () => toast.error('Impossible de copier le snippet'),
+          );
+        }}
+      >
+        Copier le snippet
+      </Button>
+    </>
+  );
+}

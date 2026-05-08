@@ -1,10 +1,11 @@
-import React, { useState, useCallback, useEffect, useId } from 'react';
+import React, { useState, useCallback, useEffect, useId, useMemo } from 'react';
 import { apiClient, ApiError } from '../../../shared/lib/apiClient';
 import '../settings.css';
 import { useToast }     from '../../../shared/lib/useToast';
 import { Button }       from '../../../shared/components/ui/Button';
 import { Input }        from '../../../shared/components/ui/Input';
 import { Switch }       from '../../../shared/components/ui/Switch';
+import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { MOCK_BILLING, mockDeleteOrg } from '../api/settings.mock';
 import { useAuthStore }    from '../../../store/authStore';
 import { ApiKeysSection } from './ApiKeysSection';
@@ -14,6 +15,8 @@ import { AiSettingsSection }     from './AiSettingsSection';
 import { ChatbotSettingsSection } from './ChatbotSettingsSection';
 import { ImportsSettingsSection } from './ImportsSettingsSection';
 import { AiModelsSection }        from './AiModelsSection';
+import { DirtyContext, useTrackDirty } from '../lib/dirtyContext';
+import { useUnsavedChanges }     from '../../../shared/lib/useUnsavedChanges';
 import type { SettingsSection, NotifPreferences } from '../types';
 
 interface SettingsPageProps {
@@ -22,77 +25,251 @@ interface SettingsPageProps {
 
 export function SettingsPage({ initialSection = 'general' }: SettingsPageProps) {
   const [activeSection, setActiveSection] = useState<SettingsSection>(initialSection);
+  // Section "en attente" — l'admin a cliqué dessus alors qu'il y a des
+  // modifs non sauvegardées. On affiche un ConfirmDialog avant le switch.
+  const [pendingSection, setPendingSection] = useState<SettingsSection | null>(null);
+  // État dirty agrégé : remonté par les sections via useTrackDirty.
+  const [isDirty, setIsDirty] = useState(false);
   const role = useAuthStore(s => s.session?.user.role ?? null);
-  const visibleSections = SECTIONS.filter(s => !s.adminOnly || role === 'admin');
+
+  // beforeunload : alerte le navigateur avant fermeture/refresh tant que dirty
+  useUnsavedChanges(isDirty);
+
+  // Wrappe le clic sidebar : si dirty, on ouvre le ConfirmDialog avant switch
+  const handleSectionClick = useCallback((id: SettingsSection) => {
+    if (id === activeSection) return;
+    if (isDirty) {
+      setPendingSection(id);
+    } else {
+      setActiveSection(id);
+    }
+  }, [activeSection, isDirty]);
+
+  const dirtyCtxValue = useMemo(() => ({ setDirty: setIsDirty }), []);
 
   return (
-    <div className="settings-page">
-      <div className="settings-page__sidebar">
-        <h1 className="settings-page__title">Paramètres</h1>
-        <nav aria-label="Sections des paramètres">
-          <ul className="settings-nav" role="list">
-            {visibleSections.map(s => (
-              <li key={s.id}>
-                <button
-                  type="button"
-                  className={`settings-nav__item ${activeSection === s.id ? 'settings-nav__item--active' : ''}`}
-                  onClick={() => setActiveSection(s.id as SettingsSection)}
-                  aria-current={activeSection === s.id ? 'page' : undefined}
-                >
-                  {s.label}
-                  {s.id === 'danger' && <span className="settings-nav__danger-dot" aria-hidden="true" />}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </nav>
+    <DirtyContext.Provider value={dirtyCtxValue}>
+      <div className="settings-page">
+        <div className="settings-page__sidebar">
+          <h1 className="settings-page__title">Paramètres</h1>
+          <SettingsNav
+            tree={navTree(role === 'admin')}
+            activeSection={activeSection}
+            onNavigate={handleSectionClick}
+          />
+        </div>
+        <div className="settings-page__body">
+          {activeSection === 'general'       && <SectionGeneral />}
+          {activeSection === 'ai'            && <AiSettingsSection />}
+          {activeSection === 'chatbot'       && <ChatbotSettingsSection />}
+          {activeSection === 'ai-models'     && <AiModelsSection />}
+          {activeSection === 'notifications' && <SectionNotifications />}
+          {activeSection === 'api' && <ApiKeysSection />}
+          {activeSection === 'search'        && <SearchSettingsSection />}
+          {activeSection === 'tags'          && <TagsSettingsSection />}
+          {activeSection === 'imports'       && <ImportsSettingsSection />}
+          {activeSection === 'billing'       && <SectionBilling />}
+          {activeSection === 'danger'        && <SectionDanger />}
+        </div>
       </div>
-      <div className="settings-page__body">
-        {activeSection === 'general'       && <SectionGeneral />}
-        {activeSection === 'ai'            && <AiSettingsSection />}
-        {activeSection === 'chatbot'       && <ChatbotSettingsSection />}
-        {activeSection === 'ai-models'     && <AiModelsSection />}
-        {activeSection === 'notifications' && <SectionNotifications />}
-        {activeSection === 'api' && <ApiKeysSection />}
-        {activeSection === 'search'        && <SearchSettingsSection />}
-        {activeSection === 'tags'          && <TagsSettingsSection />}
-        {activeSection === 'imports'       && <ImportsSettingsSection />}
-        {activeSection === 'billing'       && <SectionBilling />}
-        {activeSection === 'danger'        && <SectionDanger />}
-      </div>
-    </div>
+
+      {pendingSection && (
+        <ConfirmDialog
+          title="Modifications non enregistrées"
+          description="Vos modifications sur cette section seront perdues si vous quittez maintenant."
+          confirmLabel="Quitter sans enregistrer"
+          variant="danger"
+          onConfirm={() => {
+            setIsDirty(false);
+            setActiveSection(pendingSection);
+            setPendingSection(null);
+          }}
+          onCancel={() => setPendingSection(null)}
+        />
+      )}
+    </DirtyContext.Provider>
   );
 }
 
-const SECTIONS: { id: SettingsSection; label: string; adminOnly?: boolean }[] = [
-  { id: 'general',       label: 'Général'             },
-  { id: 'ai',            label: '✨ IA recherche',    adminOnly: true },
-  { id: 'chatbot',       label: '✨ IA chatbot',      adminOnly: true },
-  { id: 'ai-models',     label: '🧠 Modèles IA',     adminOnly: true },
-  { id: 'notifications', label: 'Notifications'       },
-  { id: 'api',           label: 'API'                 },
-  { id: 'search',        label: 'Recherche', adminOnly: true },
-  { id: 'tags',          label: 'Tags',      adminOnly: true },
-  { id: 'imports',       label: '📥 Imports', adminOnly: true },
-  { id: 'billing',       label: 'Facturation'         },
-  { id: 'danger',        label: 'Zone de danger'      },
-];
+/* ── Nav arborescente ─────────────────────────────────────────────
+   Catégories collapsibles pour réduire la charge cognitive (11 → 7
+   entrées top-level). Cf audit S2-T1.
+   ───────────────────────────────────────────────────────────────── */
+
+interface NavLeaf {
+  type:       'leaf';
+  id:         SettingsSection;
+  label:      string;
+  adminOnly?: boolean;
+  isDanger?:  boolean;
+}
+interface NavCategory {
+  type:       'category';
+  id:         string;            // identifiant pour persister expand state
+  label:      string;
+  adminOnly?: boolean;
+  children:   NavLeaf[];
+}
+type NavEntry = NavLeaf | NavCategory;
+
+function navTree(isAdmin: boolean): NavEntry[] {
+  const tree: NavEntry[] = [
+    { type: 'leaf',     id: 'general',       label: 'Général' },
+    { type: 'category', id: 'ai',            label: 'Intelligence artificielle', adminOnly: true, children: [
+      { type: 'leaf', id: 'ai',         label: 'Recherche interne' },
+      { type: 'leaf', id: 'chatbot',    label: 'Chatbot public' },
+      { type: 'leaf', id: 'ai-models',  label: 'Modèles & fournisseurs' },
+    ]},
+    { type: 'leaf',     id: 'notifications', label: 'Notifications' },
+    { type: 'category', id: 'data',          label: 'Données', adminOnly: true, children: [
+      { type: 'leaf', id: 'search',  label: 'Synonymes' },
+      { type: 'leaf', id: 'tags',    label: 'Tags' },
+      { type: 'leaf', id: 'api',     label: 'API' },
+      { type: 'leaf', id: 'imports', label: 'Imports' },
+    ]},
+    { type: 'leaf',     id: 'billing',       label: 'Facturation' },
+    { type: 'leaf',     id: 'danger',        label: 'Zone de danger', isDanger: true, adminOnly: true },
+  ];
+  return tree.filter(e => isAdmin || !e.adminOnly);
+}
+
+/** Ensemble des catégories qui contiennent l'item actif (pour
+ *  auto-expand au mount / changement de section). */
+function findParentCategoryId(tree: NavEntry[], section: SettingsSection): string | null {
+  for (const e of tree) {
+    if (e.type === 'category' && e.children.some(c => c.id === section)) {
+      return e.id;
+    }
+  }
+  return null;
+}
+
+const EXPANDED_KEY = 'settings.nav.expanded-categories';
+
+interface SettingsNavProps {
+  tree:           NavEntry[];
+  activeSection:  SettingsSection;
+  onNavigate:     (id: SettingsSection) => void;
+}
+
+function SettingsNav({ tree, activeSection, onNavigate }: SettingsNavProps) {
+  const [expanded, setExpanded] = useState<Set<string>>(() => {
+    if (typeof window === 'undefined') return new Set();
+    try {
+      const raw = localStorage.getItem(EXPANDED_KEY);
+      return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+    } catch { return new Set(); }
+  });
+
+  // Auto-expand la catégorie de la section active
+  useEffect(() => {
+    const parent = findParentCategoryId(tree, activeSection);
+    if (parent && !expanded.has(parent)) {
+      setExpanded(prev => {
+        const next = new Set(prev);
+        next.add(parent);
+        return next;
+      });
+    }
+  }, [activeSection, tree, expanded]);
+
+  // Persist
+  useEffect(() => {
+    try { localStorage.setItem(EXPANDED_KEY, JSON.stringify(Array.from(expanded))); }
+    catch { /* quota */ }
+  }, [expanded]);
+
+  const toggle = (id: string) => {
+    setExpanded(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  return (
+    <nav aria-label="Sections des paramètres">
+      <ul className="settings-nav" role="list">
+        {tree.map(entry => {
+          if (entry.type === 'leaf') {
+            return (
+              <li key={entry.id}>
+                <button
+                  type="button"
+                  className={`settings-nav__item ${activeSection === entry.id ? 'settings-nav__item--active' : ''}`}
+                  onClick={() => onNavigate(entry.id)}
+                  aria-current={activeSection === entry.id ? 'page' : undefined}
+                >
+                  {entry.label}
+                  {entry.isDanger && <span className="settings-nav__danger-dot" aria-hidden="true" />}
+                </button>
+              </li>
+            );
+          }
+          const isOpen = expanded.has(entry.id);
+          const containsActive = entry.children.some(c => c.id === activeSection);
+          return (
+            <li key={entry.id}>
+              <button
+                type="button"
+                className={`settings-nav__category ${containsActive ? 'settings-nav__category--has-active' : ''}`}
+                onClick={() => toggle(entry.id)}
+                aria-expanded={isOpen}
+              >
+                <span
+                  className={`settings-nav__chevron ${isOpen ? 'settings-nav__chevron--open' : ''}`}
+                  aria-hidden="true"
+                >▸</span>
+                {entry.label}
+              </button>
+              {isOpen && (
+                <ul className="settings-nav__sublist" role="list">
+                  {entry.children.map(child => (
+                    <li key={child.id}>
+                      <button
+                        type="button"
+                        className={`settings-nav__subitem ${activeSection === child.id ? 'settings-nav__subitem--active' : ''}`}
+                        onClick={() => onNavigate(child.id)}
+                        aria-current={activeSection === child.id ? 'page' : undefined}
+                      >
+                        {child.label}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
+}
 
 /* ── Section: Général ────────────────────────────────────────── */
 
 function SectionGeneral() {
   const session = useAuthStore(s => s.session);
   const toast   = useToast();
-  const [form,   setForm]   = useState({ name: '', timezone: 'Europe/Paris' });
+  const [form,        setForm]        = useState({ name: '', timezone: 'Europe/Paris' });
+  const [initialForm, setInitialForm] = useState({ name: '', timezone: 'Europe/Paris' });
   const [saving, setSaving] = useState(false);
+  useTrackDirty(form, initialForm);
 
   // Charger le vrai nom depuis l'API au montage
   useEffect(() => {
     apiClient.get<{ name: string; slug: string; plan: string }>('/settings/org')
-      .then(org => setForm(f => ({ ...f, name: org.name })))
+      .then(org => {
+        const next = { name: org.name, timezone: 'Europe/Paris' };
+        setForm(next);
+        setInitialForm(next);
+      })
       .catch(err => {
         // Fallback sur le store si l'API échoue + signaler à l'utilisateur
-        setForm(f => ({ ...f, name: session?.organization.name ?? '' }));
+        const fallback = { name: session?.organization.name ?? '', timezone: 'Europe/Paris' };
+        setForm(fallback);
+        setInitialForm(fallback);
         toast.error(err instanceof ApiError ? err.message : 'Impossible de charger les paramètres.');
       });
   }, [session, toast]);
@@ -102,6 +279,7 @@ function SectionGeneral() {
     setSaving(true);
     try {
       await apiClient.put('/settings/org', { name: form.name });
+      setInitialForm(form);
       toast.success('Paramètres enregistrés');
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : 'Sauvegarde impossible.');
@@ -161,14 +339,16 @@ const DEFAULT_NOTIF_PREFS: NotifPreferences = {
 };
 
 function SectionNotifications() {
-  const [prefs,  setPrefs]  = useState<NotifPreferences>(DEFAULT_NOTIF_PREFS);
+  const [prefs,        setPrefs]        = useState<NotifPreferences>(DEFAULT_NOTIF_PREFS);
+  const [initialPrefs, setInitialPrefs] = useState<NotifPreferences>(DEFAULT_NOTIF_PREFS);
   const [saving, setSaving] = useState(false);
   const toast = useToast();
+  useTrackDirty(prefs, initialPrefs);
 
   // Charger les préférences réelles
   useEffect(() => {
     apiClient.get<NotifPreferences>('/notifications/preferences')
-      .then(setPrefs)
+      .then(p => { setPrefs(p); setInitialPrefs(p); })
       .catch(() => {/* on conserve les defaults — pas critique */});
   }, []);
 
@@ -177,6 +357,7 @@ function SectionNotifications() {
     setSaving(true);
     try {
       await apiClient.put('/notifications/preferences', prefs);
+      setInitialPrefs(prefs);
       toast.success('Paramètres enregistrés');
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : 'Sauvegarde des préférences impossible.');

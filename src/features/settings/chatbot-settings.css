@@ -137,3 +137,62 @@
   color: var(--neutral-700);
   margin-bottom: 12px;
 }
+
+/* ── Tabs horizontaux (S2-T2) ───────────────────────────────────── */
+.chatbot-settings__tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--neutral-100);
+  margin-bottom: 20px;
+  overflow-x: auto;
+  /* Cache la scrollbar sur les browsers webkit pour rester sobre */
+  scrollbar-width: thin;
+}
+.chatbot-settings__tab {
+  flex: 0 0 auto;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  font-family: var(--font-ui);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--neutral-500);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--t-fast), border-color var(--t-fast);
+}
+.chatbot-settings__tab:hover {
+  color: var(--neutral-900);
+}
+.chatbot-settings__tab--active {
+  color: var(--brand-700);
+  border-bottom-color: var(--brand-500);
+  font-weight: 600;
+}
+.chatbot-settings__tab:focus-visible {
+  outline: 2px solid var(--brand-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.chatbot-settings__tab-body {
+  /* Hauteur min pour éviter que les courtes tabs (Rétention) fassent
+     "sauter" le bouton Enregistrer en bas selon la tab active. */
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Bouton Enregistrer sticky en bas pour rester visible quelle que
+   soit la longueur de la tab active. */
+.chatbot-settings__sticky-actions {
+  position: sticky;
+  bottom: 0;
+  background: var(--neutral-0);
+  padding: 12px 0;
+  margin-top: 16px;
+  border-top: 1px solid var(--neutral-100);
+}

@@ -4,6 +4,7 @@ import { Input }             from '../../../shared/components/ui/Input';
 import { Skeleton }          from '../../../shared/components/ui/Skeleton';
 import { apiClient, ApiError } from '../../../shared/lib/apiClient';
 import { useToast }          from '../../../shared/lib/useToast';
+import { useTrackDirty }     from '../lib/dirtyContext';
 import type {
   AiOrgSettings, AiTone, AiAddressForm, AiGlossaryEntry,
 } from '../types';
@@ -22,23 +23,30 @@ export function AiSettingsSection() {
   const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [saving,  setSaving]  = useState(false);
-  const [form,    setForm]    = useState<AiOrgSettings>({
+  const initialFormDefault: AiOrgSettings = {
     ai_answer_enabled: true,
     industry:          '',
     ai_tone:           null,
     ai_address_form:   null,
     ai_glossary:       [],
-  });
+  };
+  const [form,        setForm]        = useState<AiOrgSettings>(initialFormDefault);
+  const [initialForm, setInitialForm] = useState<AiOrgSettings>(initialFormDefault);
+  useTrackDirty(form, initialForm);
 
   useEffect(() => {
     apiClient.get<AiOrgSettings>('/settings/org')
-      .then(o => setForm({
-        ai_answer_enabled: o.ai_answer_enabled ?? true,
-        industry:          o.industry ?? '',
-        ai_tone:           o.ai_tone,
-        ai_address_form:   o.ai_address_form,
-        ai_glossary:       Array.isArray(o.ai_glossary) ? o.ai_glossary : [],
-      }))
+      .then(o => {
+        const next: AiOrgSettings = {
+          ai_answer_enabled: o.ai_answer_enabled ?? true,
+          industry:          o.industry ?? '',
+          ai_tone:           o.ai_tone,
+          ai_address_form:   o.ai_address_form,
+          ai_glossary:       Array.isArray(o.ai_glossary) ? o.ai_glossary : [],
+        };
+        setForm(next);
+        setInitialForm(next);
+      })
       .catch(() => { /* on garde les defaults */ })
       .finally(() => setLoading(false));
   }, []);
@@ -54,6 +62,7 @@ export function AiSettingsSection() {
         addressForm: form.ai_address_form,
         glossary:    form.ai_glossary.filter(g => g.from.trim() && g.to.trim()),
       });
+      setInitialForm(form);
       toast.success('Paramètres enregistrés');
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : 'Sauvegarde impossible.');
