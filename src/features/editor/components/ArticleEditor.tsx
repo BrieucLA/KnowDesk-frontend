@@ -12,6 +12,8 @@ import { useArticleVersions } from '../hooks/useArticleVersions';
 import { VersionsPanel }      from './VersionsPanel';
 import { TagsInput } from '../../articles/components/TagsInput';
 import { tagsApi }   from '../../articles/api/tagsApi';
+import { ArticleQualityPanel } from '../../articleQuality/components/ArticleQualityPanel';
+import { useAuthStore, selectUserRole } from '../../../store/authStore';
 
 interface ArticleEditorProps {
   articleId?: string;
@@ -42,6 +44,8 @@ function flattenCategories(cats: Category[], depth = 0): { id: string; name: str
 
 export function ArticleEditor({ articleId, onSaved, onCancel }: ArticleEditorProps) {
   const isEdit  = !!articleId;
+  const role    = useAuthStore(selectUserRole);
+  const canSeeQuality = role === 'admin' || role === 'manager';
   const [currentArticleId, setCurrentArticleId] = useState<string | undefined>(articleId);
   const titleId = useId();
 
@@ -245,6 +249,9 @@ if (!isEdit) {
       </div>
 
       <div className="article-editor__body">
+        {isEdit && currentArticleId && (
+          <ArticleQualityPanel articleId={currentArticleId} visible={canSeeQuality} />
+        )}
         <div className="article-editor__meta">
           <div className="field">
             <label htmlFor="cat-select" className="field-label">

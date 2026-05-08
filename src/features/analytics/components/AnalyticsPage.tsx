@@ -8,6 +8,7 @@ import { Button }          from '../../../shared/components/ui/Button';
 import { formatRelative }  from '../../../shared/lib/formatDate';
 import { apiClient }       from '../../../shared/lib/apiClient';
 import { useAnalytics }    from '../hooks/useAnalytics';
+import { articleQualityApi, type ArticleToRework, DIMENSION_LABEL } from '../../articleQuality/api/articleQualityApi';
 import { analyticsApi, type FaqSuggestion } from '../api/analyticsApi';
 import { KbScoreCard } from '../../kbscore/components/KbScoreCard';
 import { InfoTooltip } from '../../../shared/components/ui/Tooltip';
@@ -67,6 +68,8 @@ export function AnalyticsPage({ onOpenArticle, onCreateFaq }: AnalyticsPageProps
       <ChatStatsBanner />
 
       {onCreateFaq && <FaqsToCreateBanner onCreate={onCreateFaq} />}
+
+      <ArticlesToReworkCard onOpen={onOpenArticle} />
 
       <div className="analytics-grid">
         <TopViewedCard          items={data.topViewedArticles}   windowDays={data.windowDays} onOpen={onOpenArticle} />
@@ -714,6 +717,65 @@ function FaqsToCreateBanner({ onCreate }: { onCreate: (question: string) => void
             >
               Créer une FAQ
             </Button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+// ── Articles à retravailler (Sprint A — Auditeur qualité IA) ───
+
+function ArticlesToReworkCard({ onOpen }: { onOpen: (id: string) => void }) {
+  const [items,   setItems]   = useState<ArticleToRework[] | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    articleQualityApi.listToRework()
+      .then(r => setItems(r.items))
+      .catch(() => setItems([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading || !items || items.length === 0) {
+    // Card silencieuse si pas de scoring ou rien à retravailler — évite
+    // de polluer l'écran quand l'IA n'a rien à dire.
+    return null;
+  }
+
+  return (
+    <section className="article-rework-card">
+      <header className="article-rework-card__header">
+        <h2 className="article-rework-card__title">
+          ✨ Articles à retravailler
+          <span className="article-rework-card__badge">{items.length}</span>
+        </h2>
+        <p className="article-rework-card__desc">
+          L'IA a identifié au moins 3 dimensions à revoir sur ces articles publiés.
+          Cliquez pour ouvrir l'article et voir le détail.
+        </p>
+      </header>
+      <ul className="article-rework-card__list">
+        {items.map(a => (
+          <li key={a.id} className="article-rework-card__item">
+            <button
+              type="button"
+              className="article-rework-card__btn"
+              onClick={() => onOpen(a.id)}
+            >
+              <span className="article-rework-card__main">
+                <span className="article-rework-card__name">{a.title}</span>
+                <span className="article-rework-card__meta">
+                  {a.categoryName ?? 'Sans catégorie'} · {a.authorName}
+                  {a.checkedAt && <> · scoré {formatRelative(a.checkedAt)}</>}
+                </span>
+              </span>
+              <span className="article-rework-card__dims">
+                {a.flaggedDimensions.map(d => (
+                  <span key={d} className="article-rework-card__chip">{DIMENSION_LABEL[d]}</span>
+                ))}
+              </span>
+            </button>
           </li>
         ))}
       </ul>

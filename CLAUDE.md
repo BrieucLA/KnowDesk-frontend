@@ -338,6 +338,21 @@ Cibles à étendre (par valeur, dans cet ordre) : `apiClient` refresh + retry, `
 - Workflow de validation du contenu
 - Centre d'aide V2 (Sprint Help-D) — ouvrir l'article pertinent depuis le contexte (pas la section), footer feedback 👍/👎 sur chaque article (tracké via la table events), parseur markdown standard avec support des images, indexation Meilisearch dédiée si l'aide grossit au-delà de ~50 articles.
 
+### Backlog produit — En attente d'arbitrage
+
+- **Extension Chrome** — POC technique validé en mai 2026 (auth Bearer + search Meilisearch + AI Answer streamée fonctionnent depuis `chrome-extension://`). Code dans `~/KDProject/knowdesk-extension/` (manifest V3, popup vanilla JS, ~700 lignes). Backend modifié : CORS autorise génériquement `chrome-extension://*` (commit `62e48eb`).
+  - **V1 prévue** (~4-5 sem dev) : refresh token Bearer côté backend (modif minor `auth.controller` pour retourner `refreshToken` en JSON), polish UX (states erreurs, mot de passe oublié → web), tracking events (`extension.search`, `extension.ai_answer.shown`, `extension.opened_in_app`), icônes propres 16/48/128 PNG, soumission Chrome Web Store + paquet `.crx` self-hosted.
+  - **V2 si pilote OK** : raccourci clavier global (`Cmd+Shift+K` configurable), overlay content-script en alternative au popup classique, preview inline d'article, port Edge.
+  - **Pré-requis V1** : 1 client champion engagé par écrit à déployer dans les 30j post-livraison (sans cet engagement, on ne lance pas le dev — risque adoption IT corporate).
+  - **Custom domain** `app.knowdesk.fr` reporté V2 (Bearer suffit, custom domain devient pertinent quand on veut un SSO unifié web ↔ extension).
+
+- **Sprint B — Copilote rédaction IA** (~3-4 sem dev, *à activer après Sprint A « Auditeur qualité » si calibration OK*) :
+  - **B.1 Analyse one-shot** : bouton « ✨ Analyser » dans `ArticleEditor` qui réutilise le scoring du Sprint A en mode synchrone (5-10s). Affiche les dimensions flagged + propositions concrètes inline (« reformulation suggérée », « exemple manquant »). Diff visible avant validation. Pas de modification auto.
+  - **B.2 Actions ciblées sur sélection** : menu contextuel limité à 5 actions (Reformuler concis / Reformuler clair / Convertir en liste / Ajouter un exemple / Adapter au glossaire org). Pas de chat libre. Pas de génération from scratch.
+  - **B.3 (optionnel) Génération FAQs depuis article** : bouton dans l'éditeur → Mistral propose 3-5 paires Q/A → l'auteur valide → save dans `faqs` avec `source_article_id`.
+  - **Risques à mitiger** : effet Clippy (opt-in strict, pas de popup auto), biais verbeux (prompt valorise concision), Mistral inventif (toujours un diff visible avant apply).
+  - **Pré-requis** : Sprint A.1+A.2 livrés ET utilisés (admin clique sur les recommandations) — sans ça, le copilote n'a pas de modèle de qualité fiable derrière lui.
+
 ### Refacto à venir
 - **Phase G3** (~1j) : nettoyer le bridge `useState<View>` ↔ Router dans `App.tsx`, passer en `<Routes><Route ...></Routes>` direct + `useParams`. Convertir `?superadmin` / `?api-docs` / `?token=` en routes propres (`/superadmin`, `/api-docs`, `/invitation/:token`).
 - **API publique — OpenAPI source de vérité** (~1 sprint, à challenger) : remplacer la doc custom (`features/apidocs/`) par un schéma OpenAPI 3.x généré depuis le backend via `@asteasolutions/zod-to-openapi` (les schémas Zod existants servent de base), exposé sur `/public/v1/openapi.json`. Côté frontend, intégrer **Scalar API Reference** (ou Redoc / Stoplight Elements) pour consommer le JSON et générer la page automatiquement. Bénéfices : doc qui ne peut plus diverger du code, "Try it" intégré, search bar, multi-langage natif. ROI à challenger : aujourd'hui 5 endpoints GET seulement, l'effort/gain devient évident à partir de 15+ endpoints ou si on commence à avoir des intégrateurs externes.
