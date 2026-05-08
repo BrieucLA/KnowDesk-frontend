@@ -2,16 +2,8 @@
    Feature Audit — page admin de consultation des audit logs.
    ───────────────────────────────────────────────────────────── */
 
-.audit-page { display: flex; flex-direction: column; gap: 16px; max-width: 1100px; }
-.audit-page__header { display: flex; flex-direction: column; gap: 4px; }
-.audit-page__title { font-size: 22px; font-weight: 600; color: var(--neutral-900); margin: 0; }
-.audit-page__desc  { font-size: 13px; color: var(--neutral-500); margin: 0; max-width: 720px; }
+.audit-page { display: flex; flex-direction: column; max-width: 1100px; }
 
-.audit-page__filters {
-  display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
-  padding: 10px 12px;
-  background: var(--neutral-50, #f8f9fb); border-radius: var(--radius-md);
-}
 .audit-page__filter-select {
   padding: 6px 10px; border: 1px solid var(--neutral-200); border-radius: var(--radius-md);
   font-family: inherit; font-size: 13px; background: white;
@@ -31,14 +23,11 @@
 }
 .audit-page__filter-reset:hover { background: var(--brand-50, #eef0ff); }
 .audit-page__count {
-  margin-left: auto; font-size: 12px; color: var(--neutral-500);
+  font-size: 12px; color: var(--neutral-500);
 }
 
 .audit-page__skeletons { display: flex; flex-direction: column; gap: 6px; }
 .audit-page__skeleton-row { height: 36px; border-radius: var(--radius-md); }
-.audit-page__empty {
-  text-align: center; padding: 32px 16px; color: var(--neutral-500); font-size: 13px;
-}
 
 .audit-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .audit-table thead th {

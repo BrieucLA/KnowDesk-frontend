@@ -4,12 +4,6 @@
 
 /* ── Trees page ─────────────────────────────────────────────── */
 .trees-page { padding: 32px 24px; }
-.trees-page__header {
-  display: flex; align-items: flex-start;
-  justify-content: space-between; margin-bottom: 24px;
-}
-.trees-page__title { font-size: 22px; font-weight: 500; color: var(--neutral-900); letter-spacing: -0.02em; }
-.trees-page__desc  { font-size: 14px; color: var(--neutral-500); margin-top: 4px; }
 
 .trees-list { display: flex; flex-direction: column; gap: 12px; list-style: none; }
 .tree-card {

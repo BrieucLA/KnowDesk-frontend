@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Skeleton }       from '../../../shared/components/ui/Skeleton';
+import { PageHeader }     from '../../../shared/components/layout/PageHeader';
 import '../analytics.css';
 // Suggesteur "Créer une FAQ" et stats helpful : classes vivent dans faqs.css
 import '../../faqs/faqs.css';
@@ -28,7 +29,10 @@ export function AnalyticsPage({ onOpenArticle, onCreateFaq }: AnalyticsPageProps
   if (loading) {
     return (
       <div className="analytics-page">
-        <h1 className="analytics-page__title">Analytics</h1>
+        <PageHeader
+          title="Analyse"
+          subtitle="Vue d'ensemble de la santé éditoriale de votre base de connaissance."
+        />
         <div className="analytics-grid">
           {[1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} className="sk-card" />)}
         </div>
@@ -39,7 +43,10 @@ export function AnalyticsPage({ onOpenArticle, onCreateFaq }: AnalyticsPageProps
   if (error || !data) {
     return (
       <div className="analytics-page">
-        <h1 className="analytics-page__title">Analytics</h1>
+        <PageHeader
+          title="Analyse"
+          subtitle="Vue d'ensemble de la santé éditoriale de votre base de connaissance."
+        />
         <p className="field-error" role="alert">{error ?? 'Impossible de charger les analytics.'}</p>
       </div>
     );
@@ -47,12 +54,10 @@ export function AnalyticsPage({ onOpenArticle, onCreateFaq }: AnalyticsPageProps
 
   return (
     <div className="analytics-page">
-      <header className="analytics-page__header">
-        <h1 className="analytics-page__title">Analytics</h1>
-        <p className="analytics-page__desc">
-          Vue d'ensemble de la santé éditoriale de votre base de connaissance.
-        </p>
-      </header>
+      <PageHeader
+        title="Analyse"
+        subtitle="Vue d'ensemble de la santé éditoriale de votre base de connaissance."
+      />
 
       <KbScoreCard />
 

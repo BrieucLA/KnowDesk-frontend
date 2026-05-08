@@ -5,18 +5,8 @@
 
 /* ── FAQs ─────────────────────────────────────────────────────── */
 .faqs-page { padding: 32px 24px; max-width: 1100px; }
-.faqs-page__header {
-  display: flex; align-items: flex-start;
-  justify-content: space-between; margin-bottom: 24px;
-}
-.faqs-page__title { font-size: 22px; font-weight: 500; color: var(--neutral-900); letter-spacing: -0.02em; }
-.faqs-page__desc  { font-size: 14px; color: var(--neutral-500); margin-top: 4px; }
 
-.faqs-page__toolbar {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 16px; margin-bottom: 16px; flex-wrap: wrap;
-}
-.faqs-page__tabs { display: flex; gap: 4px; }
+.faqs-page__tabs { display: flex; gap: 4px; flex-wrap: wrap; }
 .faqs-page__tab {
   padding: 6px 12px; border-radius: var(--radius-md);
   background: none; border: 1px solid transparent; cursor: pointer;
@@ -28,8 +18,6 @@
   background: var(--brand-50); color: var(--brand-700);
   border-color: var(--brand-200); font-weight: 500;
 }
-.faqs-page__search { min-width: 240px; flex-shrink: 0; }
-
 .faqs-list { display: flex; flex-direction: column; gap: 8px; list-style: none; }
 .faq-row {
   background: var(--neutral-0);
@@ -71,14 +59,9 @@
 .chip--readonly:hover { border-color: var(--brand-300, var(--brand-500)); }
 
 /* ── Filtre multi-tag (page FAQs) ────────────────────────── */
-.faqs-page__tag-filter {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
-  padding: 10px 0;
-  font-size: 12px;
-}
 .faqs-page__tag-filter-label {
   color: var(--neutral-600); font-weight: 500;
-  margin-right: 4px;
+  margin-right: 4px; font-size: 12px;
 }
 .faqs-page__tag-clear {
   background: transparent; border: none;

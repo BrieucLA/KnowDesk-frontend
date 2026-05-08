@@ -2,11 +2,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useFaqs }        from '../hooks/useFaqs';
 import '../faqs.css';
 import { Button }         from '../../../shared/components/ui/Button';
-import { Input }          from '../../../shared/components/ui/Input';
 import { Skeleton }       from '../../../shared/components/ui/Skeleton';
 import { EmptyState }     from '../../../shared/components/ui/EmptyState';
 import { StatusBadge }    from '../../../shared/components/ui/StatusBadge';
 import { ConfirmDialog }  from '../../../shared/components/ui/ConfirmDialog';
+import { PageHeader }     from '../../../shared/components/layout/PageHeader';
+import { PageToolbar, PageToolbarSearch } from '../../../shared/components/layout/PageToolbar';
 import { formatRelative } from '../../../shared/lib/formatDate';
 import { useAuthStore, selectUserRole } from '../../../store/authStore';
 import { tagsApi, type OrgTag } from '../../articles/api/tagsApi';
@@ -93,80 +94,76 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
       )}
 
       <div className="faqs-page">
-        <header className="faqs-page__header">
-          <div>
-            <h1 className="faqs-page__title">FAQs</h1>
-            <p className="faqs-page__desc">
-              Centralisez les questions fréquentes pour des réponses rapides.
-            </p>
-          </div>
-          {canEdit && (
+        <PageHeader
+          title="FAQs"
+          subtitle="Centralisez les questions fréquentes pour des réponses rapides."
+          actions={canEdit && (
             <Button variant="primary" size="md" onClick={onNewFaq}>
               + Nouvelle FAQ
             </Button>
           )}
-        </header>
+        />
 
-        <div className="faqs-page__toolbar">
-          <div className="faqs-page__tabs" role="tablist" aria-label="Filtrer par statut">
-            {([
-              { id: 'all',       label: 'Toutes',     count: counts.all },
-              { id: 'published', label: 'Publiées',   count: counts.published },
-              { id: 'draft',     label: 'Brouillons', count: counts.draft },
-              { id: 'stale',     label: 'À réviser',  count: counts.stale },
-            ] as const).map(t => (
-              <button
-                key={t.id}
-                type="button"
-                role="tab"
-                aria-selected={tab === t.id}
-                className={`faqs-page__tab ${tab === t.id ? 'faqs-page__tab--active' : ''}`}
-                onClick={() => setTab(t.id)}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-          <div className="faqs-page__search">
-            <Input
-              id="faq-search"
-              type="search"
-              placeholder="Rechercher dans les FAQs…"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* Filtre multi-tag */}
-        {orgTags.length > 0 && (
-          <div className="faqs-page__tag-filter">
-            <span className="faqs-page__tag-filter-label">Filtrer par tag :</span>
-            {orgTags.slice(0, 30).map(t => {
-              const active = activeTags.includes(t.name);
-              return (
+        <PageToolbar
+          left={(
+            <div className="faqs-page__tabs" role="tablist" aria-label="Filtrer par statut">
+              {([
+                { id: 'all',       label: 'Toutes',     count: counts.all },
+                { id: 'published', label: 'Publiées',   count: counts.published },
+                { id: 'draft',     label: 'Brouillons', count: counts.draft },
+                { id: 'stale',     label: 'À réviser',  count: counts.stale },
+              ] as const).map(t => (
                 <button
-                  key={t.name}
+                  key={t.id}
                   type="button"
-                  className={`chip chip--xs ${active ? 'chip--active' : 'chip--readonly'}`}
-                  onClick={() => toggleTag(t.name)}
-                  aria-pressed={active}
+                  role="tab"
+                  aria-selected={tab === t.id}
+                  className={`faqs-page__tab ${tab === t.id ? 'faqs-page__tab--active' : ''}`}
+                  onClick={() => setTab(t.id)}
                 >
-                  {t.display_name}
+                  {t.label}
                 </button>
-              );
-            })}
-            {activeTags.length > 0 && (
-              <button
-                type="button"
-                className="faqs-page__tag-clear"
-                onClick={() => setActiveTags([])}
-              >
-                Effacer
-              </button>
-            )}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+          right={(
+            <PageToolbarSearch
+              id="faq-search"
+              value={search}
+              onChange={setSearch}
+              placeholder="Rechercher dans les FAQs…"
+              ariaLabel="Rechercher dans les FAQs"
+            />
+          )}
+          extra={orgTags.length > 0 && (
+            <>
+              <span className="faqs-page__tag-filter-label">Filtrer par tag :</span>
+              {orgTags.slice(0, 30).map(t => {
+                const active = activeTags.includes(t.name);
+                return (
+                  <button
+                    key={t.name}
+                    type="button"
+                    className={`chip chip--xs ${active ? 'chip--active' : 'chip--readonly'}`}
+                    onClick={() => toggleTag(t.name)}
+                    aria-pressed={active}
+                  >
+                    {t.display_name}
+                  </button>
+                );
+              })}
+              {activeTags.length > 0 && (
+                <button
+                  type="button"
+                  className="faqs-page__tag-clear"
+                  onClick={() => setActiveTags([])}
+                >
+                  Effacer
+                </button>
+              )}
+            </>
+          )}
+        />
 
         {loading ? (
           <div className="faqs-table">

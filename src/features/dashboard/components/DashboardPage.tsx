@@ -5,6 +5,8 @@ import { ArticleRow }          from './ArticleRow';
 import { ActivationChecklist } from './ActivationChecklist';
 import { Skeleton }            from '../../../shared/components/ui/Skeleton';
 import { EmptyState }          from '../../../shared/components/ui/EmptyState';
+import { Button }              from '../../../shared/components/ui/Button';
+import { PageHeader }          from '../../../shared/components/layout/PageHeader';
 import { useDashboard }        from '../hooks/useDashboard';
 import { useAuthStore, selectUser, selectUserRole } from '../../../store/authStore';
 import { formatRelative }      from '../../../shared/lib/formatDate';
@@ -45,23 +47,17 @@ export function DashboardPage({ onArticleClick, onNewArticle }: DashboardPagePro
   return (
     <div className="dashboard">
 
-      {/* ── Header ── */}
-      <header className="dashboard__header">
-        <div>
-          <h1 className="dashboard__greeting">{greeting}</h1>
-          <p className="dashboard__subline">
-            {isAdmin
-              ? 'Voici l\'état de votre base de connaissance.'
-              : 'Recherchez un processus ou parcourez les catégories.'}
-          </p>
-        </div>
-
-        {isAdmin && (
-          <button type="button" onClick={onNewArticle} className="dashboard__cta">
-            <span aria-hidden="true">+</span> Nouvel article
-          </button>
+      <PageHeader
+        title={greeting}
+        subtitle={isAdmin
+          ? 'Voici l\'état de votre base de connaissance.'
+          : 'Recherchez un processus ou parcourez les catégories.'}
+        actions={isAdmin && (
+          <Button variant="primary" size="md" onClick={onNewArticle}>
+            + Nouvel article
+          </Button>
         )}
-      </header>
+      />
 
       {/* ── Error state ── */}
       {isError && (

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Input } from '../../../shared/components/ui/Input';
 import '../chats.css';
 import { Button } from '../../../shared/components/ui/Button';
 import { EmptyState } from '../../../shared/components/ui/EmptyState';
 import { Skeleton } from '../../../shared/components/ui/Skeleton';
+import { PageHeader }  from '../../../shared/components/layout/PageHeader';
+import { PageToolbar, PageToolbarSearch } from '../../../shared/components/layout/PageToolbar';
 import { useToast } from '../../../shared/lib/useToast';
 import { formatRelative } from '../../../shared/lib/formatDate';
 import { chatsApi, type ChatListItem, type ChatStatus } from '../api/chatsApi';
@@ -82,32 +83,13 @@ export function ChatsPage() {
 
   return (
     <section className="chats-page">
-      <header className="chats-page__header">
-        <div>
-          <h1 className="chats-page__title">Chats</h1>
-          <p className="chats-page__subtitle">
-            Conversations menées par le chatbot embarqué — {total} {total === 1 ? 'conversation' : 'conversations'}
-          </p>
-        </div>
-      </header>
+      <PageHeader
+        title="Conversations"
+        subtitle={`Conversations menées par le chatbot embarqué — ${total} ${total === 1 ? 'conversation' : 'conversations'}`}
+      />
 
-      <form
-        className="chats-page__toolbar"
-        onSubmit={e => {
-          e.preventDefault();
-          setPage(1);
-          setQ(searchInput.trim());
-        }}
-      >
-        <Input
-          id="chats-search"
-          type="search"
-          label="Rechercher dans les transcripts"
-          placeholder="ex : remboursement, eSIM, panne…"
-          value={searchInput}
-          onChange={e => setSearchInput(e.target.value)}
-        />
-        <div className="chats-page__filters">
+      <PageToolbar
+        left={(
           <label className="chats-page__filter">
             <span>Statut</span>
             <select
@@ -119,19 +101,38 @@ export function ChatsPage() {
               ))}
             </select>
           </label>
-          <Button type="submit" variant="primary" size="sm">Rechercher</Button>
-          {q && (
+        )}
+        right={(
+          <>
+            <PageToolbarSearch
+              id="chats-search"
+              value={searchInput}
+              onChange={setSearchInput}
+              placeholder="Rechercher dans les transcripts…"
+              ariaLabel="Rechercher dans les transcripts"
+              onSubmit={() => { setPage(1); setQ(searchInput.trim()); }}
+            />
             <Button
               type="button"
-              variant="ghost"
+              variant="primary"
               size="sm"
-              onClick={() => { setSearchInput(''); setQ(''); setPage(1); }}
+              onClick={() => { setPage(1); setQ(searchInput.trim()); }}
             >
-              Effacer
+              Rechercher
             </Button>
-          )}
-        </div>
-      </form>
+            {q && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => { setSearchInput(''); setQ(''); setPage(1); }}
+              >
+                Effacer
+              </Button>
+            )}
+          </>
+        )}
+      />
 
       {loading ? (
         <div className="chats-page__list">

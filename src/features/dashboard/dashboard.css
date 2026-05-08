@@ -5,23 +5,6 @@
 /* ── Dashboard ────────────────────────────────────────────────── */
 .dashboard { display: flex; flex-direction: column; gap: 32px; }
 
-.dashboard__header {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  gap: 16px;
-}
-.dashboard__greeting {
-  font-size: 22px; font-weight: 500; letter-spacing: -0.02em;
-  color: var(--neutral-900); margin-bottom: 4px;
-}
-.dashboard__subline { font-size: 14px; color: var(--neutral-500); }
-.dashboard__cta {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 16px; background: var(--brand-600); color: #fff;
-  font-size: 13px; font-weight: 500; border-radius: var(--radius-md);
-  white-space: nowrap; transition: background var(--t-fast); flex-shrink: 0;
-}
-.dashboard__cta:hover { background: var(--brand-700); }
-
 .dashboard__error {
   padding: 16px; background: var(--color-danger-bg);
   border: 1.5px solid var(--color-danger-border);

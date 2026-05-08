@@ -9,6 +9,7 @@ import { Modal }            from '../../../shared/components/ui/Modal';
 import { Button }           from '../../../shared/components/ui/Button';
 import { Input }            from '../../../shared/components/ui/Input';
 import { ConfirmDialog }    from '../../../shared/components/ui/ConfirmDialog';
+import { PageHeader }       from '../../../shared/components/layout/PageHeader';
 import { knowledgeApi } from '../api/knowledgeApi';
 import { apiClient, ApiError } from '../../../shared/lib/apiClient';
 import { useToast }     from '../../../shared/lib/useToast';
@@ -358,10 +359,26 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
 
 
   return (
-    <div
-      className="knowledge-page"
-      style={{ '--sidebar-width': `${sidebarWidth}px` } as React.CSSProperties}
-    >
+    <div className="knowledge-page-wrap">
+      <PageHeader
+        title="Base de connaissance"
+        subtitle="Articles, FAQs et processus de votre organisation."
+        actions={isAdmin && (
+          <>
+            <Button variant="ghost" size="md" onClick={() => setShowImportModal(true)}>
+              Importer
+            </Button>
+            <Button variant="primary" size="md" onClick={onNewArticle}>
+              + Nouvel article
+            </Button>
+          </>
+        )}
+      />
+
+      <div
+        className="knowledge-page"
+        style={{ '--sidebar-width': `${sidebarWidth}px` } as React.CSSProperties}
+      >
 
       {/* Sidebar */}
       <aside
@@ -369,7 +386,7 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
         className="knowledge-page__sidebar"
       >
         <div className="knowledge-page__sidebar-header">
-          <h1 className="knowledge-page__sidebar-title">Base de connaissance</h1>
+          <h2 className="knowledge-page__sidebar-title">Catégories</h2>
           {isAdmin && (
             <button
               type="button"
@@ -437,22 +454,6 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
                 {filteredArticles.length !== articles.length && ` sur ${articles.length}`}
               </p>
             </div>
-            {isAdmin && (
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button
-                  type="button"
-                  onClick={() => setShowImportModal(true)}
-                  className="knowledge-page__new-article"
-                  style={{ background: 'transparent', color: 'var(--brand-600, #5B6CFF)', border: '1px solid var(--brand-500, #5B6CFF)' }}
-                  title="Importer un PDF"
-                >
-                  📥 Importer
-                </button>
-                <button type="button" onClick={onNewArticle} className="knowledge-page__new-article">
-                  + Nouvel article
-                </button>
-              </div>
-            )}
           </div>
         )}
 
@@ -775,6 +776,7 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
           }}
         />
       )}
+      </div>
     </div>
   );
 }

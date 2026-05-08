@@ -4,6 +4,9 @@ import '../members.css';
 import { InviteModal }   from './InviteModal';
 import { EmptyState }    from '../../../shared/components/ui/EmptyState';
 import { Skeleton }      from '../../../shared/components/ui/Skeleton';
+import { Button }        from '../../../shared/components/ui/Button';
+import { PageHeader }    from '../../../shared/components/layout/PageHeader';
+import { PageToolbar, PageToolbarSearch } from '../../../shared/components/layout/PageToolbar';
 import { useMembers }    from '../hooks/useMembers';
 import { useAuthStore }  from '../../../store/authStore';
 import type { Member }   from '../types';
@@ -71,27 +74,26 @@ export function MembersPage() {
   return (
     <div className="members-page">
 
-      {/* Page header */}
-      <div className="members-page__header">
-        <div>
-          <h1 className="members-page__title">Équipe</h1>
-          <p className="members-page__desc">
+      <PageHeader
+        title="Équipe"
+        subtitle={(
+          <>
             {activeCount} membre{activeCount !== 1 ? 's' : ''} actif{activeCount !== 1 ? 's' : ''}
             {plan === 'free' && ` · ${activeCount} / ${PLAN_LIMIT} (plan gratuit)`}
-          </p>
-        </div>
-
-        <button
-          type="button"
-          className="members-page__invite-btn"
-          onClick={() => setShowInvite(true)}
-          disabled={atLimit}
-          aria-disabled={atLimit}
-          title={atLimit ? `Limite de ${PLAN_LIMIT} membres atteinte — passez au plan Pro` : undefined}
-        >
-          + Inviter un membre
-        </button>
-      </div>
+          </>
+        )}
+        actions={(
+          <Button
+            variant="primary"
+            size="md"
+            onClick={() => setShowInvite(true)}
+            disabled={atLimit}
+            title={atLimit ? `Limite de ${PLAN_LIMIT} membres atteinte — passez au plan Pro` : undefined}
+          >
+            + Inviter un membre
+          </Button>
+        )}
+      />
 
       {/* Plan limit banner */}
       {atLimit && (
@@ -114,32 +116,35 @@ export function MembersPage() {
 
       {/* Toolbar: search + filter tabs */}
       {!loading && members.length > 0 && (
-        <div className="members-page__toolbar">
-          <input
-            type="search"
-            className="members-page__search"
-            placeholder="Rechercher un membre…"
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            aria-label="Rechercher dans l'équipe"
-          />
-          <div className="members-page__tabs" role="tablist" aria-label="Filtrer les membres">
-            {(['all', 'active', 'pending', 'disabled'] as FilterTab[]).map(tab => (
-              <button
-                key={tab}
-                role="tab"
-                aria-selected={filter === tab}
-                className={`members-tab ${filter === tab ? 'members-tab--active' : ''}`}
-                onClick={() => setFilter(tab)}
-              >
-                {tab === 'all'      ? 'Tous'
-                : tab === 'active'  ? 'Actifs'
-                : tab === 'pending' ? 'En attente'
-                : 'Désactivés'}
-              </button>
-            ))}
-          </div>
-        </div>
+        <PageToolbar
+          left={(
+            <div className="members-page__tabs" role="tablist" aria-label="Filtrer les membres">
+              {(['all', 'active', 'pending', 'disabled'] as FilterTab[]).map(tab => (
+                <button
+                  key={tab}
+                  role="tab"
+                  aria-selected={filter === tab}
+                  className={`members-tab ${filter === tab ? 'members-tab--active' : ''}`}
+                  onClick={() => setFilter(tab)}
+                >
+                  {tab === 'all'      ? 'Tous'
+                  : tab === 'active'  ? 'Actifs'
+                  : tab === 'pending' ? 'En attente'
+                  : 'Désactivés'}
+                </button>
+              ))}
+            </div>
+          )}
+          right={(
+            <PageToolbarSearch
+              id="members-search"
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Rechercher un membre…"
+              ariaLabel="Rechercher dans l'équipe"
+            />
+          )}
+        />
       )}
 
       {/* Loading skeletons */}

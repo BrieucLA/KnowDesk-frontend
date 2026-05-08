@@ -3,11 +3,18 @@
    ───────────────────────────────────────────────────────────── */
 
 /* ── KnowledgePage ───────────────────────────────────────────── */
+.knowledge-page-wrap {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 56px);
+}
+.knowledge-page-wrap > .page-header { padding: 0 24px; margin-top: 16px; }
 .knowledge-page {
   display: grid;
   grid-template-columns: var(--sidebar-width, 220px) 1fr;
   gap: 0;
-  min-height: calc(100vh - 56px);
+  flex: 1;
+  min-height: 0;
 }
 .knowledge-page__sidebar {
   position: relative;

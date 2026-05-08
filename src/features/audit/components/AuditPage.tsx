@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Skeleton } from '../../../shared/components/ui/Skeleton';
-import { Modal }    from '../../../shared/components/ui/Modal';
+import { Skeleton }   from '../../../shared/components/ui/Skeleton';
+import { Modal }      from '../../../shared/components/ui/Modal';
+import { EmptyState } from '../../../shared/components/ui/EmptyState';
+import { PageHeader }  from '../../../shared/components/layout/PageHeader';
+import { PageToolbar } from '../../../shared/components/layout/PageToolbar';
 import { useToast } from '../../../shared/lib/useToast';
 import { formatRelative } from '../../../shared/lib/formatDate';
 import { auditApi, type AuditAction, type AuditLogItem } from '../api/auditApi';
@@ -107,56 +110,56 @@ export function AuditPage() {
 
   return (
     <section className="audit-page">
-      <header className="audit-page__header">
-        <h1 className="audit-page__title">Journal d'activité</h1>
-        <p className="audit-page__desc">
-          Trace des actions sensibles effectuées sur cet espace : modifications de paramètres,
-          gestion des membres, suppressions, impersonation. Conservé 1 an.
-        </p>
-      </header>
+      <PageHeader
+        title="Journal d'activité"
+        subtitle={`Trace des actions sensibles effectuées sur cet espace : modifications de paramètres, gestion des membres, suppressions, impersonation. Conservé 1 an.`}
+      />
 
-      <div className="audit-page__filters">
-        <select
-          className="audit-page__filter-select"
-          value={action}
-          onChange={e => { setAction(e.target.value as AuditAction | ''); setPage(1); }}
-          aria-label="Filtrer par action"
-        >
-          <option value="">Toutes les actions</option>
-          {ACTION_OPTIONS.map(a => (
-            <option key={a} value={a}>{ACTION_LABEL[a]}</option>
-          ))}
-        </select>
+      <PageToolbar
+        left={(
+          <>
+            <select
+              className="audit-page__filter-select"
+              value={action}
+              onChange={e => { setAction(e.target.value as AuditAction | ''); setPage(1); }}
+              aria-label="Filtrer par action"
+            >
+              <option value="">Toutes les actions</option>
+              {ACTION_OPTIONS.map(a => (
+                <option key={a} value={a}>{ACTION_LABEL[a]}</option>
+              ))}
+            </select>
 
-        <label className="audit-page__filter-date">
-          <span>Depuis</span>
-          <input
-            type="date"
-            value={since}
-            onChange={e => { setSince(e.target.value); setPage(1); }}
-          />
-        </label>
-        <label className="audit-page__filter-date">
-          <span>Jusqu'à</span>
-          <input
-            type="date"
-            value={until}
-            onChange={e => { setUntil(e.target.value); setPage(1); }}
-          />
-        </label>
+            <label className="audit-page__filter-date">
+              <span>Depuis</span>
+              <input
+                type="date"
+                value={since}
+                onChange={e => { setSince(e.target.value); setPage(1); }}
+              />
+            </label>
+            <label className="audit-page__filter-date">
+              <span>Jusqu'à</span>
+              <input
+                type="date"
+                value={until}
+                onChange={e => { setUntil(e.target.value); setPage(1); }}
+              />
+            </label>
 
-        {(action || since || until) && (
-          <button
-            type="button"
-            className="audit-page__filter-reset"
-            onClick={resetFilters}
-          >
-            Réinitialiser
-          </button>
+            {(action || since || until) && (
+              <button
+                type="button"
+                className="audit-page__filter-reset"
+                onClick={resetFilters}
+              >
+                Réinitialiser
+              </button>
+            )}
+          </>
         )}
-
-        <span className="audit-page__count">{total} entrée{total > 1 ? 's' : ''}</span>
-      </div>
+        right={<span className="audit-page__count">{total} entrée{total > 1 ? 's' : ''}</span>}
+      />
 
       {loading ? (
         <div className="audit-page__skeletons">
@@ -165,7 +168,12 @@ export function AuditPage() {
           <Skeleton className="audit-page__skeleton-row" />
         </div>
       ) : items.length === 0 ? (
-        <p className="audit-page__empty">Aucune entrée pour ces filtres.</p>
+        <EmptyState
+          title="Aucune entrée pour ces filtres"
+          description={(action || since || until)
+            ? 'Élargis la période ou réinitialise les filtres.'
+            : 'Les actions sensibles apparaîtront ici dès qu\'elles auront été effectuées.'}
+        />
       ) : (
         <table className="audit-table">
           <thead>

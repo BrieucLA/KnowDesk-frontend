@@ -31,9 +31,9 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'faqs',      label: 'FAQs',      href: '/faqs',       icon: <FaqIcon /> },
   { id: 'trees',     label: 'Processus', href: '/trees',      icon: <TreeIcon /> },
   { id: 'team',      label: 'Équipe',    href: '/team',       icon: <TeamIcon />,  adminOnly: true },
-  { id: 'analytics', label: 'Analytics', href: '/analytics',  icon: <ChartIcon />, adminOnly: true },
-  { id: 'chats',     label: 'Chats',     href: '/chats',      icon: <ChatIcon />,  adminOnly: true },
-  { id: 'audit',     label: 'Audit',     href: '/audit',      icon: <AuditIcon />, adminOnly: true, adminStrict: true },
+  { id: 'analytics', label: 'Analyse',       href: '/analytics',  icon: <ChartIcon />, adminOnly: true },
+  { id: 'chats',     label: 'Conversations', href: '/chats',      icon: <ChatIcon />,  adminOnly: true },
+  { id: 'audit',     label: 'Audit',         href: '/audit',      icon: <AuditIcon />, adminOnly: true, adminStrict: true },
 ];
 
 const BOTTOM_ITEMS: NavItem[] = [

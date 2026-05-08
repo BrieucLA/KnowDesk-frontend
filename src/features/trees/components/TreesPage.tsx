@@ -7,6 +7,7 @@ import { Modal }       from '../../../shared/components/ui/Modal';
 import { StatusBadge } from '../../../shared/components/ui/StatusBadge';
 import { EmptyState }  from '../../../shared/components/ui/EmptyState';
 import { Skeleton }    from '../../../shared/components/ui/Skeleton';
+import { PageHeader }  from '../../../shared/components/layout/PageHeader';
 import { formatRelative } from '../../../shared/lib/formatDate';
 import { useAuthStore, selectUserRole } from '../../../store/authStore';
 
@@ -40,17 +41,15 @@ export function TreesPage({ onOpenTree, onEditTree, onPreviewTree }: TreesPagePr
 
   return (
     <div className="trees-page">
-      <div className="trees-page__header">
-        <div>
-          <h1 className="trees-page__title">Processus guidés</h1>
-          <p className="trees-page__desc">Arbres de décision pour guider vos conseillers.</p>
-        </div>
-        {isAdmin && (
+      <PageHeader
+        title="Processus guidés"
+        subtitle="Arbres de décision pour guider vos conseillers."
+        actions={isAdmin && (
           <Button variant="primary" size="md" onClick={() => setShowCreate(true)}>
             + Nouveau processus
           </Button>
         )}
-      </div>
+      />
 
       {/* Modale de création */}
       {showCreate && (
@@ -91,7 +90,7 @@ export function TreesPage({ onOpenTree, onEditTree, onPreviewTree }: TreesPagePr
         <EmptyState
           title="Aucun processus guidé"
           description="Créez votre premier arbre de décision pour guider vos conseillers."
-          ctaLabel={isAdmin ? '+ Créer un processus' : undefined}
+          ctaLabel={isAdmin ? '+ Nouveau processus' : undefined}
           onCta={isAdmin ? () => setShowCreate(true) : undefined}
         />
       ) : (

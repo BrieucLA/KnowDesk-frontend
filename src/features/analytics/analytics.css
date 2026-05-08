@@ -4,12 +4,6 @@
 
 /* ── Analytics ──────────────────────────────────────────────── */
 .analytics-page { padding: 32px 24px; max-width: 1200px; margin: 0 auto; }
-.analytics-page__header { margin-bottom: 24px; }
-.analytics-page__title {
-  font-size: 22px; font-weight: 500; letter-spacing: -0.02em;
-  color: var(--neutral-900);
-}
-.analytics-page__desc { font-size: 14px; color: var(--neutral-500); margin-top: 4px; }
 
 .analytics-stats {
   display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;
