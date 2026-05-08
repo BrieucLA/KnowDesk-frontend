@@ -3,17 +3,11 @@
    ───────────────────────────────────────────────────────────── */
 
 /* ── Account page ───────────────────────────────────────────── */
-.account-page {
+/* Padding héritée de .app-layout__content (32px 40px). Le titre est en
+ * pleine largeur via <PageHeader>. Les sections de formulaire restent
+ * limitées à 640px pour la lisibilité, alignées à gauche (pas centrées). */
+.account-page__body {
   max-width: 640px;
-  margin: 0 auto;
-  padding: 32px 24px;
-}
-.account-page__title {
-  font-size: 22px;
-  font-weight: 500;
-  color: var(--neutral-900);
-  letter-spacing: -0.02em;
-  margin-bottom: 24px;
 }
 .account-section {
   background: var(--neutral-0);

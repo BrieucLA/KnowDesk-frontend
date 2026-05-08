@@ -3,6 +3,7 @@ import { useAccount }  from '../hooks/useAccount';
 import '../account.css';
 import { Button }      from '../../../shared/components/ui/Button';
 import { Input }       from '../../../shared/components/ui/Input';
+import { PageHeader }  from '../../../shared/components/layout/PageHeader';
 
 export function AccountPage() {
   const { profile, loading, updateProfile, changePassword, requestEmailChange } = useAccount();
@@ -79,8 +80,11 @@ export function AccountPage() {
 
   return (
     <div className="account-page">
-      <h1 className="account-page__title">Mon compte</h1>
-
+      <PageHeader
+        title="Mon compte"
+        subtitle="Votre profil, votre mot de passe et votre adresse email."
+      />
+      <div className="account-page__body">
       {/* Profil */}
       <section className="account-section">
         <div className="account-section__header">
@@ -184,6 +188,7 @@ export function AccountPage() {
           </div>
         </form>
       </section>
+      </div>
     </div>
   );
 }
