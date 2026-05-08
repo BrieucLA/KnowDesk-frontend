@@ -7,6 +7,7 @@ import { apiClient, ApiError } from '../../../shared/lib/apiClient';
 import { useToast }          from '../../../shared/lib/useToast';
 import { useAuthStore }      from '../../../store/authStore';
 import { PromptVariablesPanel } from './PromptVariablesPanel';
+import '../chatbot-settings.css';
 import type {
   ChatOrgSettings, ChatHandoffMode, ChatRetentionDays,
   AiTone, AiAddressForm, AiGlossaryEntry,
@@ -30,7 +31,6 @@ export function ChatbotSettingsSection() {
 
   const [loading, setLoading] = useState(true);
   const [saving,  setSaving]  = useState(false);
-  const [saved,   setSaved]   = useState(false);
   const [form,    setForm]    = useState<ChatOrgSettings>({
     chat_enabled:             false,
     chat_welcome_message:     '',
@@ -293,9 +293,7 @@ export function ChatbotSettingsSection() {
       // réussie : l'admin doit cliquer "Modifier" à nouveau pour repasser
       // en édition (cohérent avec le défaut "lecture seule").
       setEditPrompt(false);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-      toast.success('Paramètres chatbot enregistrés');
+      toast.success('Paramètres enregistrés');
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : 'Sauvegarde impossible.');
     } finally {
@@ -407,7 +405,8 @@ export function ChatbotSettingsSection() {
 
         <fieldset
           disabled={!form.chat_enabled}
-          style={{ border: 'none', padding: 0, margin: 0, opacity: form.chat_enabled ? 1 : 0.5 }}
+          className="chatbot-settings__fieldset-reset"
+          style={{ opacity: form.chat_enabled ? 1 : 0.5 }}
         >
           {/* Messages */}
           <Input
@@ -439,13 +438,13 @@ export function ChatbotSettingsSection() {
           {/* Apparence */}
           <div className="field">
             <label htmlFor="chat-color" className="field-label">Couleur primaire</label>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <div className="chatbot-settings__color-row">
               <input
                 id="chat-color"
                 type="color"
                 value={form.chat_primary_color || '#5B6CFF'}
                 onChange={e => setForm(f => ({ ...f, chat_primary_color: e.target.value }))}
-                style={{ width: 48, height: 36, border: '1px solid var(--neutral-200)', borderRadius: 6, background: 'transparent', cursor: 'pointer', padding: 2 }}
+                className="chatbot-settings__color-preview"
               />
               <Input
                 id="chat-color-hex"
@@ -486,9 +485,9 @@ export function ChatbotSettingsSection() {
           </div>
 
           {/* ─── Personnalisation IA (partagée avec Réponse IA) ─── */}
-          <div className="settings-section__header" style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--neutral-100)' }}>
+          <div className="settings-section__header chatbot-settings__subsection">
             <div>
-              <h3 className="settings-section__title" style={{ fontSize: 16 }}>Personnalisation</h3>
+              <h3 className="settings-section__title chatbot-settings__subsection-title">Personnalisation</h3>
               <p className="settings-section__desc">
                 Réglages utilisés par le prompt généré du chatbot. <strong>Ces valeurs sont partagées
                 avec la section ✨ IA recherche</strong> — les modifier ici les met aussi à jour pour
@@ -548,7 +547,7 @@ export function ChatbotSettingsSection() {
 
           <div className="field">
             <label className="field-label">Glossaire</label>
-            <p className="field-helper" style={{ marginTop: 0, marginBottom: 8 }}>
+            <p className="field-helper chatbot-settings__field-helper-tight">
               Liste de termes que l'IA doit utiliser à la place du vocabulaire générique.
               Ex. « abonné » à la place de « client ».
             </p>
@@ -597,9 +596,9 @@ export function ChatbotSettingsSection() {
           </div>
 
           {/* ─── Prompt système ─── */}
-          <div className="settings-section__header" style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--neutral-100)' }}>
+          <div className="settings-section__header chatbot-settings__subsection">
             <div>
-              <h3 className="settings-section__title" style={{ fontSize: 16 }}>Prompt système</h3>
+              <h3 className="settings-section__title chatbot-settings__subsection-title">Prompt système</h3>
               <p className="settings-section__desc">
                 Instructions complètes envoyées à Mistral à chaque message du chatbot.
                 Le prompt utilise des <strong>variables Mustache</strong> (ex: <code className="km-mono">{`{{industry}}`}</code>)
@@ -608,7 +607,7 @@ export function ChatbotSettingsSection() {
                 tes réglages (tonalité, glossaire, etc.) sans devoir tout réécrire à chaque
                 changement. Pour repartir du template par défaut, clique sur « Restaurer le défaut ».
                 {hasCustomPrompt && (
-                  <span style={{ display: 'inline-block', marginLeft: 6, color: 'var(--brand-600, #5B6CFF)', fontWeight: 500 }}>
+                  <span className="chatbot-settings__prompt-active">
                     Prompt personnalisé actif.
                   </span>
                 )}
@@ -620,18 +619,14 @@ export function ChatbotSettingsSection() {
             <label htmlFor="chat-system-prompt" className="field-label">
               Prompt utilisé par le chatbot
               {!editPrompt && (
-                <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 400, color: 'var(--neutral-500)' }}>
+                <span className="chatbot-settings__prompt-readonly">
                   · lecture seule
                 </span>
               )}
             </label>
 
             {editPrompt && !promptDraft.includes('{{response_modes}}') && (
-              <div role="alert" style={{
-                marginBottom: 10, padding: '8px 12px',
-                background: 'var(--color-danger-bg, #FEE)', border: '1px solid var(--color-danger-border, #FCC)',
-                color: 'var(--color-danger, #C0392B)', borderRadius: 8, fontSize: 12.5, lineHeight: 1.5,
-              }}>
+              <div role="alert" className="chatbot-settings__prompt-warning">
                 ⚠ La variable <code className="km-mono">{`{{response_modes}}`}</code> n'est pas dans
                 ton prompt. Sans elle, les garde-fous anti-jailbreak et le mode "fallback" sont
                 désactivés. Pense à la réinsérer si tu l'as supprimée par erreur.
@@ -642,29 +637,19 @@ export function ChatbotSettingsSection() {
               <textarea
                 id="chat-system-prompt"
                 ref={promptTextareaRef}
-                className="field-input prompt-editor-grid__textarea"
+                className={`field-input prompt-editor-grid__textarea chatbot-settings__prompt-textarea ${editPrompt ? 'chatbot-settings__prompt-textarea--editable' : 'chatbot-settings__prompt-textarea--readonly'}`}
                 value={promptDraft}
                 onChange={e => { setPromptDraft(e.target.value); setHasCustomPrompt(true); }}
                 rows={22}
                 readOnly={!editPrompt}
                 spellCheck={false}
-                style={{
-                  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-                  fontSize: 12.5,
-                  lineHeight: 1.5,
-                  background: editPrompt ? 'white' : 'var(--neutral-50, #f8f9fb)',
-                  cursor:     editPrompt ? 'text'  : 'default',
-                  height:     'auto',
-                  padding:    '12px 14px',
-                  resize:     'vertical',
-                }}
               />
               {editPrompt && (
                 <PromptVariablesPanel onInsert={insertVariableAtCursor} />
               )}
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6, gap: 12 }}>
-              <p className="field-helper" style={{ margin: 0 }}>
+            <div className="chatbot-settings__prompt-footer">
+              <p className="field-helper chatbot-settings__prompt-footer-helper">
                 {editPrompt
                   ? <>Min. 50 caractères. {promptDraft.length} / 8000.</>
                   : <>Le prompt est verrouillé pour éviter les manipulations erronées. Clique sur « Modifier » pour le débloquer.</>
@@ -683,7 +668,7 @@ export function ChatbotSettingsSection() {
                   ✎ Modifier
                 </Button>
               ) : (
-                <div style={{ display: 'flex', gap: 6 }}>
+                <div className="chatbot-settings__prompt-actions">
                   <Button
                     type="button"
                     variant="ghost"
@@ -711,9 +696,9 @@ export function ChatbotSettingsSection() {
           </div>
 
           {/* Handoff humain — Sprint 5 */}
-          <div className="settings-section__header" style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--neutral-100)' }}>
+          <div className="settings-section__header chatbot-settings__subsection">
             <div>
-              <h3 className="settings-section__title" style={{ fontSize: 16 }}>Passage à un humain (handoff)</h3>
+              <h3 className="settings-section__title chatbot-settings__subsection-title">Passage à un humain (handoff)</h3>
               <p className="settings-section__desc">
                 Quand un visiteur clique « Parler à un humain » ou indique que le bot ne l'a pas aidé,
                 KnowDesk peut transmettre le transcript de la conversation à votre équipe.
@@ -766,9 +751,9 @@ export function ChatbotSettingsSection() {
           )}
 
           {/* ─── Confidentialité (RGPD) ─── */}
-          <div className="settings-section__header" style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--neutral-100)' }}>
+          <div className="settings-section__header chatbot-settings__subsection">
             <div>
-              <h3 className="settings-section__title" style={{ fontSize: 16 }}>Confidentialité (RGPD)</h3>
+              <h3 className="settings-section__title chatbot-settings__subsection-title">Confidentialité (RGPD)</h3>
               <p className="settings-section__desc">
                 Au tout premier ouverture du widget chez un visiteur, KnowDesk affiche un écran d'information
                 rappelant que la conversation est enregistrée. Le visiteur clique « J'ai compris » avant
@@ -782,7 +767,7 @@ export function ChatbotSettingsSection() {
             <label htmlFor="privacy-notice" className="field-label">Texte du disclaimer (optionnel)</label>
             <textarea
               id="privacy-notice"
-              className="field-input"
+              className="field-input chatbot-settings__privacy-textarea"
               value={form.chat_privacy_notice ?? ''}
               maxLength={500}
               rows={3}
@@ -791,7 +776,6 @@ export function ChatbotSettingsSection() {
               + 'Vous pouvez supprimer la conversation à tout moment via le bouton ↺.'
               }
               onChange={e => setForm(f => ({ ...f, chat_privacy_notice: e.target.value }))}
-              style={{ height: 'auto', padding: '10px 14px' }}
             />
             <p className="field-helper">
               Vide → on utilise le texte standard (visible en placeholder ci-dessus). 500 caractères max.
@@ -836,37 +820,24 @@ export function ChatbotSettingsSection() {
 
         <div className="settings-form__actions">
           <Button type="submit" variant="primary" size="md" loading={saving}>
-            Enregistrer les modifications
+            Enregistrer
           </Button>
-          {saved && (
-            <span className="settings-form__saved" role="status" aria-live="polite">
-              ✓ Modifications enregistrées
-            </span>
-          )}
         </div>
 
         {/* Test live sur cette page */}
-        <div className="settings-section__header" style={{ marginTop: 32, paddingTop: 16, borderTop: '1px solid var(--neutral-100)' }}>
+        <div className="settings-section__header chatbot-settings__subsection chatbot-settings__subsection--first">
           <div>
-            <h3 className="settings-section__title" style={{ fontSize: 16 }}>Tester le chatbot sur cette page</h3>
+            <h3 className="settings-section__title chatbot-settings__subsection-title">Tester le chatbot sur cette page</h3>
             <p className="settings-section__desc">
               Charge le widget directement dans cette page d'administration pour valider l'apparence et
               les réponses, sans avoir à intégrer le snippet sur ton site web.
             </p>
           </div>
         </div>
-        <div style={{
-          background: 'oklch(0.97 0.04 250)',
-          border: '1px solid oklch(0.85 0.06 250)',
-          borderRadius: 'var(--radius-md)',
-          padding: 14,
-          fontSize: 13,
-          color: 'var(--neutral-700)',
-          marginBottom: 12,
-        }}>
+        <div className="chatbot-settings__test-prerequisite">
           <strong>⚠ Pré-requis :</strong> ajoute le domaine <code>{typeof window !== 'undefined' ? window.location.host : 'know-desk-frontend.vercel.app'}</code> dans la liste des domaines autorisés ci-dessus, sinon le widget ne s'affichera pas (CORS bloqué côté serveur).
         </div>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+        <div className="chatbot-settings__test-actions">
           <Button
             type="button"
             variant={widgetMounted ? 'ghost' : 'primary'}
@@ -880,32 +851,23 @@ export function ChatbotSettingsSection() {
         </div>
 
         {/* Snippet d'intégration */}
-        <div className="settings-section__header" style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--neutral-100)' }}>
+        <div className="settings-section__header chatbot-settings__subsection">
           <div>
-            <h3 className="settings-section__title" style={{ fontSize: 16 }}>Intégrer le widget sur votre site</h3>
+            <h3 className="settings-section__title chatbot-settings__subsection-title">Intégrer le widget sur votre site</h3>
             <p className="settings-section__desc">
               Copiez le snippet ci-dessous et collez-le juste avant la fermeture de la balise <code>&lt;/body&gt;</code>
               de votre site. Le widget se charge automatiquement et tient compte de tous les paramètres définis ici.
             </p>
           </div>
         </div>
-        <pre style={{
-          background: 'var(--neutral-50)',
-          border: '1px solid var(--neutral-200)',
-          borderRadius: 'var(--radius-md)',
-          padding: 14,
-          fontSize: 12,
-          overflowX: 'auto',
-          fontFamily: 'var(--font-ui)',
-          margin: 0,
-        }}>
+        <pre className="chatbot-settings__embed-snippet">
           <code>{embedSnippet}</code>
         </pre>
         <Button
           type="button"
           variant="ghost"
           size="sm"
-          style={{ marginTop: 8 }}
+          className="chatbot-settings__embed-copy"
           onClick={() => {
             navigator.clipboard?.writeText(embedSnippet).then(
               () => toast.success('Snippet copié'),

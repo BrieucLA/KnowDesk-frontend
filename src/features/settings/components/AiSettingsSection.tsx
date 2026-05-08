@@ -22,7 +22,6 @@ export function AiSettingsSection() {
   const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [saving,  setSaving]  = useState(false);
-  const [saved,   setSaved]   = useState(false);
   const [form,    setForm]    = useState<AiOrgSettings>({
     ai_answer_enabled: true,
     industry:          '',
@@ -55,9 +54,7 @@ export function AiSettingsSection() {
         addressForm: form.ai_address_form,
         glossary:    form.ai_glossary.filter(g => g.from.trim() && g.to.trim()),
       });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-      toast.success('Paramètres IA enregistrés');
+      toast.success('Paramètres enregistrés');
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : 'Sauvegarde impossible.');
     } finally {
@@ -261,13 +258,8 @@ export function AiSettingsSection() {
 
         <div className="settings-form__actions">
           <Button type="submit" variant="primary" size="md" loading={saving}>
-            Enregistrer les modifications
+            Enregistrer
           </Button>
-          {saved && (
-            <span className="settings-form__saved" role="status" aria-live="polite">
-              ✓ Modifications enregistrées
-            </span>
-          )}
         </div>
       </form>
     </section>

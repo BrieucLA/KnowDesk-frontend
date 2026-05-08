@@ -4,6 +4,7 @@ import '../settings.css';
 import { useToast }     from '../../../shared/lib/useToast';
 import { Button }       from '../../../shared/components/ui/Button';
 import { Input }        from '../../../shared/components/ui/Input';
+import { Switch }       from '../../../shared/components/ui/Switch';
 import { MOCK_BILLING, mockDeleteOrg } from '../api/settings.mock';
 import { useAuthStore }    from '../../../store/authStore';
 import { ApiKeysSection } from './ApiKeysSection';
@@ -81,35 +82,33 @@ const SECTIONS: { id: SettingsSection; label: string; adminOnly?: boolean }[] = 
 
 function SectionGeneral() {
   const session = useAuthStore(s => s.session);
+  const toast   = useToast();
   const [form,   setForm]   = useState({ name: '', timezone: 'Europe/Paris' });
   const [saving, setSaving] = useState(false);
-  const [saved,  setSaved]  = useState(false);
-  const [error,  setError]  = useState('');
 
   // Charger le vrai nom depuis l'API au montage
   useEffect(() => {
     apiClient.get<{ name: string; slug: string; plan: string }>('/settings/org')
       .then(org => setForm(f => ({ ...f, name: org.name })))
-      .catch(() => {
-        // Fallback sur le store si l'API échoue
+      .catch(err => {
+        // Fallback sur le store si l'API échoue + signaler à l'utilisateur
         setForm(f => ({ ...f, name: session?.organization.name ?? '' }));
+        toast.error(err instanceof ApiError ? err.message : 'Impossible de charger les paramètres.');
       });
-  }, [session]);
+  }, [session, toast]);
 
   const handleSave = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    setError('');
     try {
       await apiClient.put('/settings/org', { name: form.name });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      toast.success('Paramètres enregistrés');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur lors de la sauvegarde.');
+      toast.error(err instanceof ApiError ? err.message : 'Sauvegarde impossible.');
     } finally {
       setSaving(false);
     }
-  }, [form]);
+  }, [form, toast]);
 
   return (
     <section className="settings-section" aria-labelledby="general-title">
@@ -140,16 +139,10 @@ function SectionGeneral() {
             <option value="America/Los_Angeles">America/Los_Angeles (UTC-8 / UTC-7)</option>
           </select>
         </div>
-        {error && <p className="field-error" role="alert">{error}</p>}
         <div className="settings-form__actions">
           <Button type="submit" variant="primary" size="md" loading={saving}>
-            Enregistrer les modifications
+            Enregistrer
           </Button>
-          {saved && (
-            <span className="settings-form__saved" role="status" aria-live="polite">
-              ✓ Modifications enregistrées
-            </span>
-          )}
         </div>
       </form>
     </section>
@@ -170,7 +163,6 @@ const DEFAULT_NOTIF_PREFS: NotifPreferences = {
 function SectionNotifications() {
   const [prefs,  setPrefs]  = useState<NotifPreferences>(DEFAULT_NOTIF_PREFS);
   const [saving, setSaving] = useState(false);
-  const [saved,  setSaved]  = useState(false);
   const toast = useToast();
 
   // Charger les préférences réelles
@@ -180,17 +172,12 @@ function SectionNotifications() {
       .catch(() => {/* on conserve les defaults — pas critique */});
   }, []);
 
-  const toggle = useCallback((key: keyof NotifPreferences) => {
-    setPrefs(p => ({ ...p, [key]: !p[key] }));
-  }, []);
-
   const handleSave = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
       await apiClient.put('/notifications/preferences', prefs);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      toast.success('Paramètres enregistrés');
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : 'Sauvegarde des préférences impossible.');
     } finally {
@@ -206,26 +193,26 @@ function SectionNotifications() {
       </div>
       <form className="settings-form" onSubmit={handleSave}>
         <div className="settings-toggles">
-          <ToggleRow
+          <Switch
             id="notif-article"
             label="Article mis à jour"
             description="Recevez une notification quand un article de votre base est modifié."
             checked={prefs.articleUpdated}
-            onChange={() => toggle('articleUpdated')}
+            onChange={v => setPrefs(p => ({ ...p, articleUpdated: v }))}
           />
-          <ToggleRow
+          <Switch
             id="notif-member"
             label="Nouveau membre"
             description="Soyez averti quand un collaborateur rejoint votre espace."
             checked={prefs.memberJoined}
-            onChange={() => toggle('memberJoined')}
+            onChange={v => setPrefs(p => ({ ...p, memberJoined: v }))}
           />
-          <ToggleRow
+          <Switch
             id="notif-digest"
             label="Résumé hebdomadaire"
             description="Un email récapitulatif chaque lundi matin."
             checked={prefs.weeklyDigest}
-            onChange={() => toggle('weeklyDigest')}
+            onChange={v => setPrefs(p => ({ ...p, weeklyDigest: v }))}
           />
         </div>
         <div className="field field--narrow">
@@ -243,13 +230,8 @@ function SectionNotifications() {
         </div>
         <div className="settings-form__actions">
           <Button type="submit" variant="primary" size="md" loading={saving}>
-            Enregistrer les préférences
+            Enregistrer
           </Button>
-          {saved && (
-            <span className="settings-form__saved" role="status" aria-live="polite">
-              ✓ Préférences enregistrées
-            </span>
-          )}
         </div>
       </form>
     </section>
@@ -345,20 +327,16 @@ function SectionDanger() {
           </div>
         </div>
         <form className="danger-card__form" onSubmit={handleDelete} noValidate>
-          <div className="field">
-            <label htmlFor={inputId} className="field-label">
-              Tapez <strong>{orgName}</strong> pour confirmer
-            </label>
-            <input
-              id={inputId}
-              type="text"
-              className={`field-input ${confirm && !canDelete ? 'field-input--error' : ''}`}
-              value={confirm}
-              onChange={e => setConfirm(e.target.value)}
-              placeholder={orgName}
-              autoComplete="off"
-            />
-          </div>
+          <Input
+            id={inputId}
+            type="text"
+            label={`Tapez « ${orgName} » pour confirmer`}
+            value={confirm}
+            onChange={e => setConfirm(e.target.value)}
+            placeholder={orgName}
+            autoComplete="off"
+            error={confirm && !canDelete ? 'Le nom ne correspond pas.' : undefined}
+          />
           <Button type="submit" variant="danger" size="md" disabled={!canDelete} loading={isDeleting}>
             Supprimer définitivement l'organisation
           </Button>
@@ -368,31 +346,3 @@ function SectionDanger() {
   );
 }
 
-/* ── ToggleRow ───────────────────────────────────────────────── */
-
-function ToggleRow({
-  id, label, description, checked, onChange,
-}: {
-  id: string; label: string; description: string;
-  checked: boolean; onChange: () => void;
-}) {
-  return (
-    <div className="toggle-row">
-      <div className="toggle-row__text">
-        <label htmlFor={id} className="toggle-row__label">{label}</label>
-        <p className="toggle-row__desc">{description}</p>
-      </div>
-      <button
-        type="button"
-        role="switch"
-        id={id}
-        aria-checked={checked}
-        className={`toggle ${checked ? 'toggle--on' : ''}`}
-        onClick={onChange}
-        aria-label={label}
-      >
-        <span className="toggle__thumb" />
-      </button>
-    </div>
-  );
-}
