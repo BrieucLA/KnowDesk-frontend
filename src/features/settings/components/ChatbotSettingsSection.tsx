@@ -126,13 +126,15 @@ export function ChatbotSettingsSection() {
     initialSnapshot ?? { form, domainsDraft, promptDraft },
   );
 
-  // Injection live du widget pour test : on ne l'active qu'à la demande
-  // explicite (clic sur le bouton "Tester sur cette page") et on le retire
-  // au démontage du composant pour éviter qu'il persiste sur les autres pages.
-  const mountWidget = useCallback(() => {
+  // Injection live du widget pour test : on auto-monte au chargement de
+  // la section quand chat_enabled=true (cf useEffect ci-dessous), et on
+  // expose un bouton manuel pour remount/unmount. Cleanup au démontage
+  // pour éviter qu'il persiste sur les autres pages.
+  const mountWidget = useCallback((options?: { silent?: boolean }) => {
+    const silent = options?.silent ?? false;
     if (widgetMounted) return;
     if (!orgSlug) {
-      toast.error('Slug d\'organisation introuvable. Reconnecte-toi et réessaye.');
+      if (!silent) toast.error('Slug d\'organisation introuvable. Reconnecte-toi et réessaye.');
       return;
     }
     const script = document.createElement('script');
@@ -146,7 +148,7 @@ export function ChatbotSettingsSection() {
     // Si on ne reçoit rien sous 5s, c'est que le script ne s'est pas exécuté.
     const onReady = () => {
       cleanup();
-      toast.success('Widget chargé — il est en bas à droite.');
+      if (!silent) toast.success('Widget chargé — il est en bas à droite.');
     };
     const onError = (e: Event) => {
       cleanup();
@@ -187,6 +189,21 @@ export function ChatbotSettingsSection() {
 
   // Cleanup au démontage de la section
   useEffect(() => () => unmountWidget(), [unmountWidget]);
+
+  // Auto-mount du widget UNE seule fois quand l'admin arrive sur la section
+  // et que le chatbot est activé — l'admin n'a plus besoin de cliquer pour
+  // le voir. Le ref évite que cliquer « Masquer le widget » re-déclenche un
+  // mount automatique. Mode silencieux : pas de toast de succès, mais on
+  // garde les toasts d'erreur (CORS, réseau) car ils sont diagnostiques.
+  const autoMountedRef = React.useRef(false);
+  useEffect(() => {
+    if (loading) return;
+    if (autoMountedRef.current) return;
+    if (!form.chat_enabled) return;
+    if (!orgSlug) return;
+    autoMountedRef.current = true;
+    mountWidget({ silent: true });
+  }, [loading, form.chat_enabled, orgSlug, mountWidget]);
 
   useEffect(() => {
     apiClient.get<ChatOrgSettings>('/settings/org')

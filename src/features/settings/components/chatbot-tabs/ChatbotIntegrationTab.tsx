@@ -15,8 +15,9 @@ export function ChatbotIntegrationTab({ ctx }: { ctx: ChatbotTabContext }) {
     <>
       <h3 className="settings-section__title chatbot-settings__subsection-title">Tester le chatbot sur cette page</h3>
       <p className="settings-section__desc">
-        Charge le widget directement dans cette page d'administration pour valider l'apparence et
-        les réponses, sans avoir à intégrer le snippet sur ton site web.
+        Le widget se charge automatiquement en bas à droite de cette page dès que vous arrivez
+        sur la section Chatbot, pour valider l'apparence et les réponses sans intégrer le
+        snippet sur votre site.
       </p>
 
       <div className="chatbot-settings__test-prerequisite">
@@ -27,11 +28,11 @@ export function ChatbotIntegrationTab({ ctx }: { ctx: ChatbotTabContext }) {
           type="button"
           variant={widgetMounted ? 'ghost' : 'primary'}
           size="sm"
-          onClick={widgetMounted ? unmountWidget : mountWidget}
+          onClick={widgetMounted ? unmountWidget : () => mountWidget()}
           disabled={!form.chat_enabled}
           title={form.chat_enabled ? '' : 'Activez le chatbot d\'abord (onglet Activation & messages)'}
         >
-          {widgetMounted ? '✕ Retirer le widget' : '💬 Tester sur cette page'}
+          {widgetMounted ? '✕ Masquer le widget' : '💬 Recharger le widget'}
         </Button>
       </div>
 
