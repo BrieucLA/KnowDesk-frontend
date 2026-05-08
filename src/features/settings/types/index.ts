@@ -2,6 +2,7 @@ export type SettingsSection =
   | 'general'
   | 'ai'
   | 'chatbot'
+  | 'ai-quality'
   | 'ai-models'
   | 'notifications'
   | 'api'
@@ -27,7 +28,7 @@ export interface ChatModelMeta {
   description:  string;
 }
 
-export type AiServiceKey = 'chat-response' | 'search-ai' | 'slot-filling' | 'topic-clustering';
+export type AiServiceKey = 'chat-response' | 'search-ai' | 'slot-filling' | 'topic-clustering' | 'article-quality';
 
 export interface AiServiceItem {
   key:         AiServiceKey;

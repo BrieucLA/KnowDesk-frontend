@@ -15,6 +15,7 @@ import { AiSettingsSection }     from './AiSettingsSection';
 import { ChatbotSettingsSection } from './ChatbotSettingsSection';
 import { ImportsSettingsSection } from './ImportsSettingsSection';
 import { AiModelsSection }        from './AiModelsSection';
+import { ArticleQualitySettingsSection } from './ArticleQualitySettingsSection';
 import { DirtyContext, useTrackDirty } from '../lib/dirtyContext';
 import { useUnsavedChanges }     from '../../../shared/lib/useUnsavedChanges';
 import { LastModifiedBadge }     from './LastModifiedBadge';
@@ -69,6 +70,7 @@ export function SettingsPage({ initialSection = 'general' }: SettingsPageProps) 
           {activeSection === 'general'       && <SectionGeneral />}
           {activeSection === 'ai'            && <AiSettingsSection />}
           {activeSection === 'chatbot'       && <ChatbotSettingsSection />}
+          {activeSection === 'ai-quality'    && <ArticleQualitySettingsSection />}
           {activeSection === 'ai-models'     && <AiModelsSection />}
           {activeSection === 'notifications' && <SectionNotifications />}
           {activeSection === 'api' && <ApiKeysSection />}
@@ -172,6 +174,8 @@ function navTree(isAdmin: boolean): NavEntry[] {
         keywords: ['ia', 'mistral', 'recherche', 'tonalité', 'glossaire', 'secteur'] },
       { type: 'leaf', id: 'chatbot', label: 'Chatbot public',
         keywords: ['chat', 'widget', 'embed', 'rgpd', 'rétention', 'handoff', 'prompt', 'privacy', 'confidentialité'] },
+      { type: 'leaf', id: 'ai-quality', label: 'Auditeur qualité',
+        keywords: ['qualité', 'audit', 'articles', 'révision', 'scoring', 'retravailler', 'clarté'] },
       { type: 'leaf', id: 'ai-models', label: 'Modèles & fournisseurs',
         keywords: ['modèle', 'mistral', 'small', 'medium', 'large', 'ministral', 'coût'] },
     ]},

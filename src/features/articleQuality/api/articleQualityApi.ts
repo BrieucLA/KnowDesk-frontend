@@ -65,6 +65,14 @@ export interface ArticleToRework {
   authorName:        string;
 }
 
+export interface QualityStats {
+  published:   number;
+  scored:      number;
+  notScored:   number;
+  toRework:    number;
+  lastChecked: string | null;
+}
+
 export const articleQualityApi = {
   async getForArticle(articleId: string): Promise<QualityForArticle> {
     return apiClient.get<QualityForArticle>(`/article-quality/${articleId}`);
@@ -90,5 +98,21 @@ export const articleQualityApi = {
 
   async listToRework(): Promise<{ items: ArticleToRework[]; total: number }> {
     return apiClient.get<{ items: ArticleToRework[]; total: number }>('/article-quality/to-rework');
+  },
+
+  async stats(): Promise<QualityStats> {
+    return apiClient.get<QualityStats>('/article-quality/stats');
+  },
+
+  async rescoreAll(): Promise<{ enqueued: number }> {
+    return apiClient.post<{ enqueued: number }>('/article-quality/rescore-all', {});
+  },
+
+  async getFeature(): Promise<{ enabled: boolean }> {
+    return apiClient.get<{ enabled: boolean }>('/article-quality/feature');
+  },
+
+  async setFeature(enabled: boolean): Promise<{ enabled: boolean }> {
+    return apiClient.patch<{ enabled: boolean }>('/article-quality/feature', { enabled });
   },
 };
