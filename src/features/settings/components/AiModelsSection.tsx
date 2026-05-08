@@ -2,6 +2,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { aiModelsApi }    from '../api/aiModelsApi';
 import { useToast }       from '../../../shared/lib/useToast';
 import { Skeleton }       from '../../../shared/components/ui/Skeleton';
+import { HelpPopover }    from '../../../shared/components/ui/HelpPopover';
+import { LastModifiedBadge } from './LastModifiedBadge';
 import { ApiError }       from '../../../shared/lib/apiClient';
 import type {
   AiServicesPayload, AiServiceItem, ChatModelId, ChatModelMeta,
@@ -74,12 +76,24 @@ export function AiModelsSection() {
   return (
     <section className="settings-section ai-models">
       <header className="settings-section__header">
-        <h2 className="settings-section__title">Modèles IA</h2>
+        <h2 className="settings-section__title">
+          Modèles IA
+          <HelpPopover content={
+            <>
+              Le coût relatif est estimé par rapport au modèle de référence
+              <code>Mistral Small</code> (×1). Un modèle ×10 coûte 10 fois plus
+              en consommation par requête. La latence affichée est indicative —
+              la perception côté visiteur dépend aussi de la longueur de la
+              réponse générée.
+            </>
+          } />
+        </h2>
         <p className="settings-section__desc">
           Cette plateforme utilise plusieurs services d'intelligence artificielle.
           Vous pouvez choisir le modèle utilisé par le chatbot ci-dessous. Les autres
           services restent sur le modèle par défaut en V1.
         </p>
+        <LastModifiedBadge actions={['org.chat_model.changed']} />
       </header>
 
       <div className="ai-models__list">

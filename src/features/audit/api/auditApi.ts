@@ -3,7 +3,7 @@ import { apiClient } from '../../../shared/lib/apiClient';
 export type AuditAction =
   | 'article.published' | 'article.deleted' | 'article.restored' | 'article.archived'
   | 'member.invited' | 'member.role_changed' | 'member.disabled'
-  | 'org.settings_updated' | 'org.general_updated' | 'org.chat_settings_updated' | 'org.ai_settings_updated'
+  | 'org.settings_updated' | 'org.general_updated' | 'org.chat_settings_updated' | 'org.chat_model.changed' | 'org.ai_settings_updated'
   | 'account.password_changed' | 'account.email_change_requested' | 'account.email_change_confirmed'
   | 'apikey.created' | 'apikey.revoked'
   | 'tag.deleted' | 'synonym.deleted'

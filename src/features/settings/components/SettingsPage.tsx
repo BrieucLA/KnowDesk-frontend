@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useId, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useId, useMemo, useRef } from 'react';
 import { apiClient, ApiError } from '../../../shared/lib/apiClient';
 import '../settings.css';
 import { useToast }     from '../../../shared/lib/useToast';
@@ -17,6 +17,7 @@ import { ImportsSettingsSection } from './ImportsSettingsSection';
 import { AiModelsSection }        from './AiModelsSection';
 import { DirtyContext, useTrackDirty } from '../lib/dirtyContext';
 import { useUnsavedChanges }     from '../../../shared/lib/useUnsavedChanges';
+import { LastModifiedBadge }     from './LastModifiedBadge';
 import type { SettingsSection, NotifPreferences } from '../types';
 
 interface SettingsPageProps {
@@ -50,8 +51,14 @@ export function SettingsPage({ initialSection = 'general' }: SettingsPageProps) 
   return (
     <DirtyContext.Provider value={dirtyCtxValue}>
       <div className="settings-page">
+        <MobileSettingsNav
+          tree={navTree(role === 'admin')}
+          activeSection={activeSection}
+          onNavigate={handleSectionClick}
+        />
         <div className="settings-page__sidebar">
           <h1 className="settings-page__title">Paramètres</h1>
+          <PlanBadge />
           <SettingsNav
             tree={navTree(role === 'admin')}
             activeSection={activeSection}
@@ -91,6 +98,48 @@ export function SettingsPage({ initialSection = 'general' }: SettingsPageProps) 
   );
 }
 
+/* ── Mobile nav (S4-T4) — sélecteur natif visible < 900px ──────── */
+
+function MobileSettingsNav({ tree, activeSection, onNavigate }: SettingsNavProps) {
+  return (
+    <select
+      className="settings-page__mobile-nav"
+      value={activeSection}
+      onChange={e => onNavigate(e.target.value as SettingsSection)}
+      aria-label="Naviguer entre les sections"
+    >
+      {tree.map(entry => (
+        entry.type === 'leaf'
+          ? <option key={entry.id} value={entry.id}>{entry.label}</option>
+          : (
+            <optgroup key={entry.id} label={entry.label}>
+              {entry.children.map(c => (
+                <option key={c.id} value={c.id}>{c.label}</option>
+              ))}
+            </optgroup>
+          )
+      ))}
+    </select>
+  );
+}
+
+/* ── Badge plan persistant (S4-T2) ─────────────────────────────── */
+
+function PlanBadge() {
+  const plan = useAuthStore(s => s.session?.organization.plan ?? 'free');
+  const labels: Record<string, string> = {
+    free:       'Gratuit',
+    pro:        'Pro',
+    enterprise: 'Enterprise',
+  };
+  return (
+    <div className={`plan-badge plan-badge--${plan}`} role="status" aria-label={`Plan actuel : ${labels[plan] ?? plan}`}>
+      <span className="plan-badge__label">Plan</span>
+      <span className="plan-badge__value">{labels[plan] ?? plan}</span>
+    </div>
+  );
+}
+
 /* ── Nav arborescente ─────────────────────────────────────────────
    Catégories collapsibles pour réduire la charge cognitive (11 → 7
    entrées top-level). Cf audit S2-T1.
@@ -100,6 +149,8 @@ interface NavLeaf {
   type:       'leaf';
   id:         SettingsSection;
   label:      string;
+  /** Mots-clés / synonymes pour la recherche locale (S4-T3) */
+  keywords?:  string[];
   adminOnly?: boolean;
   isDanger?:  boolean;
 }
@@ -114,23 +165,66 @@ type NavEntry = NavLeaf | NavCategory;
 
 function navTree(isAdmin: boolean): NavEntry[] {
   const tree: NavEntry[] = [
-    { type: 'leaf',     id: 'general',       label: 'Général' },
-    { type: 'category', id: 'ai',            label: 'Intelligence artificielle', adminOnly: true, children: [
-      { type: 'leaf', id: 'ai',         label: 'Recherche interne' },
-      { type: 'leaf', id: 'chatbot',    label: 'Chatbot public' },
-      { type: 'leaf', id: 'ai-models',  label: 'Modèles & fournisseurs' },
+    { type: 'leaf', id: 'general', label: 'Général',
+      keywords: ['nom', 'organisation', 'fuseau', 'horaire', 'timezone'] },
+    { type: 'category', id: 'ai', label: 'Intelligence artificielle', adminOnly: true, children: [
+      { type: 'leaf', id: 'ai', label: 'Recherche interne',
+        keywords: ['ia', 'mistral', 'recherche', 'tonalité', 'glossaire', 'secteur'] },
+      { type: 'leaf', id: 'chatbot', label: 'Chatbot public',
+        keywords: ['chat', 'widget', 'embed', 'rgpd', 'rétention', 'handoff', 'prompt', 'privacy', 'confidentialité'] },
+      { type: 'leaf', id: 'ai-models', label: 'Modèles & fournisseurs',
+        keywords: ['modèle', 'mistral', 'small', 'medium', 'large', 'ministral', 'coût'] },
     ]},
-    { type: 'leaf',     id: 'notifications', label: 'Notifications' },
-    { type: 'category', id: 'data',          label: 'Données', adminOnly: true, children: [
-      { type: 'leaf', id: 'search',  label: 'Synonymes' },
-      { type: 'leaf', id: 'tags',    label: 'Tags' },
-      { type: 'leaf', id: 'api',     label: 'API' },
-      { type: 'leaf', id: 'imports', label: 'Imports' },
+    { type: 'leaf', id: 'notifications', label: 'Notifications',
+      keywords: ['email', 'digest', 'in-app', 'canal'] },
+    { type: 'category', id: 'data', label: 'Données', adminOnly: true, children: [
+      { type: 'leaf', id: 'search', label: 'Synonymes',
+        keywords: ['meilisearch', 'recherche'] },
+      { type: 'leaf', id: 'tags', label: 'Tags',
+        keywords: ['étiquettes', 'catégorisation'] },
+      { type: 'leaf', id: 'api', label: 'API',
+        keywords: ['clé', 'token', 'public', 'apikey', 'webhook'] },
+      { type: 'leaf', id: 'imports', label: 'Imports',
+        keywords: ['pdf', 'docx', 'pptx'] },
     ]},
-    { type: 'leaf',     id: 'billing',       label: 'Facturation' },
-    { type: 'leaf',     id: 'danger',        label: 'Zone de danger', isDanger: true, adminOnly: true },
+    { type: 'leaf', id: 'billing', label: 'Facturation',
+      keywords: ['plan', 'pro', 'enterprise', 'facture', 'stripe', 'abonnement'] },
+    { type: 'leaf', id: 'danger', label: 'Zone de danger', isDanger: true, adminOnly: true,
+      keywords: ['supprimer', 'delete', 'suppression', 'organisation'] },
   ];
   return tree.filter(e => isAdmin || !e.adminOnly);
+}
+
+/* Filtrage local de l'arbre (S4-T3). Match sur label OU keywords (case
+ * + accent insensitive). Une catégorie est conservée si elle-même match
+ * OU si au moins un enfant match (les enfants non-matchant sont alors
+ * eux aussi gardés pour ne pas casser le sens du groupe). */
+function normalizeForSearch(s: string): string {
+  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+function leafMatches(leaf: NavLeaf, q: string): boolean {
+  if (!q) return true;
+  const haystack = normalizeForSearch([leaf.label, ...(leaf.keywords ?? [])].join(' '));
+  return haystack.includes(q);
+}
+function filterTree(tree: NavEntry[], rawQuery: string): NavEntry[] {
+  const q = normalizeForSearch(rawQuery.trim());
+  if (!q) return tree;
+  const out: NavEntry[] = [];
+  for (const e of tree) {
+    if (e.type === 'leaf') {
+      if (leafMatches(e, q)) out.push(e);
+    } else {
+      const catSelfMatch = normalizeForSearch(e.label).includes(q);
+      if (catSelfMatch) {
+        out.push(e);
+      } else {
+        const matched = e.children.filter(c => leafMatches(c, q));
+        if (matched.length > 0) out.push({ ...e, children: matched });
+      }
+    }
+  }
+  return out;
 }
 
 /** Ensemble des catégories qui contiennent l'item actif (pour
@@ -161,6 +255,12 @@ function SettingsNav({ tree, activeSection, onNavigate }: SettingsNavProps) {
     } catch { return new Set(); }
   });
 
+  // Recherche locale (S4-T3) — filtre l'arbre par label + keywords.
+  const [query, setQuery] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+  const visibleTree = useMemo(() => filterTree(tree, query), [tree, query]);
+  const isSearching = query.trim().length > 0;
+
   // Auto-expand la catégorie de la section active
   useEffect(() => {
     const parent = findParentCategoryId(tree, activeSection);
@@ -179,6 +279,27 @@ function SettingsNav({ tree, activeSection, onNavigate }: SettingsNavProps) {
     catch { /* quota */ }
   }, [expanded]);
 
+  // Cmd/Ctrl+K ou « / » focus l'input. Escape clear la query.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      const isTyping = tag === 'INPUT' || tag === 'TEXTAREA' || target?.isContentEditable;
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        inputRef.current?.focus();
+        inputRef.current?.select();
+        return;
+      }
+      if (!isTyping && e.key === '/') {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   const toggle = (id: string) => {
     setExpanded(prev => {
       const next = new Set(prev);
@@ -190,8 +311,24 @@ function SettingsNav({ tree, activeSection, onNavigate }: SettingsNavProps) {
 
   return (
     <nav aria-label="Sections des paramètres">
+      <div className="settings-nav__search">
+        <input
+          ref={inputRef}
+          type="search"
+          className="settings-nav__search-input"
+          placeholder="Rechercher…"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Escape') { setQuery(''); inputRef.current?.blur(); } }}
+          aria-label="Rechercher dans les paramètres"
+        />
+        <kbd className="settings-nav__search-kbd" aria-hidden="true">⌘K</kbd>
+      </div>
+      {isSearching && visibleTree.length === 0 && (
+        <p className="settings-nav__empty" role="status">Aucune section ne correspond à « {query} ».</p>
+      )}
       <ul className="settings-nav" role="list">
-        {tree.map(entry => {
+        {visibleTree.map(entry => {
           if (entry.type === 'leaf') {
             return (
               <li key={entry.id}>
@@ -207,7 +344,8 @@ function SettingsNav({ tree, activeSection, onNavigate }: SettingsNavProps) {
               </li>
             );
           }
-          const isOpen = expanded.has(entry.id);
+          // En mode recherche on force l'expansion pour montrer les enfants matchants.
+          const isOpen = isSearching || expanded.has(entry.id);
           const containsActive = entry.children.some(c => c.id === activeSection);
           return (
             <li key={entry.id}>
@@ -293,6 +431,7 @@ function SectionGeneral() {
       <div className="settings-section__header">
         <h2 id="general-title" className="settings-section__title">Général</h2>
         <p className="settings-section__desc">Informations de base de votre organisation.</p>
+        <LastModifiedBadge actions={['org.general_updated']} />
       </div>
       <form className="settings-form" onSubmit={handleSave} noValidate>
         <Input

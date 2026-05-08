@@ -5,6 +5,7 @@ import { Skeleton }          from '../../../shared/components/ui/Skeleton';
 import { apiClient, ApiError } from '../../../shared/lib/apiClient';
 import { useToast }          from '../../../shared/lib/useToast';
 import { useTrackDirty }     from '../lib/dirtyContext';
+import { LastModifiedBadge } from './LastModifiedBadge';
 import type {
   AiOrgSettings, AiTone, AiAddressForm, AiGlossaryEntry,
 } from '../types';
@@ -106,6 +107,7 @@ export function AiSettingsSection() {
           de la recherche interne (vue conseiller). Réponses générées par Mistral à partir
           de votre base uniquement.
         </p>
+        <LastModifiedBadge actions={['org.ai_settings_updated']} />
       </div>
 
       <form className="settings-form" onSubmit={handleSave} noValidate>

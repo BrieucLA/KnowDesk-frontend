@@ -16,6 +16,50 @@
   font-size: 18px; font-weight: 500; color: var(--neutral-900);
   margin-bottom: 20px; letter-spacing: -0.02em;
 }
+.settings-nav__search {
+  position: relative;
+  margin-bottom: 8px;
+}
+.settings-nav__search-input {
+  width: 100%;
+  height: 32px;
+  padding: 0 38px 0 10px;
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  background: var(--neutral-50);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--neutral-900);
+  transition: border-color var(--t-fast), background var(--t-fast);
+}
+.settings-nav__search-input::placeholder { color: var(--neutral-500); }
+.settings-nav__search-input:focus {
+  outline: none;
+  border-color: var(--brand-500);
+  background: var(--neutral-0, #fff);
+}
+.settings-nav__search-input::-webkit-search-cancel-button { cursor: pointer; }
+.settings-nav__search-kbd {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-ui);
+  font-size: 10.5px;
+  color: var(--neutral-500);
+  background: var(--neutral-100);
+  border: 1px solid var(--neutral-200);
+  border-radius: 4px;
+  padding: 1px 5px;
+  pointer-events: none;
+}
+.settings-nav__search-input:focus ~ .settings-nav__search-kbd { display: none; }
+.settings-nav__empty {
+  font-size: 12.5px;
+  color: var(--neutral-500);
+  margin: 4px 4px 8px;
+  line-height: 1.4;
+}
 .settings-nav { list-style: none; display: flex; flex-direction: column; gap: 2px; }
 .settings-nav__item {
   width: 100%; display: flex; align-items: center; justify-content: space-between;
@@ -43,6 +87,12 @@
 }
 .settings-section__title--danger { color: var(--color-danger); }
 .settings-section__desc { font-size: 14px; color: var(--neutral-500); line-height: 1.5; }
+.settings-section__last-modified {
+  margin: 6px 0 0;
+  font-size: 11.5px;
+  color: var(--neutral-500);
+}
+.settings-section__last-modified strong { color: var(--neutral-700); font-weight: 500; }
 .settings-section--danger .settings-section__header {
   padding-bottom: 20px; border-bottom: 1px solid var(--color-danger-border);
 }
@@ -179,10 +229,63 @@
 .danger-card__desc { font-size: 13px; color: var(--neutral-600); line-height: 1.5; }
 .danger-card__form { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
 
+/* ── Plan badge sidebar (S4-T2) ─────────────────────────────── */
+.plan-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 8px 12px;
+  background: var(--neutral-50);
+  border: 1px solid var(--neutral-100);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+}
+.plan-badge__label {
+  font-weight: 500;
+  color: var(--neutral-500);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 11px;
+}
+.plan-badge__value {
+  font-weight: 600;
+  color: var(--neutral-900);
+}
+.plan-badge--pro {
+  background: var(--brand-tint, rgba(91, 91, 214, 0.08));
+  border-color: var(--brand-200, #C7C5F0);
+}
+.plan-badge--pro .plan-badge__value { color: var(--brand-700); }
+.plan-badge--enterprise {
+  background: #FAF5E8;
+  border-color: #E8DCB8;
+}
+.plan-badge--enterprise .plan-badge__value { color: #94781E; }
+
+/* ── Mobile nav sélecteur natif (S4-T4) ─────────────────────── */
+.settings-page__mobile-nav {
+  display: none; /* desktop : caché, c'est la sidebar qui prend le relais */
+  width: 100%;
+  height: var(--input-h, 40px);
+  padding: 0 12px;
+  margin-bottom: 16px;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--neutral-900);
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  appearance: auto; /* on garde le chevron natif */
+}
+
 /* ── Responsive ─────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .settings-page { grid-template-columns: 1fr; gap: 20px; }
+  /* On masque la sidebar verticale et on bascule sur le sélecteur natif */
   .settings-page__sidebar { display: none; }
+  .settings-page__mobile-nav { display: block; }
 }
 @media (max-width: 720px) {
   .members-page__toolbar { flex-direction: column; align-items: flex-start; }

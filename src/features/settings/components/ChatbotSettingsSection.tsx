@@ -7,6 +7,7 @@ import { apiClient, ApiError } from '../../../shared/lib/apiClient';
 import { useToast }          from '../../../shared/lib/useToast';
 import { useAuthStore }      from '../../../store/authStore';
 import { useTrackDirty }     from '../lib/dirtyContext';
+import { LastModifiedBadge } from './LastModifiedBadge';
 import '../chatbot-settings.css';
 import type {
   ChatOrgSettings, ChatRetentionDays, ChatHandoffMode,
@@ -461,6 +462,7 @@ export function ChatbotSettingsSection() {
           Activez et personnalisez le chatbot embarquable que vos clients peuvent utiliser depuis votre site web.
           Il répond <strong>uniquement</strong> à partir des FAQs, articles et processus marqués comme « Public ».
         </p>
+        <LastModifiedBadge actions={['org.chat_settings_updated', 'org.chat_model.changed']} />
       </div>
 
       <form className="settings-form" onSubmit={handleSave} noValidate>

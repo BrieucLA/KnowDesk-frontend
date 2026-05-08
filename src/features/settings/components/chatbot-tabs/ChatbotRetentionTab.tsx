@@ -1,4 +1,5 @@
 import React from 'react';
+import { HelpPopover } from '../../../../shared/components/ui/HelpPopover';
 import type { ChatRetentionDays } from '../../types';
 import type { ChatbotTabContext } from './types';
 
@@ -12,6 +13,14 @@ export function ChatbotRetentionTab({ ctx }: { ctx: ChatbotTabContext }) {
     <div className="field">
       <label htmlFor="chat-retention-days" className="field-label">
         Durée de conservation des conversations
+        <HelpPopover content={
+          <>
+            Plus la durée est courte, plus le risque RGPD diminue ;
+            mais vous perdez l'historique pour analyser les conversations
+            passées (Analytics, debug). <code>90 jours</code> est un bon
+            compromis pour la plupart des cas.
+          </>
+        } />
       </label>
       <select
         id="chat-retention-days"

@@ -20,6 +20,7 @@ const ACTION_LABEL: Record<AuditAction, string> = {
   'org.settings_updated':     'Org — paramètres modifiés',
   'org.general_updated':      'Org — informations modifiées',
   'org.chat_settings_updated':'Org — chatbot modifié',
+  'org.chat_model.changed':   'Org — modèle chatbot changé',
   'org.ai_settings_updated':  'Org — IA modifiée',
   'account.password_changed': 'Compte — mot de passe modifié',
   'account.email_change_requested': 'Compte — changement email demandé',

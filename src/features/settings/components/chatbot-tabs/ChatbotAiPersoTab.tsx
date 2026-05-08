@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '../../../../shared/components/ui/Button';
 import { Input } from '../../../../shared/components/ui/Input';
+import { HelpPopover } from '../../../../shared/components/ui/HelpPopover';
 import type { AiTone, AiAddressForm, AiGlossaryEntry } from '../../types';
 import type { ChatbotTabContext } from './types';
 
@@ -77,7 +78,18 @@ export function ChatbotAiPersoTab({ ctx }: { ctx: ChatbotTabContext }) {
       </div>
 
       <div className="field">
-        <label className="field-label">Glossaire</label>
+        <label className="field-label">
+          Glossaire
+          <HelpPopover content={
+            <>
+              Le glossaire est <strong>injecté dans le prompt système</strong>
+              à chaque requête. Au-delà de 10 paires, le coût en tokens
+              augmente sensiblement. Limitez aux termes vraiment spécifiques
+              à votre métier (jamais des synonymes génériques, qui sont
+              gérés dans <code>Recherche → Synonymes</code>).
+            </>
+          } />
+        </label>
         <p className="field-helper chatbot-settings__field-helper-tight">
           Liste de termes que l'IA doit utiliser à la place du vocabulaire générique.
           Ex. « abonné » à la place de « client ».
