@@ -5,23 +5,8 @@
 /* ── Trees page ─────────────────────────────────────────────── */
 .trees-page { padding: 32px 24px; }
 
-.trees-list { display: flex; flex-direction: column; gap: 12px; list-style: none; }
-.tree-card {
-  background: var(--neutral-0);
-  border: 1px solid var(--neutral-100);
-  border-radius: var(--radius-lg);
-  padding: 20px;
-  display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
-  transition: border-color var(--t-fast);
-}
-.tree-card:hover { border-color: var(--neutral-200); }
-.tree-card__main { flex: 1; cursor: pointer; }
-.tree-card__header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.trees-list { display: flex; flex-direction: column; gap: 12px; list-style: none; padding: 0; margin: 0; }
 .tree-card__category { font-size: 12px; color: var(--neutral-400); }
-.tree-card__title { font-size: 15px; font-weight: 500; color: var(--neutral-900); margin-bottom: 4px; }
-.tree-card__desc  { font-size: 13px; color: var(--neutral-500); margin-bottom: 8px; }
-.tree-card__time  { font-size: 12px; color: var(--neutral-400); }
-.tree-card__actions { display: flex; gap: 4px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
 
 /* ── Tree editor ────────────────────────────────────────────── */
 .tree-editor { height: 100%; display: flex; flex-direction: column; }

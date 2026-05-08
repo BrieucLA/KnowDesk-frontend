@@ -1,0 +1,62 @@
+.entity-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  background: var(--neutral-0, #fff);
+  border: 1px solid var(--neutral-100);
+  border-radius: var(--radius-lg);
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+}
+.entity-card:hover {
+  border-color: var(--brand-300, var(--brand-500));
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.entity-card__main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.entity-card__main--clickable {
+  cursor: pointer;
+}
+.entity-card__main--clickable:focus-visible {
+  outline: 2px solid var(--brand-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
+}
+
+.entity-card__badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.entity-card__title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--neutral-900);
+  line-height: 1.4;
+  margin: 0;
+}
+.entity-card__description {
+  font-size: 13.5px;
+  color: var(--neutral-600);
+  line-height: 1.5;
+  margin: 0;
+}
+.entity-card__meta {
+  font-size: 12px;
+  color: var(--neutral-500);
+}
+
+.entity-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--neutral-100);
+}

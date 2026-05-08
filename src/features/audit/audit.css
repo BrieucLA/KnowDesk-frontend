@@ -52,21 +52,6 @@
 }
 .audit-table__detail-btn:hover { background: var(--brand-50, #eef0ff); }
 
-.audit-page__pagination {
-  display: flex; align-items: center; justify-content: center; gap: 16px;
-  padding: 12px 0; font-size: 13px;
-}
-.audit-page__pagination button {
-  background: white; border: 1px solid var(--neutral-200);
-  padding: 5px 12px; border-radius: var(--radius-md);
-  font-family: inherit; font-size: 12.5px; cursor: pointer;
-  transition: border-color var(--t-fast);
-}
-.audit-page__pagination button:hover:not(:disabled) {
-  border-color: var(--brand-500, #5B6CFF);
-}
-.audit-page__pagination button:disabled { opacity: 0.4; cursor: default; }
-
 .audit-detail { display: flex; flex-direction: column; gap: 12px; margin: 0; }
 .audit-detail > div { display: flex; flex-direction: column; gap: 2px; }
 .audit-detail dt {

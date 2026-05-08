@@ -1,0 +1,13 @@
+.pager {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0;
+  margin-top: 8px;
+}
+.pager__info {
+  font-size: 13px;
+  color: var(--neutral-500);
+  white-space: nowrap;
+}

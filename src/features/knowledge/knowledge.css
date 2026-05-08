@@ -154,48 +154,15 @@
 }
 
 /* Article list in knowledge page */
-.knowledge-article-list { list-style: none; display: flex; flex-direction: column; gap: 1px; }
-.knowledge-article-row {
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  width: 100%; padding: 12px 14px; background: var(--neutral-0);
-  border: 1px solid var(--neutral-100); border-radius: var(--radius-md);
-  cursor: pointer; text-align: left; font-family: var(--font-ui);
-  transition: all var(--t-fast);
-}
-.knowledge-article-row:hover { border-color: var(--neutral-200); background: var(--neutral-50); }
-.knowledge-article-row:focus-visible {
-  outline: 2px solid var(--brand-500); outline-offset: 1px;
-}
-.knowledge-article-row__main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.knowledge-article-row__title {
-  font-size: 13px; font-weight: 500; color: var(--neutral-900);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.knowledge-article-row__meta { font-size: 11px; color: var(--neutral-400); }
-.knowledge-article-row--sk { pointer-events: none; padding: 12px 14px; }
-.kn-sk { display: block; }
-.kn-sk--title { height: 13px; width: 55%; margin-bottom: 5px; }
-.kn-sk--meta  { height: 10px; width: 35%; }
+.knowledge-article-list { list-style: none; display: flex; flex-direction: column; gap: 6px; padding: 0; }
+.knowledge-article-skeleton { height: 56px; border-radius: var(--radius-lg); }
 
 /* Trees section */
-.knowledge-trees { margin-top: 8px; }
+.knowledge-trees { margin-top: 16px; }
 .knowledge-trees__title {
   font-size: 11px; font-weight: 500; text-transform: uppercase;
   letter-spacing: .06em; color: var(--neutral-400); margin-bottom: 8px;
 }
-.knowledge-tree-card {
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  width: 100%; padding: 12px 16px; background: var(--brand-50);
-  border: 1px solid var(--brand-200); border-radius: var(--radius-md);
-  cursor: pointer; text-align: left; font-family: var(--font-ui);
-  transition: all var(--t-fast);
-}
-.knowledge-tree-card:hover { border-color: var(--brand-300); background: var(--brand-100); }
-.knowledge-tree-card__main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.knowledge-tree-card__name {
-  font-size: 13px; font-weight: 500; color: var(--brand-700);
-}
-.knowledge-tree-card__meta { font-size: 11px; color: var(--brand-500); }
 
 /* ── CategoryTree ─────────────────────────────────────────────── */
 .category-tree { padding: 4px 0; }

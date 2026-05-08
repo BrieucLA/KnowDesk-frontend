@@ -3,6 +3,8 @@ import '../chats.css';
 import { Button } from '../../../shared/components/ui/Button';
 import { EmptyState } from '../../../shared/components/ui/EmptyState';
 import { Skeleton } from '../../../shared/components/ui/Skeleton';
+import { EntityRow } from '../../../shared/components/ui/EntityRow';
+import { Pager }    from '../../../shared/components/ui/Pager';
 import { PageHeader }  from '../../../shared/components/layout/PageHeader';
 import { PageToolbar, PageToolbarSearch } from '../../../shared/components/layout/PageToolbar';
 import { useToast } from '../../../shared/lib/useToast';
@@ -156,74 +158,45 @@ export function ChatsPage() {
               const meta = STATUS_LABEL[c.status];
               return (
                 <li key={c.id}>
-                  <button
-                    type="button"
-                    className="chats-page__row"
+                  <EntityRow
+                    title={c.topic ?? c.firstQuestion ?? '— Conversation —'}
+                    subtitle={c.firstQuestion && c.topic && (
+                      <span className="chats-page__row-q">« {c.firstQuestion} »</span>
+                    )}
                     onClick={() => setSelectedId(c.id)}
-                  >
-                    <div className="chats-page__row-main">
-                      <div className="chats-page__row-topic">
-                        {c.topic ?? c.firstQuestion ?? '— Conversation —'}
-                      </div>
-                      {c.firstQuestion && c.topic && (
-                        <div className="chats-page__row-q">« {c.firstQuestion} »</div>
-                      )}
-                    </div>
-                    <div className="chats-page__row-meta">
-                      <span
-                        className={`chats-page__status chats-page__status--${meta.tone}`}
-                        title={c.resolutionReason ? (REASON_LABEL[c.resolutionReason] ?? c.resolutionReason) : undefined}
-                      >
-                        {meta.label}
-                      </span>
-                      {c.resolutionReason && REASON_LABEL[c.resolutionReason] && (
-                        <span className="chats-page__row-reason">
-                          {REASON_LABEL[c.resolutionReason]}
+                    meta={(
+                      <>
+                        <span
+                          className={`chats-page__status chats-page__status--${meta.tone}`}
+                          title={c.resolutionReason ? (REASON_LABEL[c.resolutionReason] ?? c.resolutionReason) : undefined}
+                        >
+                          {meta.label}
                         </span>
-                      )}
-                      <span className="chats-page__row-turns">
-                        {c.turnsCount} {c.turnsCount === 1 ? 'message' : 'messages'}
-                      </span>
-                      {c.csat !== null && (
-                        <span className="chats-page__row-csat" title={`CSAT ${c.csat}/5`}>
-                          {'★'.repeat(c.csat)}{'☆'.repeat(5 - c.csat)}
+                        {c.resolutionReason && REASON_LABEL[c.resolutionReason] && (
+                          <span className="chats-page__row-reason">
+                            {REASON_LABEL[c.resolutionReason]}
+                          </span>
+                        )}
+                        <span className="chats-page__row-turns">
+                          {c.turnsCount} {c.turnsCount === 1 ? 'message' : 'messages'}
                         </span>
-                      )}
-                      <span className="chats-page__row-date">
-                        {formatRelative(c.startedAt)}
-                      </span>
-                    </div>
-                  </button>
+                        {c.csat !== null && (
+                          <span className="chats-page__row-csat" title={`CSAT ${c.csat}/5`}>
+                            {'★'.repeat(c.csat)}{'☆'.repeat(5 - c.csat)}
+                          </span>
+                        )}
+                        <span className="chats-page__row-date">
+                          {formatRelative(c.startedAt)}
+                        </span>
+                      </>
+                    )}
+                  />
                 </li>
               );
             })}
           </ul>
 
-          {totalPages > 1 && (
-            <div className="chats-page__pagination">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                disabled={page <= 1}
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-              >
-                ← Précédent
-              </Button>
-              <span className="chats-page__page-info">
-                Page {page} / {totalPages}
-              </span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                disabled={page >= totalPages}
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              >
-                Suivant →
-              </Button>
-            </div>
-          )}
+          <Pager page={page} totalPages={totalPages} onChange={setPage} />
         </>
       )}
 

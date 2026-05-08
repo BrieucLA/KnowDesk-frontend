@@ -9,6 +9,7 @@ import { Modal }            from '../../../shared/components/ui/Modal';
 import { Button }           from '../../../shared/components/ui/Button';
 import { Input }            from '../../../shared/components/ui/Input';
 import { ConfirmDialog }    from '../../../shared/components/ui/ConfirmDialog';
+import { EntityRow }        from '../../../shared/components/ui/EntityRow';
 import { PageHeader }       from '../../../shared/components/layout/PageHeader';
 import { knowledgeApi } from '../api/knowledgeApi';
 import { apiClient, ApiError } from '../../../shared/lib/apiClient';
@@ -573,12 +574,9 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
 
         {/* Article list */}
         {loadingArticles && (
-          <div aria-busy="true" aria-label="Chargement des articles">
+          <div className="knowledge-article-list" aria-busy="true" aria-label="Chargement des articles">
             {[1,2,3].map(i => (
-              <div key={i} className="knowledge-article-row knowledge-article-row--sk">
-                <Skeleton className="kn-sk kn-sk--title" />
-                <Skeleton className="kn-sk kn-sk--meta"  />
-              </div>
+              <Skeleton key={i} className="knowledge-article-skeleton" />
             ))}
           </div>
         )}
@@ -605,24 +603,21 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
           <ul className="knowledge-article-list" role="list">
             {filteredArticles.map(article => (
               <li key={article.id}>
-                <button
-                  type="button"
-                  className="knowledge-article-row"
-                  onClick={() => onOpenArticle(article.id)}
-                  aria-label={`${article.title}, ${article.status}, version ${article.version}`}
-                >
-                  <div className="knowledge-article-row__main">
-                    <span className="knowledge-article-row__title">{article.title}</span>
-                    <span className="knowledge-article-row__meta">
+                <EntityRow
+                  title={article.title}
+                  subtitle={(
+                    <>
                       {article.authorName}
                       <span aria-hidden="true"> · </span>
                       v{article.version}
                       <span aria-hidden="true"> · </span>
                       <time dateTime={article.updatedAt}>{formatRelative(article.updatedAt)}</time>
-                    </span>
-                  </div>
-                  <StatusBadge status={article.status} />
-                </button>
+                    </>
+                  )}
+                  meta={<StatusBadge status={article.status} />}
+                  onClick={() => onOpenArticle(article.id)}
+                  ariaLabel={`${article.title}, ${article.status}, version ${article.version}`}
+                />
               </li>
             ))}
           </ul>
@@ -632,24 +627,25 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
         {!loadingArticles && visibleTrees.length > 0 && (
           <div className="knowledge-trees">
             <h3 className="knowledge-trees__title">Processus guidés</h3>
-            {visibleTrees.map(tree => (
-              <button
-                key={tree.id}
-                type="button"
-                className="knowledge-tree-card"
-                onClick={() => onOpenTree(tree.id)}
-              >
-                <div className="knowledge-tree-card__main">
-                  <span className="knowledge-tree-card__name">{tree.title}</span>
-                  <span className="knowledge-tree-card__meta">
-                    {tree.category_name ?? 'Sans catégorie'}
-                    <span aria-hidden="true"> · </span>
-                    Mis à jour <time dateTime={tree.updated_at}>{formatRelative(tree.updated_at)}</time>
-                  </span>
-                </div>
-                <span className="badge badge--info">Processus</span>
-              </button>
-            ))}
+            <ul className="knowledge-article-list" role="list">
+              {visibleTrees.map(tree => (
+                <li key={tree.id}>
+                  <EntityRow
+                    title={tree.title}
+                    subtitle={(
+                      <>
+                        {tree.category_name ?? 'Sans catégorie'}
+                        <span aria-hidden="true"> · </span>
+                        Mis à jour <time dateTime={tree.updated_at}>{formatRelative(tree.updated_at)}</time>
+                      </>
+                    )}
+                    meta={<span className="badge badge--info">Processus</span>}
+                    onClick={() => onOpenTree(tree.id)}
+                    ariaLabel={`Ouvrir le processus ${tree.title}`}
+                  />
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 

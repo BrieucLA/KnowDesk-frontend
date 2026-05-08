@@ -7,6 +7,7 @@ import { Modal }       from '../../../shared/components/ui/Modal';
 import { StatusBadge } from '../../../shared/components/ui/StatusBadge';
 import { EmptyState }  from '../../../shared/components/ui/EmptyState';
 import { Skeleton }    from '../../../shared/components/ui/Skeleton';
+import { EntityCard }  from '../../../shared/components/ui/EntityCard';
 import { PageHeader }  from '../../../shared/components/layout/PageHeader';
 import { formatRelative } from '../../../shared/lib/formatDate';
 import { useAuthStore, selectUserRole } from '../../../store/authStore';
@@ -96,40 +97,32 @@ export function TreesPage({ onOpenTree, onEditTree, onPreviewTree }: TreesPagePr
       ) : (
         <ul className="trees-list" role="list">
           {trees.map(tree => (
-            <li key={tree.id} className="tree-card">
-              <div className="tree-card__main" onClick={() => onOpenTree(tree.id)} role="button" tabIndex={0}>
-                <div className="tree-card__header">
-                  <StatusBadge status={tree.status} />
-                  {tree.category_name && (
-                    <span className="tree-card__category">{tree.category_name}</span>
-                  )}
-                </div>
-                <h3 className="tree-card__title">{tree.title}</h3>
-                {tree.description && (
-                  <p className="tree-card__desc">{tree.description}</p>
+            <li key={tree.id}>
+              <EntityCard
+                badges={(
+                  <>
+                    <StatusBadge status={tree.status} />
+                    {tree.category_name && (
+                      <span className="tree-card__category">{tree.category_name}</span>
+                    )}
+                  </>
                 )}
-                <time className="tree-card__time">
-                  Modifié {formatRelative(tree.updated_at)}
-                </time>
-              </div>
-              {isAdmin && (
-                <div className="tree-card__actions">
-                  <Button variant="ghost" size="sm" onClick={() => onEditTree(tree.id)}>
-                    Modifier
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => onPreviewTree(tree.id)}>
-                    Aperçu
-                  </Button>
-                  {tree.status === 'draft' && (
-                    <Button variant="ghost" size="sm" onClick={() => publishTree(tree.id)}>
-                      Publier
-                    </Button>
-                  )}
-                  <Button variant="ghost" size="sm" onClick={() => deleteTree(tree.id)}>
-                    Supprimer
-                  </Button>
-                </div>
-              )}
+                title={tree.title}
+                description={tree.description || undefined}
+                meta={<>Modifié <time dateTime={tree.updated_at}>{formatRelative(tree.updated_at)}</time></>}
+                onClick={() => onOpenTree(tree.id)}
+                ariaLabel={`Ouvrir le processus ${tree.title}`}
+                actions={isAdmin && (
+                  <>
+                    <Button variant="ghost" size="sm" onClick={() => onEditTree(tree.id)}>Modifier</Button>
+                    <Button variant="ghost" size="sm" onClick={() => onPreviewTree(tree.id)}>Aperçu</Button>
+                    {tree.status === 'draft' && (
+                      <Button variant="ghost" size="sm" onClick={() => publishTree(tree.id)}>Publier</Button>
+                    )}
+                    <Button variant="ghost" size="sm" onClick={() => deleteTree(tree.id)}>Supprimer</Button>
+                  </>
+                )}
+              />
             </li>
           ))}
         </ul>

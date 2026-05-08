@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Skeleton }   from '../../../shared/components/ui/Skeleton';
 import { Modal }      from '../../../shared/components/ui/Modal';
 import { EmptyState } from '../../../shared/components/ui/EmptyState';
+import { Pager }      from '../../../shared/components/ui/Pager';
 import { PageHeader }  from '../../../shared/components/layout/PageHeader';
 import { PageToolbar } from '../../../shared/components/layout/PageToolbar';
 import { useToast } from '../../../shared/lib/useToast';
@@ -205,25 +206,7 @@ export function AuditPage() {
         </table>
       )}
 
-      {totalPages > 1 && (
-        <div className="audit-page__pagination">
-          <button
-            type="button"
-            disabled={page <= 1}
-            onClick={() => setPage(p => Math.max(1, p - 1))}
-          >
-            ← Précédent
-          </button>
-          <span>Page {page} / {totalPages}</span>
-          <button
-            type="button"
-            disabled={page >= totalPages}
-            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-          >
-            Suivant →
-          </button>
-        </div>
-      )}
+      <Pager page={page} totalPages={totalPages} onChange={setPage} />
 
       {detail && (
         <Modal
