@@ -5,16 +5,16 @@
    ───────────────────────────────────────────────────────────── */
 
 /* ── SettingsPage ─────────────────────────────────────────────── */
+.settings-page-wrap {
+  display: flex;
+  flex-direction: column;
+}
 .settings-page {
   display: grid; grid-template-columns: 200px 1fr; gap: 40px;
-  min-height: calc(100vh - 56px);
+  flex: 1;
 }
 .settings-page__sidebar {
   padding-top: 4px;
-}
-.settings-page__title {
-  font-size: 18px; font-weight: 500; color: var(--neutral-900);
-  margin-bottom: 20px; letter-spacing: -0.02em;
 }
 .settings-nav__search {
   position: relative;

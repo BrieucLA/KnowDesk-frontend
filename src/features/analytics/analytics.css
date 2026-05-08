@@ -3,7 +3,8 @@
    ───────────────────────────────────────────────────────────── */
 
 /* ── Analytics ──────────────────────────────────────────────── */
-.analytics-page { padding: 32px 24px; max-width: 1200px; margin: 0 auto; }
+/* Padding et max-width hérités de .app-layout__content (32px 40px,
+ * max-width 1200px) — pas d'override nécessaire. */
 
 .analytics-stats {
   display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;

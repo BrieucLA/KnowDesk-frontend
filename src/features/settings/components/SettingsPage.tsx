@@ -9,6 +9,7 @@ import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { MOCK_BILLING, mockDeleteOrg } from '../api/settings.mock';
 import { useAuthStore }    from '../../../store/authStore';
 import { ApiKeysSection } from './ApiKeysSection';
+import { PageHeader }    from '../../../shared/components/layout/PageHeader';
 import { SearchSettingsSection } from './SearchSettingsSection';
 import { TagsSettingsSection }   from './TagsSettingsSection';
 import { AiSettingsSection }     from './AiSettingsSection';
@@ -51,34 +52,39 @@ export function SettingsPage({ initialSection = 'general' }: SettingsPageProps) 
 
   return (
     <DirtyContext.Provider value={dirtyCtxValue}>
-      <div className="settings-page">
-        <MobileSettingsNav
-          tree={navTree(role === 'admin')}
-          activeSection={activeSection}
-          onNavigate={handleSectionClick}
+      <div className="settings-page-wrap">
+        <PageHeader
+          title="Paramètres"
+          subtitle="Réglages de votre organisation et de votre compte."
         />
-        <div className="settings-page__sidebar">
-          <h1 className="settings-page__title">Paramètres</h1>
-          <PlanBadge />
-          <SettingsNav
+        <div className="settings-page">
+          <MobileSettingsNav
             tree={navTree(role === 'admin')}
             activeSection={activeSection}
             onNavigate={handleSectionClick}
           />
-        </div>
-        <div className="settings-page__body">
-          {activeSection === 'general'       && <SectionGeneral />}
-          {activeSection === 'ai'            && <AiSettingsSection />}
-          {activeSection === 'chatbot'       && <ChatbotSettingsSection />}
-          {activeSection === 'ai-quality'    && <ArticleQualitySettingsSection />}
-          {activeSection === 'ai-models'     && <AiModelsSection />}
-          {activeSection === 'notifications' && <SectionNotifications />}
-          {activeSection === 'api' && <ApiKeysSection />}
-          {activeSection === 'search'        && <SearchSettingsSection />}
-          {activeSection === 'tags'          && <TagsSettingsSection />}
-          {activeSection === 'imports'       && <ImportsSettingsSection />}
-          {activeSection === 'billing'       && <SectionBilling />}
-          {activeSection === 'danger'        && <SectionDanger />}
+          <div className="settings-page__sidebar">
+            <PlanBadge />
+            <SettingsNav
+              tree={navTree(role === 'admin')}
+              activeSection={activeSection}
+              onNavigate={handleSectionClick}
+            />
+          </div>
+          <div className="settings-page__body">
+            {activeSection === 'general'       && <SectionGeneral />}
+            {activeSection === 'ai'            && <AiSettingsSection />}
+            {activeSection === 'chatbot'       && <ChatbotSettingsSection />}
+            {activeSection === 'ai-quality'    && <ArticleQualitySettingsSection />}
+            {activeSection === 'ai-models'     && <AiModelsSection />}
+            {activeSection === 'notifications' && <SectionNotifications />}
+            {activeSection === 'api' && <ApiKeysSection />}
+            {activeSection === 'search'        && <SearchSettingsSection />}
+            {activeSection === 'tags'          && <TagsSettingsSection />}
+            {activeSection === 'imports'       && <ImportsSettingsSection />}
+            {activeSection === 'billing'       && <SectionBilling />}
+            {activeSection === 'danger'        && <SectionDanger />}
+          </div>
         </div>
       </div>
 

@@ -4,7 +4,10 @@
 
 /* ───── Sprint 7 — Page Chats (admin) ───── */
 .chats-page {
-  max-width: 960px; margin: 0 auto; padding: 24px;
+  /* Padding hérité de .app-layout__content (32px 40px). max-width plus
+   * resserré que le parent (1200px) car la liste de conversations reste
+   * lisible avec une largeur < 1200px. */
+  max-width: 960px;
   display: flex; flex-direction: column; gap: 20px;
 }
 .chats-page__filter {
