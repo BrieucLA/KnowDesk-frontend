@@ -8,7 +8,7 @@ import { Button }          from '../../../shared/components/ui/Button';
 import { formatRelative }  from '../../../shared/lib/formatDate';
 import { apiClient }       from '../../../shared/lib/apiClient';
 import { useAnalytics }    from '../hooks/useAnalytics';
-import { articleQualityApi, type ArticleToRework, DIMENSION_LABEL } from '../../articleQuality/api/articleQualityApi';
+import { articleQualityApi, type ArticleToRework, type QualityStats, DIMENSION_LABEL } from '../../articleQuality/api/articleQualityApi';
 import { analyticsApi, type FaqSuggestion } from '../api/analyticsApi';
 import { KbScoreCard } from '../../kbscore/components/KbScoreCard';
 import { InfoTooltip } from '../../../shared/components/ui/Tooltip';
@@ -728,19 +728,83 @@ function FaqsToCreateBanner({ onCreate }: { onCreate: (question: string) => void
 
 function ArticlesToReworkCard({ onOpen }: { onOpen: (id: string) => void }) {
   const [items,   setItems]   = useState<ArticleToRework[] | null>(null);
+  const [stats,   setStats]   = useState<QualityStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState<string | null>(null);
 
   useEffect(() => {
-    articleQualityApi.listToRework()
-      .then(r => setItems(r.items))
-      .catch(() => setItems([]))
-      .finally(() => setLoading(false));
+    let alive = true;
+    setLoading(true);
+    Promise.all([
+      articleQualityApi.listToRework().catch(() => ({ items: [], total: 0 })),
+      articleQualityApi.stats().catch(() => null),
+    ])
+      .then(([list, st]) => {
+        if (!alive) return;
+        setItems(list.items);
+        setStats(st);
+      })
+      .catch((err) => {
+        if (!alive) return;
+        setError(err?.message ?? 'Erreur de chargement.');
+      })
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
   }, []);
 
-  if (loading || !items || items.length === 0) {
-    // Card silencieuse si pas de scoring ou rien à retravailler — évite
-    // de polluer l'écran quand l'IA n'a rien à dire.
-    return null;
+  if (loading) {
+    return (
+      <section className="article-rework-card article-rework-card--loading">
+        <h2 className="article-rework-card__title">✨ Articles à retravailler</h2>
+        <p className="article-rework-card__desc">Chargement de l'analyse IA…</p>
+      </section>
+    );
+  }
+
+  // État 1 : aucun article publié → on n'affiche rien (pas de message bruyant)
+  if (stats && stats.published === 0) return null;
+
+  // État 2 : aucun article scoré → message d'amorçage
+  if (stats && stats.scored === 0) {
+    return (
+      <section className="article-rework-card article-rework-card--empty">
+        <h2 className="article-rework-card__title">✨ Articles à retravailler</h2>
+        <p className="article-rework-card__desc">
+          Aucun article scoré pour l'instant. Le scoring IA tourne automatiquement à
+          chaque modif d'article + 1× par semaine.
+          {' '}
+          Pour ne pas attendre, lance un scoring complet depuis
+          {' '}
+          <strong>Settings → Intelligence artificielle → Auditeur qualité</strong>.
+        </p>
+      </section>
+    );
+  }
+
+  // État 3 : tous les articles sont OK → félicitations
+  if (items && items.length === 0) {
+    return (
+      <section className="article-rework-card article-rework-card--ok">
+        <h2 className="article-rework-card__title">
+          ✨ Articles à retravailler
+          <span className="article-rework-card__badge article-rework-card__badge--ok">0</span>
+        </h2>
+        <p className="article-rework-card__desc">
+          Tous vos articles publiés sont jugés bons par l'IA
+          {stats && <> ({stats.scored} / {stats.published} scorés)</>}.
+        </p>
+      </section>
+    );
+  }
+
+  // État 4 : il y a des articles à retravailler — la carte montre la liste
+  if (error || !items) {
+    return (
+      <section className="article-rework-card">
+        <h2 className="article-rework-card__title">✨ Articles à retravailler</h2>
+        <p className="article-rework-card__desc">{error ?? 'Erreur de chargement.'}</p>
+      </section>
+    );
   }
 
   return (
@@ -752,6 +816,7 @@ function ArticlesToReworkCard({ onOpen }: { onOpen: (id: string) => void }) {
         </h2>
         <p className="article-rework-card__desc">
           L'IA a identifié au moins 3 dimensions à revoir sur ces articles publiés.
+          {stats && <> {stats.scored} / {stats.published} articles scorés.</>}
           Cliquez pour ouvrir l'article et voir le détail.
         </p>
       </header>

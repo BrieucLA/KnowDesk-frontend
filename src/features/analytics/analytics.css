@@ -244,3 +244,17 @@
   padding: 1px 8px;
   border-radius: var(--radius-full);
 }
+
+.article-rework-card--loading,
+.article-rework-card--empty {
+  background: var(--neutral-50);
+  border-color: var(--neutral-200);
+}
+.article-rework-card--ok {
+  background: linear-gradient(180deg, #f0fdf4 0%, #ecfdf5 100%);
+  border-color: #bbf7d0;
+}
+.article-rework-card__badge--ok {
+  background: #dcfce7;
+  color: #166534;
+}
