@@ -473,3 +473,98 @@
 }
 
 .ai-models-sk { height: 80px; margin-bottom: 12px; border-radius: var(--radius-lg); }
+
+/* ── Prompt editor grid : textarea (gauche) + panneau variables (droite) ── */
+.prompt-editor-grid {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 14px;
+  align-items: start;
+}
+.prompt-editor-grid__textarea { min-width: 0; width: 100%; }
+
+@media (max-width: 1024px) {
+  .prompt-editor-grid { grid-template-columns: 1fr; }
+}
+
+.prompt-vars-panel {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  padding: 14px 14px 4px;
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  position: sticky;
+  top: 16px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+.prompt-vars-panel__header { margin-bottom: 8px; }
+.prompt-vars-panel__title {
+  margin: 0 0 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--neutral-900);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.prompt-vars-panel__hint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--neutral-500);
+}
+.prompt-vars-panel__loading,
+.prompt-vars-panel__error {
+  padding: 8px 0;
+  font-size: 12px;
+  color: var(--neutral-500);
+}
+.prompt-vars-panel__error { color: var(--color-danger); }
+.prompt-vars-panel__list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.prompt-vars-panel__item {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--neutral-100);
+}
+.prompt-vars-panel__item:last-child { border-bottom: none; }
+.prompt-vars-panel__btn {
+  background: var(--neutral-50);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: background var(--t-fast), border-color var(--t-fast);
+  font-family: ui-monospace, SFMono-Regular, monospace;
+}
+.prompt-vars-panel__btn:hover {
+  background: var(--brand-50);
+  border-color: var(--brand-300);
+}
+.prompt-vars-panel__code {
+  font-size: 11.5px;
+  color: var(--brand-700);
+  font-family: inherit;
+}
+.prompt-vars-panel__desc {
+  margin: 5px 0 0;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--neutral-700);
+}
+.prompt-vars-panel__example {
+  margin: 4px 0 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--neutral-500);
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

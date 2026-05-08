@@ -6,6 +6,7 @@ import { ConfirmDialog }     from '../../../shared/components/ui/ConfirmDialog';
 import { apiClient, ApiError } from '../../../shared/lib/apiClient';
 import { useToast }          from '../../../shared/lib/useToast';
 import { useAuthStore }      from '../../../store/authStore';
+import { PromptVariablesPanel } from './PromptVariablesPanel';
 import type {
   ChatOrgSettings, ChatHandoffMode, ChatRetentionDays,
   AiTone, AiAddressForm, AiGlossaryEntry,
@@ -72,6 +73,24 @@ export function ChatbotSettingsSection() {
   const [widgetMounted, setWidgetMounted] = useState(false);
   /** Prompt généré par défaut côté backend — sert au pré-remplissage et au reset. */
   const [defaultPrompt, setDefaultPrompt] = useState<string>('');
+  const promptTextareaRef = React.useRef<HTMLTextAreaElement | null>(null);
+  // Insertion au curseur : utilise le setter functional pour lire la
+  // valeur courante de promptDraft sans dépendance dans une closure.
+  const insertVariableAtCursor = (varName: string): void => {
+    const el = promptTextareaRef.current;
+    if (!el) return;
+    const placeholder = `{{${varName}}}`;
+    const start = el.selectionStart ?? 0;
+    const end   = el.selectionEnd   ?? 0;
+    setPromptDraft(prev => prev.slice(0, start) + placeholder + prev.slice(end));
+    setHasCustomPrompt(true);
+    requestAnimationFrame(() => {
+      el.focus();
+      const cursor = start + placeholder.length;
+      el.setSelectionRange(cursor, cursor);
+    });
+  };
+
   /** Texte courant du textarea prompt. Distinct de form.chat_system_prompt
       pour gérer proprement « valeur custom » vs « valeur affichée pour info ». */
   const [promptDraft, setPromptDraft]     = useState<string>('');
@@ -582,10 +601,12 @@ export function ChatbotSettingsSection() {
             <div>
               <h3 className="settings-section__title" style={{ fontSize: 16 }}>Prompt système</h3>
               <p className="settings-section__desc">
-                Instructions complètes envoyées à Mistral à chaque message du chatbot. Pré-rempli
-                à partir des réglages ci-dessus. Tu peux le réécrire intégralement
-                (<strong>override total</strong> — la personnalisation ci-dessus n'est plus appliquée
-                automatiquement). Pour repasser au prompt généré, clique sur « Restaurer le défaut ».
+                Instructions complètes envoyées à Mistral à chaque message du chatbot.
+                Le prompt utilise des <strong>variables Mustache</strong> (ex: <code className="km-mono">{`{{industry}}`}</code>)
+                qui sont remplacées par leurs valeurs au moment de l'envoi. Tu peux réorganiser
+                ou réécrire le prompt en gardant ces variables — elles continueront de refléter
+                tes réglages (tonalité, glossaire, etc.) sans devoir tout réécrire à chaque
+                changement. Pour repartir du template par défaut, clique sur « Restaurer le défaut ».
                 {hasCustomPrompt && (
                   <span style={{ display: 'inline-block', marginLeft: 6, color: 'var(--brand-600, #5B6CFF)', fontWeight: 500 }}>
                     Prompt personnalisé actif.
@@ -604,28 +625,44 @@ export function ChatbotSettingsSection() {
                 </span>
               )}
             </label>
-            <textarea
-              id="chat-system-prompt"
-              className="field-input"
-              value={promptDraft}
-              onChange={e => { setPromptDraft(e.target.value); setHasCustomPrompt(true); }}
-              rows={22}
-              readOnly={!editPrompt}
-              spellCheck={false}
-              style={{
-                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-                fontSize: 12.5,
-                lineHeight: 1.5,
-                background: editPrompt ? 'white' : 'var(--neutral-50, #f8f9fb)',
-                cursor:     editPrompt ? 'text'  : 'default',
-                // Override .field-input qui force height: var(--input-h) ≈ 40px
-                // sinon le rows={22} HTML est ignoré et le textarea s'affiche
-                // en input mono-ligne.
-                height:     'auto',
-                padding:    '12px 14px',
-                resize:     'vertical',
-              }}
-            />
+
+            {editPrompt && !promptDraft.includes('{{response_modes}}') && (
+              <div role="alert" style={{
+                marginBottom: 10, padding: '8px 12px',
+                background: 'var(--color-danger-bg, #FEE)', border: '1px solid var(--color-danger-border, #FCC)',
+                color: 'var(--color-danger, #C0392B)', borderRadius: 8, fontSize: 12.5, lineHeight: 1.5,
+              }}>
+                ⚠ La variable <code className="km-mono">{`{{response_modes}}`}</code> n'est pas dans
+                ton prompt. Sans elle, les garde-fous anti-jailbreak et le mode "fallback" sont
+                désactivés. Pense à la réinsérer si tu l'as supprimée par erreur.
+              </div>
+            )}
+
+            <div className="prompt-editor-grid">
+              <textarea
+                id="chat-system-prompt"
+                ref={promptTextareaRef}
+                className="field-input prompt-editor-grid__textarea"
+                value={promptDraft}
+                onChange={e => { setPromptDraft(e.target.value); setHasCustomPrompt(true); }}
+                rows={22}
+                readOnly={!editPrompt}
+                spellCheck={false}
+                style={{
+                  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+                  fontSize: 12.5,
+                  lineHeight: 1.5,
+                  background: editPrompt ? 'white' : 'var(--neutral-50, #f8f9fb)',
+                  cursor:     editPrompt ? 'text'  : 'default',
+                  height:     'auto',
+                  padding:    '12px 14px',
+                  resize:     'vertical',
+                }}
+              />
+              {editPrompt && (
+                <PromptVariablesPanel onInsert={insertVariableAtCursor} />
+              )}
+            </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6, gap: 12 }}>
               <p className="field-helper" style={{ margin: 0 }}>
                 {editPrompt
