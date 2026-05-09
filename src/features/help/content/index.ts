@@ -758,7 +758,7 @@ Sous le formulaire de configuration, KnowDesk affiche un snippet à copier-colle
 
 \`\`\`html
 <script
-  src="https://know-desk-frontend.vercel.app/chat.js"
+  src="https://app.knowdesk.fr/chat.js"
   data-org="<ton-slug>"
   defer
 ></script>
@@ -1612,7 +1612,7 @@ Va dans **Paramètres → API** depuis le menu de gauche.
 **Utiliser une clé dans une requête**
 Ajoute le header \`X-API-Key\` à chaque requête :
 \`\`\`
-GET https://knowdesk-production.up.railway.app/public/v1/articles
+GET https://api.knowdesk.fr/public/v1/articles
 X-API-Key: kd_live_ta_cle_api
 \`\`\`
 
@@ -1623,7 +1623,7 @@ Dans la liste des clés, clique sur **Révoquer** à droite de la clé concerné
 
 **Consulter la documentation API complète**
 La documentation détaillée avec tous les endpoints et exemples de code est disponible sur :
-\`https://know-desk-frontend.vercel.app/?api-docs\`
+\`https://app.knowdesk.fr/?api-docs\`
   `.trim(),
 },
 

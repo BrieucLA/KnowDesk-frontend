@@ -92,7 +92,8 @@ async function runAiStream(
   setState(() => ({ status: 'streaming', sources: [], answer: '' }));
 
   try {
-    const resp = await fetch('/api/v1/ai-answer', {
+    const apiBase = import.meta.env.VITE_API_URL ?? '/api/v1';
+    const resp = await fetch(`${apiBase}/ai-answer`, {
       method:      'POST',
       headers:     { 'Content-Type': 'application/json' },
       credentials: 'include',

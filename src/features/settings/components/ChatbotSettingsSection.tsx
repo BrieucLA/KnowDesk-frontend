@@ -442,7 +442,7 @@ export function ChatbotSettingsSection() {
 
   // Snippet d'intégration que l'admin colle sur son site
   const embedSnippet = `<script
-  src="https://know-desk-frontend.vercel.app/chat.js"
+  src="https://app.knowdesk.fr/chat.js"
   data-org="${orgSlug}"
   defer
 ></script>`;

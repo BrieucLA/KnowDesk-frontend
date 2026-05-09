@@ -119,7 +119,8 @@ export function RichTextEditor({
     try {
       // FormData ne passe pas par apiClient (Content-Type multipart auto-géré).
       // Cookie HTTP-only envoyé via credentials:include.
-      const res  = await fetch(`/api/v1/articles/${id}/images`, {
+      const apiBase = import.meta.env.VITE_API_URL ?? '/api/v1';
+      const res  = await fetch(`${apiBase}/articles/${id}/images`, {
         method:      'POST',
         credentials: 'include',
         body:        formData,

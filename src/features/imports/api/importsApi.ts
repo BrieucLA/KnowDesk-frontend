@@ -1,5 +1,7 @@
 import { apiClient } from '../../../shared/lib/apiClient';
 
+const API_BASE = import.meta.env.VITE_API_URL ?? '/api/v1';
+
 export type ImportStatus    = 'pending' | 'processing' | 'completed' | 'failed';
 export type ImportSplitMode = 'one_article' | 'split_by_section';
 export type ImportFormat    = 'pdf' | 'docx' | 'pptx';
@@ -29,7 +31,7 @@ export const importsApi = {
     const fd = new FormData();
     fd.append('file', file);
     fd.append('splitMode', splitMode);
-    const res = await fetch('/api/v1/imports', {
+    const res = await fetch(`${API_BASE}/imports`, {
       method:      'POST',
       body:        fd,
       credentials: 'include',

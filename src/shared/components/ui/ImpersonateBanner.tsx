@@ -17,7 +17,8 @@ const handleReturn = async () => {
   // suivantes (même en compte admin classique) sont attribuées au superadmin
   // dans l'audit log via metadata.impersonatedBy.
   try {
-    await fetch('/api/v1/superadmin/impersonate/stop', {
+    const apiBase = import.meta.env.VITE_API_URL ?? '/api/v1';
+    await fetch(`${apiBase}/superadmin/impersonate/stop`, {
       method:      'POST',
       credentials: 'include',
     });

@@ -9,11 +9,16 @@ function getSavedToken(): string | null {
   try { return sessionStorage.getItem(SA_TOKEN_KEY); } catch { return null; }
 }
 
+/**
+ * Base URL : absolue en prod (api.knowdesk.fr) si VITE_API_URL posé,
+ * relative sinon (proxy Vite dev). Cohérent avec apiClient.ts.
+ */
+const SA_BASE_URL = import.meta.env.VITE_API_URL ?? '/api/v1';
+
 async function saFetch<T>(path: string, token: string, options?: RequestInit): Promise<T> {
-  // Chemin relatif : Vercel rewrite (prod) ou Vite proxy (dev) route vers Railway.
   // credentials:include permet au navigateur d'accepter les Set-Cookie posés
   // par le backend (cookie d'impersonation) ET d'envoyer les cookies existants.
-  const res = await fetch(`/api/v1/superadmin${path}`, {
+  const res = await fetch(`${SA_BASE_URL}/superadmin${path}`, {
     ...options,
     credentials: 'include',
     headers: {
@@ -57,8 +62,7 @@ export function useSuperadmin() {
     setLoginErr('');
     setLoading(true);
     try {
-      const base = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api/v1';
-      const res  = await fetch(`${base}/superadmin/auth/login`, {
+      const res  = await fetch(`${SA_BASE_URL}/superadmin/auth/login`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ email, password }),

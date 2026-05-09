@@ -1,6 +1,6 @@
 import type { EndpointExamples } from './types';
 
-export const BASE_URL = 'https://knowdesk-production.up.railway.app/public/v1';
+export const BASE_URL = 'https://api.knowdesk.fr/public/v1';
 
 interface MakeExamplesOpts {
   /** Path, peut contenir `:id` ou `:foo` qui sera substitué par `${UPPER_FOO}`. */

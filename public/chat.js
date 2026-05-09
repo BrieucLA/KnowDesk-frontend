@@ -2,7 +2,7 @@
  * KnowDesk Chat Widget — embeddable script
  *
  * Usage :
- *   <script src="https://know-desk-frontend.vercel.app/chat.js"
+ *   <script src="https://app.knowdesk.fr/chat.js"
  *           data-org="<orgSlug>"
  *           defer></script>
  *
@@ -33,10 +33,15 @@
     return;
   }
 
-  // L'API endpoint est dérivé de l'origin du script — fonctionne donc en dev,
-  // staging et prod sans config supplémentaire.
+  // L'API endpoint pointe sur api.knowdesk.fr en prod. En dev local le script
+  // est servi par Vite avec le proxy /public/v1/* → localhost:3001 ; on utilise
+  // alors l'origin du script. Hostname-based detection plutôt que NODE_ENV
+  // car ce script tourne dans le navigateur du client embarquant.
   var scriptUrl = new URL(currentScript.src);
-  var API_BASE = scriptUrl.origin + '/public/v1/chat';
+  var isLocalScript = scriptUrl.hostname === 'localhost' || scriptUrl.hostname === '127.0.0.1';
+  var API_BASE = isLocalScript
+    ? scriptUrl.origin + '/public/v1/chat'
+    : 'https://api.knowdesk.fr/public/v1/chat';
 
   // ── État global du widget ────────────────────────────────────────
   var state = {

@@ -1,12 +1,13 @@
 import { useAuthStore } from '../../store/authStore';
 
 /**
- * Base URL relative : en prod un rewrite Vercel proxy /api → Railway, en dev
- * un proxy Vite fait la même chose vers localhost:3001. L'origine perçue par
- * le navigateur est donc toujours celle du frontend, ce qui permet d'utiliser
- * des cookies HTTP-only sameSite=lax pour transporter l'access token.
+ * Base URL : absolue en prod (api.knowdesk.fr) si VITE_API_URL est posé,
+ * relative en dev (proxy Vite vers localhost:3001 défini dans vite.config.ts).
+ * Cookies HTTP-only sameSite=lax fonctionnent grâce au domaine partagé
+ * `.knowdesk.fr` (cf COOKIE_DOMAIN backend) — app.knowdesk.fr et
+ * api.knowdesk.fr sont same-site bien que cross-origin.
  */
-const BASE_URL = '/api/v1';
+const BASE_URL = import.meta.env.VITE_API_URL ?? '/api/v1';
 
 export class ApiError extends Error {
   constructor(

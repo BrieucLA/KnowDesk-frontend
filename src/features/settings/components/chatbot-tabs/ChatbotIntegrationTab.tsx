@@ -21,7 +21,7 @@ export function ChatbotIntegrationTab({ ctx }: { ctx: ChatbotTabContext }) {
       </p>
 
       <div className="chatbot-settings__test-prerequisite">
-        <strong>⚠ Pré-requis :</strong> ajoute le domaine <code>{typeof window !== 'undefined' ? window.location.host : 'know-desk-frontend.vercel.app'}</code> dans la liste des domaines autorisés (onglet Apparence), sinon le widget ne s'affichera pas (CORS bloqué côté serveur).
+        <strong>⚠ Pré-requis :</strong> ajoute le domaine <code>{typeof window !== 'undefined' ? window.location.host : 'app.knowdesk.fr'}</code> dans la liste des domaines autorisés (onglet Apparence), sinon le widget ne s'affichera pas (CORS bloqué côté serveur).
       </div>
       <div className="chatbot-settings__test-actions">
         <Button
