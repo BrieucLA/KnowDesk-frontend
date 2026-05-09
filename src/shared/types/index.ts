@@ -10,6 +10,8 @@ export interface User {
   lastName?:  string;
   role:          UserRole;
   onboardingDone?: boolean;
+  /** Sprint Onboarding-3 : indique si l'email a été confirmé via le lien magique. */
+  emailVerified?: boolean;
 }
 
 export interface Organization {

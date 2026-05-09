@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { LoginPage }        from './features/auth/components/LoginPage';
+import { VerifyEmailPage }  from './features/auth/components/VerifyEmailPage';
+import { EmailVerificationBanner } from './features/auth/components/EmailVerificationBanner';
 import { OnboardingPage }   from './features/onboarding/components/OnboardingPage';
 import { DashboardPage }    from './features/dashboard/components/DashboardPage';
 import { ArticlePage }      from './features/articles/components/ArticlePage';
@@ -227,6 +229,11 @@ return <ApiDocsApp />;
 
 }
 
+// Confirmation d'email — accessible sans être connecté.
+if (window.location.pathname === '/verify-email') {
+  return <VerifyEmailPage />;
+}
+
 // Page d'acceptation d'invitation — accessible sans être connecté
 if (isAcceptInvitation && invitationToken) {
   return (
@@ -255,6 +262,7 @@ if (!isLoggedIn) {
   return (
     <>
       <ImpersonateBanner />
+      <EmailVerificationBanner />
       <ProtectedRoute>
         <AppLayout
           onHelp={() => setHelpOpen(true)}
