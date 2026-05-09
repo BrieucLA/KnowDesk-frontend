@@ -1,24 +1,32 @@
 import { useState, useCallback } from 'react';
-import { apiClient } from '../../../shared/lib/apiClient';
+import { apiClient, ApiError } from '../../../shared/lib/apiClient';
 import type { AuthSession } from '../types';
 
 interface RegisterForm {
+  firstName:       string;
+  lastName:        string;
   orgName:         string;
   email:           string;
   password:        string;
   confirmPassword: string;
+  gdprAccepted:    boolean;
 }
 
 interface RegisterErrors {
+  firstName?:       string;
+  lastName?:        string;
   orgName?:         string;
   email?:           string;
   password?:        string;
   confirmPassword?: string;
+  gdprAccepted?:    string;
   general?:         string;
 }
 
 function validate(form: RegisterForm): RegisterErrors {
   const errors: RegisterErrors = {};
+  if (!form.firstName.trim())        errors.firstName = 'Le prénom est requis.';
+  if (!form.lastName.trim())         errors.lastName  = 'Le nom est requis.';
   if (!form.orgName.trim())          errors.orgName  = 'Le nom de l\'organisation est requis.';
   if (!form.email.trim())            errors.email    = 'L\'email est requis.';
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
@@ -26,20 +34,24 @@ function validate(form: RegisterForm): RegisterErrors {
   if (form.password.length < 8)      errors.password = 'Le mot de passe doit contenir au moins 8 caractères.';
   if (form.password !== form.confirmPassword)
                                      errors.confirmPassword = 'Les mots de passe ne correspondent pas.';
+  if (!form.gdprAccepted)            errors.gdprAccepted = 'Vous devez accepter les CGU et la politique de confidentialité.';
   return errors;
 }
 
 export function useRegister(onSuccess: (session: AuthSession) => void) {
   const [form, setForm] = useState<RegisterForm>({
-    orgName: '', email: '', password: '', confirmPassword: '',
+    firstName: '', lastName: '', orgName: '',
+    email: '', password: '', confirmPassword: '',
+    gdprAccepted: false,
   });
   const [errors,      setErrors]      = useState<RegisterErrors>({});
   const [isLoading,   setIsLoading]   = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    const v = type === 'checkbox' ? checked : value;
+    setForm(prev => ({ ...prev, [name]: v }));
     if (errors[name as keyof RegisterErrors]) {
       setErrors(prev => { const n = { ...prev }; delete n[name as keyof RegisterErrors]; return n; });
     }
@@ -53,9 +65,12 @@ export function useRegister(onSuccess: (session: AuthSession) => void) {
     setIsLoading(true);
     try {
       const data = await apiClient.post<any>('/auth/register', {
-        email:   form.email.toLowerCase().trim(),
-        password: form.password,
-        orgName:  form.orgName.trim(),
+        email:        form.email.toLowerCase().trim(),
+        password:     form.password,
+        orgName:      form.orgName.trim(),
+        firstName:    form.firstName.trim(),
+        lastName:     form.lastName.trim(),
+        gdprAccepted: form.gdprAccepted,
       });
 
       onSuccess({
@@ -64,7 +79,9 @@ export function useRegister(onSuccess: (session: AuthSession) => void) {
         organization: data.organization,
       });
     } catch (err) {
-      setErrors({ general: err instanceof Error ? err.message : 'Erreur lors de la création du compte.' });
+      setErrors({ general: err instanceof ApiError || err instanceof Error
+        ? err.message
+        : 'Erreur lors de la création du compte.' });
     } finally {
       setIsLoading(false);
     }

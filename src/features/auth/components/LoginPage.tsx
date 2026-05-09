@@ -4,6 +4,7 @@ import '../auth.css';
 import { RegisterForm } from './RegisterForm';
 import { useLogin }     from '../hooks/useLogin';
 import { useRegister }  from '../hooks/useRegister';
+import { useToast }     from '../../../shared/lib/useToast';
 import type { AuthSession } from '../types';
 import { ForgotPasswordForm } from './ForgotPasswordForm';
 import { ResetPasswordForm }  from './ResetPasswordForm';
@@ -14,19 +15,25 @@ interface LoginPageProps {
 
 export function LoginPage({ onLoginSuccess }: LoginPageProps) {
   const [mode, setMode] = useState<'login' | 'register' | 'forgot' | 'reset'>('login');
-  
+  const toast = useToast();
+
   // Détection du token de reset dans l'URL
 const resetToken = new URLSearchParams(window.location.search).get('reset_token');
 React.useEffect(() => {
   if (resetToken) setMode('reset');
 }, [resetToken]);
 
-  const handleSuccess = useCallback((session: AuthSession) => {
+  const handleLoginSuccess = useCallback((session: AuthSession) => {
     onLoginSuccess(session);
   }, [onLoginSuccess]);
 
-  const login = useLogin(handleSuccess);
-  const register = useRegister(handleSuccess);
+  const handleRegisterSuccess = useCallback((session: AuthSession) => {
+    toast.success(`Bienvenue sur KnowDesk, ${session.user.firstName ?? ''} !`.trim());
+    onLoginSuccess(session);
+  }, [onLoginSuccess, toast]);
+
+  const login = useLogin(handleLoginSuccess);
+  const register = useRegister(handleRegisterSuccess);
 
   return (
     <div className="login-page">

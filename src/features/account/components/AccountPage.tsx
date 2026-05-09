@@ -4,9 +4,29 @@ import '../account.css';
 import { Button }      from '../../../shared/components/ui/Button';
 import { Input }       from '../../../shared/components/ui/Input';
 import { PageHeader }  from '../../../shared/components/layout/PageHeader';
+import { useAuthStore, selectUserRole } from '../../../store/authStore';
+import { useToast }    from '../../../shared/lib/useToast';
+import { ApiError }    from '../../../shared/lib/apiClient';
 
 export function AccountPage() {
   const { profile, loading, updateProfile, changePassword, requestEmailChange } = useAccount();
+  const role            = useAuthStore(selectUserRole);
+  const resetOnboarding = useAuthStore(s => s.resetOnboarding);
+  const toast           = useToast();
+  const [resettingOnboarding, setResettingOnboarding] = useState(false);
+
+  const handleResetOnboarding = useCallback(async () => {
+    setResettingOnboarding(true);
+    try {
+      await resetOnboarding();
+      toast.success('L\'onboarding va se relancer.');
+      // L'app détectera onboardingDone=false au prochain render et affichera la wizard.
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'Impossible de relancer l\'onboarding.');
+    } finally {
+      setResettingOnboarding(false);
+    }
+  }, [resetOnboarding, toast]);
 
   const [profileForm, setProfileForm] = useState({ firstName: '', lastName: '' });
   const [profileSaved, setProfileSaved] = useState(false);
@@ -188,6 +208,29 @@ export function AccountPage() {
           </div>
         </form>
       </section>
+
+      {role === 'admin' && (
+        <section className="account-section">
+          <div className="account-section__header">
+            <h2 className="account-section__title">Onboarding</h2>
+            <p className="account-section__desc">
+              Si vous avez sauté trop vite, vous pouvez rejouer le tutoriel d'arrivée pour
+              inviter votre équipe et créer votre première catégorie.
+            </p>
+          </div>
+          <div className="account-form__actions">
+            <Button
+              type="button"
+              variant="ghost"
+              size="md"
+              onClick={handleResetOnboarding}
+              loading={resettingOnboarding}
+            >
+              ↻ Refaire l'onboarding
+            </Button>
+          </div>
+        </section>
+      )}
       </div>
     </div>
   );

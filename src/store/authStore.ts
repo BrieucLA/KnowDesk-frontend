@@ -11,6 +11,7 @@ interface AuthState {
   setSession:        (session: AuthSession) => void;
   clearSession:      () => void;
   setOnboardingDone: () => void;
+  resetOnboarding:   () => Promise<void>;
   setImpersonating:  (data: { orgName: string; saToken: string } | null) => void;
 }
 
@@ -36,6 +37,11 @@ export const useAuthStore = create<AuthState>()(
         apiClient
           .post('/account/onboarding-done', {})
           .catch(err => console.warn('[authStore] onboarding-done failed:', (err as Error)?.message ?? err));
+      },
+
+      resetOnboarding: async () => {
+        await apiClient.post('/account/onboarding-reset', {});
+        set({ onboardingDone: false });
       },
 
       setImpersonating: (data) => set({ impersonating: data }),

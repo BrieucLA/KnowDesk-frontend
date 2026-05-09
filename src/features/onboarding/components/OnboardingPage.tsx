@@ -30,12 +30,13 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
     updateField, goNext, goBack, skip, submit,
   } = useOnboarding(handleComplete);
 
-  const isOptional = currentStep.id !== 'org';
+  // Les 2 étapes (team + content) sont optionnelles — bouton « Passer » dispo partout.
+  const isOptional = true;
 
   return (
     <div className="onboarding">
 
-      {/* Brand strip */}
+      {/* Brand strip — petit cercle K avec couleur brand */}
       <div className="onboarding__brand" aria-hidden="true">
         <span className="onboarding__logo-mark">K</span>
       </div>
@@ -73,19 +74,12 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
 
         {/* Step content */}
         <div className="onboarding__body">
-          {currentStep.id === 'org' && (
-            <StepOrg
-              value={data.orgName}
-              error={errors.orgName}
-              onChange={v => updateField('orgName', v)}
-              userName={user?.firstName}
-            />
-          )}
-          {currentStep.id === 'team' && (
+          {stepIndex === 0 && (
             <StepTeam
               emails={data.inviteEmails}
               error={errors.inviteEmails}
               onChange={emails => updateField('inviteEmails', emails)}
+              userName={user?.firstName}
             />
           )}
           {currentStep.id === 'content' && (
@@ -114,7 +108,7 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
             )}
             {isLastStep ? (
               <Button variant="primary" size="md" loading={isSubmitting} onClick={submit}>
-                Terminer la configuration
+                Terminer
               </Button>
             ) : (
               <Button variant="primary" size="md" onClick={goNext}>
@@ -136,36 +130,11 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
 
 // ─── Step sub-components ──────────────────────────────────────────────────
 
-function StepOrg({ value, error, onChange, userName }: {
-  value:    string;
-  error?:   string;
-  onChange: (v: string) => void;
-  userName?: string;
-}) {
-  return (
-    <div className="onboarding__step">
-      {userName && (
-        <p className="onboarding__welcome">Bienvenue, {userName} !</p>
-      )}
-      <Input
-        id="org-name"
-        label="Nom de votre organisation"
-        placeholder="ex. Acme Service Client"
-        required
-        autoFocus
-        value={value}
-        error={error}
-        helperText="C'est le nom que verront tous vos collaborateurs."
-        onChange={e => onChange(e.target.value)}
-      />
-    </div>
-  );
-}
-
-function StepTeam({ emails, error, onChange }: {
+function StepTeam({ emails, error, onChange, userName }: {
   emails:   string[];
   error?:   string;
   onChange: (emails: string[]) => void;
+  userName?: string;
 }) {
   const [inputVal, setInputVal] = React.useState('');
 
@@ -180,6 +149,9 @@ function StepTeam({ emails, error, onChange }: {
 
   return (
     <div className="onboarding__step">
+      {userName && (
+        <p className="onboarding__welcome">Bienvenue, {userName} !</p>
+      )}
       <div className="field">
         <label htmlFor="invite-emails" className="field-label">
           Adresses email de vos collègues

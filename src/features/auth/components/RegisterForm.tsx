@@ -1,20 +1,26 @@
 import React from 'react';
 import { Input }  from '../../../shared/components/ui/Input';
 import { Button } from '../../../shared/components/ui/Button';
+import { PasswordStrengthMeter } from '../../../shared/components/ui/PasswordStrengthMeter';
 
 interface RegisterFormProps {
   form: {
+    firstName: string; lastName: string;
     orgName: string; email: string;
     password: string; confirmPassword: string;
+    gdprAccepted: boolean;
   };
   errors: {
+    firstName?: string; lastName?: string;
     orgName?: string; email?: string;
-    password?: string; confirmPassword?: string; general?: string;
+    password?: string; confirmPassword?: string;
+    gdprAccepted?: string;
+    general?: string;
   };
-  isLoading:      boolean;
-  showPassword:   boolean;
-  onChange:       (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onSubmit:       (e: React.FormEvent) => void;
+  isLoading:        boolean;
+  showPassword:     boolean;
+  onChange:         (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onSubmit:         (e: React.FormEvent) => void;
   onTogglePassword: () => void;
   onSwitchToLogin:  () => void;
 }
@@ -29,6 +35,32 @@ export function RegisterForm({
         <div className="login-form__error" role="alert">{errors.general}</div>
       )}
 
+      <div className="login-form__row">
+        <Input
+          id="firstName"
+          name="firstName"
+          type="text"
+          label="Prénom"
+          placeholder="Jean"
+          value={form.firstName}
+          onChange={onChange}
+          error={errors.firstName}
+          autoComplete="given-name"
+          autoFocus
+        />
+        <Input
+          id="lastName"
+          name="lastName"
+          type="text"
+          label="Nom"
+          placeholder="Dupont"
+          value={form.lastName}
+          onChange={onChange}
+          error={errors.lastName}
+          autoComplete="family-name"
+        />
+      </div>
+
       <Input
         id="orgName"
         name="orgName"
@@ -39,7 +71,6 @@ export function RegisterForm({
         onChange={onChange}
         error={errors.orgName}
         autoComplete="organization"
-        autoFocus
       />
 
       <Input
@@ -75,18 +106,48 @@ export function RegisterForm({
           {showPassword ? 'Masquer' : 'Afficher'}
         </button>
       </div>
+      <PasswordStrengthMeter password={form.password} />
 
-      <Input
-        id="confirmPassword"
-        name="confirmPassword"
-        type={showPassword ? 'text' : 'password'}
-        label="Confirmer le mot de passe"
-        placeholder="Répétez le mot de passe"
-        value={form.confirmPassword}
-        onChange={onChange}
-        error={errors.confirmPassword}
-        autoComplete="new-password"
-      />
+      <div className="login-form__password-wrap">
+        <Input
+          id="confirmPassword"
+          name="confirmPassword"
+          type={showPassword ? 'text' : 'password'}
+          label="Confirmer le mot de passe"
+          placeholder="Répétez le mot de passe"
+          value={form.confirmPassword}
+          onChange={onChange}
+          error={errors.confirmPassword}
+          autoComplete="new-password"
+        />
+        <button
+          type="button"
+          className="login-form__toggle-password"
+          onClick={onTogglePassword}
+          aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+        >
+          {showPassword ? 'Masquer' : 'Afficher'}
+        </button>
+      </div>
+
+      <label className="login-form__gdpr">
+        <input
+          type="checkbox"
+          name="gdprAccepted"
+          checked={form.gdprAccepted}
+          onChange={onChange}
+          aria-invalid={!!errors.gdprAccepted}
+        />
+        <span>
+          J'accepte les{' '}
+          <a href="/cgu" target="_blank" rel="noopener noreferrer">conditions générales d'utilisation</a>
+          {' '}et la{' '}
+          <a href="/privacy" target="_blank" rel="noopener noreferrer">politique de confidentialité</a>.
+        </span>
+      </label>
+      {errors.gdprAccepted && (
+        <p className="field-error" role="alert">{errors.gdprAccepted}</p>
+      )}
 
       <Button
         type="submit"

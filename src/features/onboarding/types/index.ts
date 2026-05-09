@@ -1,23 +1,24 @@
 export interface OnboardingStep {
-  id:    'org' | 'team' | 'content';
+  id:    'team' | 'content';
   title: string;
   description: string;
 }
 
 export interface OnboardingData {
-  orgName:    string;
-  inviteEmails: string[]; // validated emails to invite
+  inviteEmails:  string[]; // validated emails to invite
   firstCategory: string;
 }
 
 export interface OnboardingErrors {
-  orgName?:      string;
-  inviteEmails?: string;
+  inviteEmails?:  string;
   firstCategory?: string;
 }
 
+/**
+ * Onboarding 2-step. L'org est déjà créée au moment du register avec
+ * son nom — pas besoin de la redemander ici.
+ */
 export const STEPS: OnboardingStep[] = [
-  { id: 'org',     title: 'Votre organisation',  description: 'Donnez un nom à votre espace.' },
   { id: 'team',    title: 'Inviter l\'équipe',    description: 'Optionnel — vous pouvez le faire plus tard.' },
   { id: 'content', title: 'Première catégorie',  description: 'Organisez vos processus dès le départ.' },
 ];

@@ -11,6 +11,20 @@
 .onboarding__brand {
   display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
 }
+.onboarding__logo-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--brand-600);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-brand, var(--font-ui));
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+}
 .onboarding__card {
   background: var(--neutral-0); border: 1px solid var(--neutral-100);
   border-radius: var(--radius-xl); padding: 40px;
@@ -50,9 +64,11 @@
 .onboarding__actions {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding-top: 4px;
+  flex-wrap: wrap;
 }
 .onboarding__actions-left, .onboarding__actions-right {
   display: flex; align-items: center; gap: 8px;
+  flex-wrap: wrap;
 }
 
 /* Email tags for team invites */
