@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { LoginForm }    from './LoginForm';
 import '../auth.css';
 import { RegisterForm } from './RegisterForm';
+import { OAuthButtons } from './OAuthButtons';
 import { useLogin }     from '../hooks/useLogin';
 import { useRegister }  from '../hooks/useRegister';
 import { useToast }     from '../../../shared/lib/useToast';
@@ -68,6 +69,7 @@ React.useEffect(() => {
         Accédez à la base de connaissance de votre équipe.
       </p>
     </div>
+    <OAuthButtons mode="login" onSuccess={handleLoginSuccess} />
     <LoginForm
       values={login.values}
       errors={login.errors}
@@ -90,6 +92,7 @@ React.useEffect(() => {
         Configurez votre base de connaissance en quelques secondes.
       </p>
     </div>
+    <OAuthButtons mode="register" onSuccess={handleRegisterSuccess} />
     <RegisterForm
       form={register.form}
       errors={register.errors}
