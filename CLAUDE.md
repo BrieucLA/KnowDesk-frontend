@@ -24,8 +24,8 @@ KnowDesk est un SaaS de base de connaissance pour les équipes service client. I
 
 ## URLs
 
-- Production backend : `https://knowdesk-production.up.railway.app`
-- Production frontend : `https://know-desk-frontend.vercel.app`
+- Production frontend : `https://app.knowdesk.fr` (Vercel — alias `know-desk-frontend.vercel.app` toujours actif comme filet pendant la transition)
+- Production backend  : `https://api.knowdesk.fr`  (Railway — alias `knowdesk-production.up.railway.app` toujours actif)
 - DB Railway (public) : voir variable `DATABASE_URL` dans Railway → service Postgres → onglet Variables. **Ne JAMAIS commit le mot de passe en clair** (cf incident sécurité — rotation effectuée).
 
 ## Structure des projets
@@ -204,9 +204,10 @@ DATABASE_URL=postgresql://...
 REDIS_URL=redis://...
 JWT_ACCESS_SECRET=...
 JWT_REFRESH_SECRET=...
-FRONTEND_URL=https://know-desk-frontend.vercel.app
+FRONTEND_URL=https://app.knowdesk.fr
+COOKIE_DOMAIN=.knowdesk.fr
 RESEND_API_KEY=...
-FROM_EMAIL=onboarding@resend.dev
+FROM_EMAIL=noreply@knowdesk.fr
 R2_ACCOUNT_ID=0a0b0f1ca85a134a29898c21334dc996
 R2_ACCESS_KEY_ID=5ac079e6cbcd2955db8ae446ce1cc1e3
 R2_SECRET_ACCESS_KEY=...
@@ -216,9 +217,13 @@ R2_PUBLIC_URL=https://pub-2e6d152f4911496d8b20b31c2fe6aa28.r2.dev
 
 ## Variables d'environnement Vercel (frontend)
 
-Aucune variable d'env requise côté Vercel. Le frontend appelle l'API en chemin relatif (`/api/v1`, `/public/v1`) ; un rewrite Vercel défini dans `vercel.json` proxie ces chemins vers Railway. En dev, Vite (`vite.config.ts`) proxie vers `http://localhost:3001`.
+```
+VITE_API_URL=https://api.knowdesk.fr/api/v1   # Production uniquement
+```
 
-Conséquence : **le navigateur voit toutes les requêtes comme same-origin**, ce qui permet l'usage de cookies HTTP-only `sameSite=lax` pour transporter l'access token (cf. backend `auth.controller.ts`).
+En **Production**, le frontend appelle l'API en URL absolue via `VITE_API_URL`. En **Preview / Development**, la variable n'est pas définie, donc `apiClient` retombe sur le chemin relatif `/api/v1` qui passe par le proxy Vite (en dev local, vers `http://localhost:3001`).
+
+Cookies auth posés sur **`Domain=.knowdesk.fr`** (cf `COOKIE_DOMAIN` Railway) → partagés entre `app.knowdesk.fr`, `api.knowdesk.fr`, et toute extension Chrome ayant `host_permissions: ["*://*.knowdesk.fr/*"]`. SameSite=lax fonctionne parce que les sous-domaines partagent le même eTLD+1 (knowdesk.fr).
 
 ## Monitoring (Sentry)
 
@@ -344,7 +349,7 @@ Cibles à étendre (par valeur, dans cet ordre) : `apiClient` refresh + retry, `
   - **V1 prévue** (~4-5 sem dev) : refresh token Bearer côté backend (modif minor `auth.controller` pour retourner `refreshToken` en JSON), polish UX (states erreurs, mot de passe oublié → web), tracking events (`extension.search`, `extension.ai_answer.shown`, `extension.opened_in_app`), icônes propres 16/48/128 PNG, soumission Chrome Web Store + paquet `.crx` self-hosted.
   - **V2 si pilote OK** : raccourci clavier global (`Cmd+Shift+K` configurable), overlay content-script en alternative au popup classique, preview inline d'article, port Edge.
   - **Pré-requis V1** : 1 client champion engagé par écrit à déployer dans les 30j post-livraison (sans cet engagement, on ne lance pas le dev — risque adoption IT corporate).
-  - **Custom domain** `app.knowdesk.fr` reporté V2 (Bearer suffit, custom domain devient pertinent quand on veut un SSO unifié web ↔ extension).
+  - **Custom domain** `app.knowdesk.fr` ✅ livré le 2026-05-09 (cf section Refacto). Le SSO unifié web ↔ extension est désormais débloqué techniquement : le cookie `Domain=.knowdesk.fr` peut être lu par toute extension ayant `host_permissions: ["*://*.knowdesk.fr/*"]`. À implémenter dans la V1 de l'extension.
 
 - **Sprint B — Copilote rédaction IA** (~3-4 sem dev, *à activer après Sprint A « Auditeur qualité » si calibration OK*) :
   - **B.1 Analyse one-shot** : bouton « ✨ Analyser » dans `ArticleEditor` qui réutilise le scoring du Sprint A en mode synchrone (5-10s). Affiche les dimensions flagged + propositions concrètes inline (« reformulation suggérée », « exemple manquant »). Diff visible avant validation. Pas de modification auto.
@@ -364,7 +369,7 @@ Cibles à étendre (par valeur, dans cet ordre) : `apiClient` refresh + retry, `
   - **CSS Modules / Tailwind** : isolation auto vs convention BEM globale. Gros chantier (~3 sprints), à déclencher seulement si conflits de classes deviennent un problème récurrent.
 - **Retirer le fallback Bearer** dans `auth.middleware` une fois que tous les clients utilisent les cookies (~1 sprint après stabilisation). Retirer aussi `accessToken` du retour JSON de `auth.controller` et du type `AuthSession` côté frontend.
 - **Hook `useApi` générique** côté frontend (~7 hooks de fetch redupliqués) : pattern uniforme loading/error/data, intégration apiClient, retour typé.
-- **Custom domain** (`app.knowdesk.fr` + `api.knowdesk.fr`) : remplacer le proxy Vercel par des sous-domaines de la même TLD+1, pour éviter le hop supplémentaire et avoir des cookies natifs sans rewrite. **Domaine `knowdesk.fr` acheté chez OVH le 2026-05-09** (initialement pour vérifier le sender Resend). Sous-domaines à pointer plus tard : `app.` → Vercel frontend, `api.` → Railway backend, `noreply@knowdesk.fr` → Resend (déjà en cours).
+- ~~**Custom domain** (`app.knowdesk.fr` + `api.knowdesk.fr`)~~ ✅ livré 2026-05-09. Frontend sur `app.knowdesk.fr` (Vercel custom domain), backend sur `api.knowdesk.fr` (Railway custom domain). Cookies posés sur `.knowdesk.fr` (env var `COOKIE_DOMAIN`) partagés entre sous-domaines. Frontend en URL absolue via `VITE_API_URL`, plus de rewrite Vercel. Anciens domaines (`know-desk-frontend.vercel.app` et `knowdesk-production.up.railway.app`) toujours actifs comme alias filet pendant la transition. **Phase 6 (deprecation) à faire dans 4-8 semaines** : retirer l'ancienne URL Vercel de la CORS allowlist backend une fois sûr qu'aucun trafic n'y passe.
 - **Tests frontend** : socle posé (8 tests sur authStore + ProtectedRoute, vitest + jsdom + Testing Library — voir section « Tests » ci-dessus). Cibles à étendre : `apiClient` refresh+retry, `TagsInput` autocomplete, `ArticleEditor`, `AnalyticsPage`, le bridge router. Côté backend, **65 tests passants** (auth + multi-tenancy + permissions + FAQs).
 - **Multilingue FR + EN** (~5-7 sprints au total, à challenger) — projet ambitieux mis en backlog. Découpé en 4 phases :
   - **Phase 1 — i18n UI** (~2-3 sprints) : `react-i18next` ou équivalent, extraction des ~600-800 strings hardcodées, 2 fichiers `fr.json`/`en.json`, setting `language` user (default depuis `navigator.language`), templates emails Resend par langue, aide en ligne (53 articles markdown) traduite **manuellement** par humain (qualité prime).
