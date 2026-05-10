@@ -14,7 +14,7 @@ interface ArticlesToReworkCardProps {
 }
 
 /**
- * Carte « ✨ Qualité du contenu » — auditeur qualité IA en 3 paliers.
+ * Carte « KB Health Score IA » — auditeur qualité IA en 3 paliers.
  *
  * États :
  *   - chargement → skeleton
@@ -63,7 +63,7 @@ export function ArticlesToReworkCard({ onOpen }: ArticlesToReworkCardProps) {
   if (loading) {
     return (
       <section className="article-rework-card article-rework-card--loading">
-        <h2 className="article-rework-card__title">✨ Qualité du contenu</h2>
+        <h2 className="article-rework-card__title">KB Health Score IA</h2>
         <p className="article-rework-card__desc">Chargement de l'analyse IA…</p>
       </section>
     );
@@ -76,7 +76,7 @@ export function ArticlesToReworkCard({ onOpen }: ArticlesToReworkCardProps) {
   if (stats && stats.scored === 0) {
     return (
       <section className="article-rework-card article-rework-card--empty">
-        <h2 className="article-rework-card__title">✨ Qualité du contenu</h2>
+        <h2 className="article-rework-card__title">KB Health Score IA</h2>
         <p className="article-rework-card__desc">
           Aucun article scoré pour l'instant. Le scoring IA tourne automatiquement à
           chaque modif d'article + 1× par semaine.
@@ -92,7 +92,7 @@ export function ArticlesToReworkCard({ onOpen }: ArticlesToReworkCardProps) {
   if (error || !stats) {
     return (
       <section className="article-rework-card">
-        <h2 className="article-rework-card__title">✨ Qualité du contenu</h2>
+        <h2 className="article-rework-card__title">KB Health Score IA</h2>
         <p className="article-rework-card__desc">{error ?? 'Erreur de chargement.'}</p>
       </section>
     );
@@ -108,7 +108,7 @@ export function ArticlesToReworkCard({ onOpen }: ArticlesToReworkCardProps) {
     <section className="article-rework-card">
       <header className="article-rework-card__header">
         <h2 className="article-rework-card__title">
-          ✨ Qualité du contenu
+          KB Health Score IA
           <InfoTooltip
             title="Auditeur qualité IA"
             rows={[
