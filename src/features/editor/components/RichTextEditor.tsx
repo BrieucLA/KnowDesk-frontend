@@ -26,6 +26,7 @@ import xml        from 'highlight.js/lib/languages/xml';
 import css        from 'highlight.js/lib/languages/css';
 import python     from 'highlight.js/lib/languages/python';
 import { Callout, CALLOUT_TYPES, type CalloutType } from '../extensions/Callout';
+import { SlashCommand }      from '../extensions/SlashCommand';
 import { LinkModal }         from './LinkModal';
 import './RichTextEditor.css';
 
@@ -96,7 +97,7 @@ export function RichTextEditor({
       Placeholder.configure({
         placeholder: ({ node }) => {
           if (node.type.name === 'heading') return 'Titre…';
-          return placeholder ?? 'Commencez à rédiger…';
+          return placeholder ?? 'Commencez à rédiger… ou tapez « / » pour insérer un bloc.';
         },
       }),
       CharacterCount.configure({}),
@@ -112,6 +113,7 @@ export function RichTextEditor({
       TaskItem.configure({ nested: true }),
       Typography,
       Callout,
+      SlashCommand,
     ],
     content: value,
     editable: !readOnly,
