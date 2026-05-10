@@ -108,11 +108,11 @@ export function KbScoreCard() {
   const band = BAND_LABEL[data.band];
 
   return (
-    <section className="kbscore" aria-label="KB Health Score">
+    <section className="kbscore" aria-label="IA">
       <header className="kbscore__header">
         <div className="kbscore__title-block">
           <h2 className="kbscore__title">
-            KB Health Score
+            ✨ IA
             <InfoTooltip
               title="Score de santé de la base"
               rows={[

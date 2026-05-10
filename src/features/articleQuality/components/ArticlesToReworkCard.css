@@ -1,0 +1,175 @@
+/* ─────────────────────────────────────────────────────────────
+   Carte « ✨ Qualité du contenu » — Auditeur qualité IA.
+   Utilisée sur Analytics ET Dashboard. Styles co-localisés ici
+   pour ne pas dépendre de analytics.css quand utilisée ailleurs.
+   ───────────────────────────────────────────────────────────── */
+
+.article-rework-card {
+  background: linear-gradient(180deg, #f5f3ff 0%, #faf5ff 100%);
+  border: 1px solid #ddd6fe;
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  margin: 16px 0 24px;
+}
+.article-rework-card__header { margin-bottom: 12px; }
+
+/* Titre aligné sur le KbScoreCard (20px / 600) — cf demande UX
+ * « même taille de titre » entre les deux cartes IA. */
+.article-rework-card__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--neutral-900);
+  margin: 0 0 4px;
+}
+.article-rework-card__badge {
+  background: #ede9fe;
+  color: #6d28d9;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 1px 8px;
+  border-radius: var(--radius-full);
+}
+.article-rework-card__desc {
+  font-size: 13px;
+  color: var(--neutral-600);
+  margin: 0;
+  line-height: 1.5;
+}
+.article-rework-card__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.article-rework-card__item { padding: 0; }
+.article-rework-card__btn {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: border-color var(--t-fast), background var(--t-fast);
+}
+.article-rework-card__btn:hover {
+  background: #fff;
+  border-color: #c4b5fd;
+}
+.article-rework-card__main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.article-rework-card__name {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--neutral-900);
+}
+.article-rework-card__meta {
+  font-size: 11.5px;
+  color: var(--neutral-500);
+}
+.article-rework-card__dims {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.article-rework-card__chip {
+  display: inline-block;
+  font-size: 11px;
+  background: #fef3c7;
+  color: #92400e;
+  padding: 1px 8px;
+  border-radius: var(--radius-full);
+}
+
+.article-rework-card--loading,
+.article-rework-card--empty {
+  background: var(--neutral-50);
+  border-color: var(--neutral-200);
+}
+.article-rework-card--ok {
+  background: linear-gradient(180deg, #f0fdf4 0%, #ecfdf5 100%);
+  border-color: #bbf7d0;
+}
+.article-rework-card__badge--ok {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* ── 3 paliers de qualité ─────────────────────────────────── */
+.article-rework-card__tiers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 12px 0 0;
+}
+.article-rework-card__tier {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: border-color var(--t-fast), background var(--t-fast);
+}
+.article-rework-card__tier:hover:not(:disabled) {
+  background: #fff;
+  border-color: #c4b5fd;
+}
+.article-rework-card__tier:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.article-rework-card__tier.is-expanded {
+  background: #fff;
+  border-color: #8b5cf6;
+}
+.article-rework-card__tier-emoji {
+  font-size: 14px;
+  line-height: 1;
+}
+.article-rework-card__tier-count {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--neutral-900);
+  line-height: 1;
+}
+.article-rework-card__tier-label {
+  font-size: 11.5px;
+  color: var(--neutral-600);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.article-rework-card__tier--perfect .article-rework-card__tier-count { color: #166534; }
+.article-rework-card__tier--good    .article-rework-card__tier-count { color: #92400e; }
+.article-rework-card__tier--rework  .article-rework-card__tier-count { color: #b91c1c; }
+
+.article-rework-card__expanded {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed #ddd6fe;
+}
+.article-rework-card__loading {
+  padding: 12px;
+  text-align: center;
+  color: var(--neutral-500);
+  font-size: 13px;
+  margin: 0;
+}

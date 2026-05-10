@@ -7,6 +7,8 @@ import { Skeleton }            from '../../../shared/components/ui/Skeleton';
 import { EmptyState }          from '../../../shared/components/ui/EmptyState';
 import { Button }              from '../../../shared/components/ui/Button';
 import { PageHeader }          from '../../../shared/components/layout/PageHeader';
+import { KbScoreCard }         from '../../kbscore/components/KbScoreCard';
+import { ArticlesToReworkCard } from '../../articleQuality/components/ArticlesToReworkCard';
 import { useDashboard }        from '../hooks/useDashboard';
 import { useAuthStore, selectUser, selectUserRole } from '../../../store/authStore';
 import { formatRelative }      from '../../../shared/lib/formatDate';
@@ -65,6 +67,14 @@ export function DashboardPage({ onArticleClick, onNewArticle }: DashboardPagePro
           <p>Impossible de charger le tableau de bord.</p>
           <button className="dashboard__retry" onClick={refetch}>Réessayer</button>
         </div>
+      )}
+
+      {/* ── Cartes IA — KbScoreCard puis Auditeur qualité (admin/manager) ── */}
+      {isAdmin && (
+        <>
+          <KbScoreCard />
+          <ArticlesToReworkCard onOpen={handleArticleClick} />
+        </>
       )}
 
       {/* ── Stats row ── */}
