@@ -1,0 +1,185 @@
+/* ─────────────────────────────────────────────────────────────
+   RichTextEditor (TipTap) — styles dédiés à l'éditeur.
+   Les styles du contenu rendu (.article-content) sont dans
+   features/articles/articles.css pour être partagés avec la page
+   de lecture (pas seulement l'éditeur).
+   ───────────────────────────────────────────────────────────── */
+
+.rte {
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-lg);
+  background: var(--neutral-0);
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+}
+.rte--loading {
+  min-height: 240px;
+  background: var(--neutral-50);
+}
+
+/* ── Toolbar ────────────────────────────────────────────────── */
+.rte__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--neutral-100);
+  background: var(--neutral-50);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.rte__group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-right: 6px;
+  margin-right: 6px;
+  border-right: 1px solid var(--neutral-200);
+}
+.rte__group:last-child { border-right: none; margin-right: 0; padding-right: 0; }
+
+.rte__tool {
+  height: 30px;
+  min-width: 30px;
+  padding: 0 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--neutral-700);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--t-fast), border-color var(--t-fast);
+}
+.rte__tool:hover {
+  background: var(--neutral-100);
+  color: var(--neutral-900);
+}
+.rte__tool--active {
+  background: var(--brand-50);
+  color: var(--brand-700);
+  border-color: var(--brand-200);
+}
+.rte__tool em, .rte__tool s, .rte__tool u, .rte__tool strong {
+  font-style: inherit;
+}
+
+/* ── Dropdowns (callout, highlight color) ───────────────────── */
+.rte__dropdown {
+  position: relative;
+}
+.rte__menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 2px;
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 20;
+  min-width: 180px;
+}
+.rte__menu--colors {
+  flex-direction: row;
+  flex-wrap: wrap;
+  min-width: 0;
+  width: 168px;
+}
+.rte__menu-item {
+  background: none;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  text-align: left;
+  color: var(--neutral-800);
+  transition: background var(--t-fast);
+}
+.rte__menu-item:hover { background: var(--neutral-100); }
+.rte__menu-item--unset {
+  color: var(--neutral-500);
+  border-top: 1px solid var(--neutral-100);
+  margin-top: 2px;
+  padding-top: 8px;
+  width: 100%;
+}
+.rte__color-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid var(--neutral-200);
+  cursor: pointer;
+  padding: 0;
+  transition: transform var(--t-fast);
+}
+.rte__color-swatch:hover { transform: scale(1.15); }
+
+/* ── Content area ──────────────────────────────────────────── */
+.rte__content {
+  padding: 16px 20px;
+  min-height: 240px;
+  outline: none;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--neutral-700);
+}
+.rte__content:focus { outline: none; }
+
+/* Placeholder via TipTap Placeholder extension */
+.rte__content p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--neutral-400);
+  pointer-events: none;
+  height: 0;
+}
+
+/* ── Bubble menu (sélection) ────────────────────────────────── */
+.rte__bubble {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  background: var(--neutral-900);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+.rte__bubble .rte__tool {
+  color: var(--neutral-100);
+  background: transparent;
+  height: 28px;
+  min-width: 28px;
+}
+.rte__bubble .rte__tool:hover {
+  background: var(--neutral-700);
+  color: #fff;
+}
+.rte__bubble .rte__tool--active {
+  background: var(--brand-600);
+  color: #fff;
+  border-color: transparent;
+}
+
+/* ── Footer (compteur) ──────────────────────────────────────── */
+.rte__footer {
+  padding: 6px 12px;
+  border-top: 1px solid var(--neutral-100);
+  background: var(--neutral-50);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  font-size: 11.5px;
+  color: var(--neutral-500);
+  text-align: right;
+}

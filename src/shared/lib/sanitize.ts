@@ -8,7 +8,7 @@ import DOMPurify, { type Config } from 'dompurify';
  */
 const RICH_CONFIG: Config = {
   ALLOWED_TAGS: [
-    'a', 'b', 'i', 'u', 'em', 'strong', 'mark',
+    'a', 'b', 'i', 'u', 's', 'em', 'strong', 'mark', 'sup', 'sub',
     'p', 'br', 'span', 'div', 'hr',
     'h1', 'h2', 'h3', 'h4',
     'ul', 'ol', 'li',
@@ -16,7 +16,18 @@ const RICH_CONFIG: Config = {
     'img',
     'table', 'thead', 'tbody', 'tr', 'th', 'td',
   ],
-  ALLOWED_ATTR: ['href', 'target', 'rel', 'src', 'alt', 'title', 'class'],
+  /**
+   * `data-type` et `data-callout` permettent à TipTap d'identifier les nodes
+   * customs (Callout, TaskList, etc.). `style` autorisé uniquement pour les
+   * highlights de couleur (background-color sur span.highlight). DOMPurify
+   * normalise et neutralise les expressions dangereuses (url(), expression()).
+   */
+  ALLOWED_ATTR: [
+    'href', 'target', 'rel', 'src', 'alt', 'title', 'class',
+    'data-type', 'data-callout', 'data-checked', 'data-language',
+    'colspan', 'rowspan',
+    'style',
+  ],
   ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel):|knowdesk:\/\/article\/)/i,
 };
 
