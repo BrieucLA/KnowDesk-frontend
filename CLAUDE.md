@@ -206,6 +206,8 @@ JWT_ACCESS_SECRET=...
 JWT_REFRESH_SECRET=...
 FRONTEND_URL=https://app.knowdesk.fr
 COOKIE_DOMAIN=.knowdesk.fr
+GOOGLE_CLIENT_ID=xxxxxxxxxx.apps.googleusercontent.com
+MICROSOFT_CLIENT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 RESEND_API_KEY=...
 FROM_EMAIL=noreply@knowdesk.fr
 R2_ACCOUNT_ID=0a0b0f1ca85a134a29898c21334dc996
@@ -219,6 +221,8 @@ R2_PUBLIC_URL=https://pub-2e6d152f4911496d8b20b31c2fe6aa28.r2.dev
 
 ```
 VITE_API_URL=https://api.knowdesk.fr/api/v1   # Production uniquement
+VITE_GOOGLE_CLIENT_ID=xxxxxxxxxx.apps.googleusercontent.com
+VITE_MICROSOFT_CLIENT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 ```
 
 En **Production**, le frontend appelle l'API en URL absolue via `VITE_API_URL`. En **Preview / Development**, la variable n'est pas définie, donc `apiClient` retombe sur le chemin relatif `/api/v1` qui passe par le proxy Vite (en dev local, vers `http://localhost:3001`).
@@ -290,6 +294,7 @@ Cibles à étendre (par valeur, dans cet ordre) : `apiClient` refresh + retry, `
 
 ### En production ✅
 - Auth complète (login, register, forgot/reset password)
+- **Login social Google + Microsoft (Sprint AUTH-1+2, mai 2026)** — boutons "Continuer avec Google/Microsoft" sur LoginForm + RegisterForm. Backend `auth.oauth.ts` : vérification idToken via google-auth-library (Google) et jose+JWKS (Microsoft, multi-tenant `/common/`). Table `auth_providers` (migration 32) lie un user à plusieurs identités externes. Matching en 3 cascades : (provider, external_id) → email match → création user+org+admin. Endpoint POST /auth/oauth idempotent. Email auto-vérifié pour les nouveaux users (Google/Microsoft ont vérifié). Disclaimer RGPD entre les boutons et le form classique. Boutons masqués via gracefully degrade si les `*_CLIENT_ID` ne sont pas posés en env.
 - Articles (CRUD, versioning, restauration, publication)
 - Catégories arborescentes
 - Membres + invitations par email
