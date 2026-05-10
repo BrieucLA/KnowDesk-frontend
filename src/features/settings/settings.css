@@ -796,3 +796,8 @@
   margin: 4px 0 0;
   font-style: italic;
 }
+
+/* ── Tier variants pour Stat (Sprint A — 3 paliers qualité) ── */
+.article-quality-stat--ok   .article-quality-stat__value { color: #166534; }
+.article-quality-stat--warn .article-quality-stat__value { color: #92400e; }
+.article-quality-stat--bad  .article-quality-stat__value { color: #b91c1c; }

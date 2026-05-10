@@ -259,3 +259,69 @@
   background: #dcfce7;
   color: #166534;
 }
+
+/* ── Tiers de qualité (3 paliers) — Sprint A.3 ───────────────── */
+.article-rework-card__tiers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 12px 0 0;
+}
+.article-rework-card__tier {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: border-color var(--t-fast), background var(--t-fast);
+}
+.article-rework-card__tier:hover:not(:disabled) {
+  background: #fff;
+  border-color: #c4b5fd;
+}
+.article-rework-card__tier:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.article-rework-card__tier.is-expanded {
+  background: #fff;
+  border-color: #8b5cf6;
+}
+.article-rework-card__tier-emoji {
+  font-size: 14px;
+  line-height: 1;
+}
+.article-rework-card__tier-count {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--neutral-900);
+  line-height: 1;
+}
+.article-rework-card__tier-label {
+  font-size: 11.5px;
+  color: var(--neutral-600);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.article-rework-card__tier--perfect .article-rework-card__tier-count { color: #166534; }
+.article-rework-card__tier--good    .article-rework-card__tier-count { color: #92400e; }
+.article-rework-card__tier--rework  .article-rework-card__tier-count { color: #b91c1c; }
+
+.article-rework-card__expanded {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed #ddd6fe;
+}
+.article-rework-card__loading {
+  padding: 12px;
+  text-align: center;
+  color: var(--neutral-500);
+  font-size: 13px;
+  margin: 0;
+}

@@ -114,18 +114,24 @@ export function ArticleQualitySettingsSection() {
         />
       </div>
 
-      {/* Stats de l'état actuel */}
+      {/* Stats de l'état actuel — 3 paliers de qualité */}
       {stats && (
         <div className="article-quality-stats">
           <div className="article-quality-stats__row">
             <Stat label="Articles publiés"  value={stats.published} />
             <Stat label="Scorés"            value={stats.scored} />
             <Stat label="Non scorés"        value={stats.notScored} muted={stats.notScored === 0} />
-            <Stat label="À retravailler"    value={stats.toRework} highlight={stats.toRework > 0} />
+            <Stat label="✓ Parfaits"        value={stats.perfect}  variant="ok" />
+            <Stat label="⚠️ Bons"           value={stats.good}     variant="warn" highlight={stats.good > 0} />
+            <Stat label="❌ À retravailler" value={stats.toRework} variant="bad"  highlight={stats.toRework > 0} />
           </div>
           {stats.lastChecked && (
             <p className="article-quality-stats__last">
               Dernier scoring : {formatRelative(stats.lastChecked)}
+              {' · '}
+              <span title="Un article peut avoir 1 ou 2 dimensions à revoir et rester dans « Bons » — il n'est marqué « À retravailler » qu'à partir de 3 dimensions flagged.">
+                Comment ces paliers sont-ils calculés ?
+              </span>
             </p>
           )}
         </div>
@@ -158,9 +164,14 @@ export function ArticleQualitySettingsSection() {
   );
 }
 
-function Stat({ label, value, highlight, muted }: { label: string; value: number; highlight?: boolean; muted?: boolean }) {
+function Stat({ label, value, highlight, muted, variant }: {
+  label: string; value: number;
+  highlight?: boolean; muted?: boolean;
+  variant?: 'ok' | 'warn' | 'bad';
+}) {
+  const variantClass = variant ? ` article-quality-stat--${variant}` : '';
   return (
-    <div className={`article-quality-stat${highlight ? ' article-quality-stat--flag' : ''}${muted ? ' article-quality-stat--muted' : ''}`}>
+    <div className={`article-quality-stat${variantClass}${highlight ? ' article-quality-stat--flag' : ''}${muted ? ' article-quality-stat--muted' : ''}`}>
       <span className="article-quality-stat__value">{value}</span>
       <span className="article-quality-stat__label">{label}</span>
     </div>

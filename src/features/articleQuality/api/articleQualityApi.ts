@@ -69,9 +69,16 @@ export interface QualityStats {
   published:   number;
   scored:      number;
   notScored:   number;
+  /** 0 dimension flagged */
+  perfect:     number;
+  /** 1-2 dimensions flagged */
+  good:        number;
+  /** ≥ 3 dimensions flagged */
   toRework:    number;
   lastChecked: string | null;
 }
+
+export type QualityTier = 'perfect' | 'good' | 'toRework';
 
 export const articleQualityApi = {
   async getForArticle(articleId: string): Promise<QualityForArticle> {
@@ -96,8 +103,10 @@ export const articleQualityApi = {
     );
   },
 
-  async listToRework(): Promise<{ items: ArticleToRework[]; total: number }> {
-    return apiClient.get<{ items: ArticleToRework[]; total: number }>('/article-quality/to-rework');
+  async listToRework(tier: QualityTier = 'toRework'): Promise<{ items: ArticleToRework[]; total: number }> {
+    return apiClient.get<{ items: ArticleToRework[]; total: number }>(
+      `/article-quality/to-rework?tier=${tier}`,
+    );
   },
 
   async stats(): Promise<QualityStats> {
