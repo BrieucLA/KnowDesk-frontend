@@ -296,6 +296,7 @@ Cibles à étendre (par valeur, dans cet ordre) : `apiClient` refresh + retry, `
 - Auth complète (login, register, forgot/reset password)
 - **Login social Google + Microsoft (Sprint AUTH-1+2, mai 2026)** — boutons "Continuer avec Google/Microsoft" sur LoginForm + RegisterForm. Backend `auth.oauth.ts` : vérification idToken via google-auth-library (Google) et jose+JWKS (Microsoft, multi-tenant `/common/`). Table `auth_providers` (migration 32) lie un user à plusieurs identités externes. Matching en 3 cascades : (provider, external_id) → email match → création user+org+admin. Endpoint POST /auth/oauth idempotent. Email auto-vérifié pour les nouveaux users (Google/Microsoft ont vérifié). Disclaimer RGPD entre les boutons et le form classique. Boutons masqués via gracefully degrade si les `*_CLIENT_ID` ne sont pas posés en env.
 - Articles (CRUD, versioning, restauration, publication)
+- **Éditeur TipTap (Sprint EDITOR-1+2+3+partial-4, mai 2026)** — refonte complète de `RichTextEditor.tsx` sur TipTap v3 (ProseMirror), remplace l'ancien `contentEditable + execCommand` déprécié. Output HTML pour rester compatible avec les articles existants (seedés ou écrits avec l'ancien éditeur — TipTap hydrate depuis HTML brut, zéro migration de contenu). Features : toolbar 6 groupes (bold/italic/underline/strike/code, H2/H3, listes bullet/ordered/task, blockquote/code block lowlight/callout/HR, highlight 6 couleurs/table/link/image, clear formatting), bubble menu sur sélection, markdown shortcuts via Typography + StarterKit (`# `, `> `, `1. `, etc.), slash menu `/` avec 13 commandes filtrables clavier (h2, h3, listes, blockquote, code, table, hr, 4 callouts), character count footer, code blocks colorés via lowlight + 8 langs curatés (js/ts/bash/json/sql/html/css/python). Custom node `Callout` (`features/editor/extensions/Callout.ts`) avec 4 variantes info/success/warning/danger sérialisées en `<div data-type="callout" data-callout="...">`. Sanitize backend mis à jour (`shared/lib/sanitize.ts`) pour whitelister data-type, data-callout, data-checked, style. CSS `.article-content` étendue (`features/articles/articles.css`) pour rendu cohérent éditeur ↔ lecture (callouts colorés avec icône, task lists checkbox, code dark theme inline avec tokens hljs, table column resize). Bundle +550 KB minified — acceptable pour le feature set ; lazy-load route éditeur prévu en suivi si besoin perf perçue.
 - Catégories arborescentes
 - Membres + invitations par email
 - Notifications in-app
@@ -362,6 +363,13 @@ Cibles à étendre (par valeur, dans cet ordre) : `apiClient` refresh + retry, `
   - **B.3 (optionnel) Génération FAQs depuis article** : bouton dans l'éditeur → Mistral propose 3-5 paires Q/A → l'auteur valide → save dans `faqs` avec `source_article_id`.
   - **Risques à mitiger** : effet Clippy (opt-in strict, pas de popup auto), biais verbeux (prompt valorise concision), Mistral inventif (toujours un diff visible avant apply).
   - **Pré-requis** : Sprint A.1+A.2 livrés ET utilisés (admin clique sur les recommandations) — sans ça, le copilote n'a pas de modèle de qualité fiable derrière lui.
+
+- **Sprint EDITOR-4 finitions (~2-3 j)** : éléments différés du sprint éditeur TipTap V1 :
+  - **Drag handles** sur les blocks pour réorganiser par drag-and-drop. Pas d'extension TipTap officielle bien maintenue ; nécessite un custom ProseMirror plugin avec décorations qui ajoute une poignée à chaque bloc top-level. Pattern Linear/Notion. ~1.5 j.
+  - **Emoji picker autocomplete** via `:` (même pattern que slash menu). Liste curatée de ~150 emojis populaires + recherche par nom (joie, coeur, check, etc.). ~0.5 j.
+  - **Focus mode** (zen) : masque la sidebar + topbar pendant l'édition d'un article pour concentration totale. ~0.5 j.
+  - **Lazy-load de la route éditeur** (`React.lazy + Suspense`) pour gagner ~550 KB sur le first paint (TipTap+lowlight n'est utilisé que dans `/articles/new` et `/articles/:id/edit`). ~0.3 j.
+  - À déclencher selon retours d'usage : si les contributeurs réclament le drag, on l'ajoute. Sinon, ce sprint reste en backlog.
 
 ### Refacto à venir
 - **Phase G3** (~1j) : nettoyer le bridge `useState<View>` ↔ Router dans `App.tsx`, passer en `<Routes><Route ...></Routes>` direct + `useParams`. Convertir `?superadmin` / `?api-docs` / `?token=` en routes propres (`/superadmin`, `/api-docs`, `/invitation/:token`).
