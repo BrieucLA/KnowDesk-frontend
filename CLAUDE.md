@@ -416,8 +416,8 @@ Cibles à étendre (par valeur, dans cet ordre) : `apiClient` refresh + retry, `
 ### Infrastructure
 - ~~Sentry DSN configuré~~ ✅ activé mai 2026 (2 projets : `knowdesk-backend`, `knowdesk-frontend`, voir section Monitoring)
 - ~~Tests frontend~~ socle posé mai 2026 (8 tests authStore + ProtectedRoute, voir section Tests)
-- CI/CD GitHub Actions (gratuit jusqu'à 2000 min/mois sur compte free, voir https://github.com/BrieucLA pour activation)
-- CI/CD GitHub Actions
+- ~~CI/CD GitHub Actions backend~~ ✅ actif mai 2026 (workflow `CI KnowDesk Backend`, voir CLAUDE.md backend section « CI / Déploiement »). Quality gate uniquement (lint + typecheck + 68 tests) ; le déploiement reste géré par Railway native auto-deploy en parallèle.
+- CI/CD frontend pas encore en place (Vercel auto-deploy fait office de pipeline mais sans gate type-check/build avant push). À ajouter si on veut bloquer un push qui casse le build.
 
 ## Cloudflare R2
 
