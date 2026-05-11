@@ -1,28 +1,32 @@
-import { PageHeader } from '../../../shared/components/layout/PageHeader';
+import { LearningAdminPage } from './LearningAdminPage';
 import { useAuthStore, selectUserRole } from '../../../store/authStore';
 
+interface LearningPageProps {
+  onEditPath: (id: string) => void;
+}
+
 /**
- * Placeholder Learning. Le vrai contenu (liste admin + édition,
- * vue conseiller + player) sera implémenté dans des commits suivants.
- * Affiché pour valider que la navigation et les routes fonctionnent.
+ * Routeur de la page /learning :
+ * - admin/manager → liste des parcours (LearningAdminPage)
+ * - advisor       → "Mes formations" (commit C — pour l'instant placeholder)
+ *
+ * L'édition d'un parcours (modules, ressources, quiz, assignations) se
+ * fait sur une route séparée gérée par App.tsx via onEditPath.
  */
-export function LearningPage() {
-  const role    = useAuthStore(selectUserRole);
+export function LearningPage({ onEditPath }: LearningPageProps) {
+  const role = useAuthStore(selectUserRole);
   const isAdmin = role === 'admin' || role === 'manager';
 
-  return (
-    <div className="learning-page">
-      <PageHeader
-        title="Formations"
-        subtitle={isAdmin
-          ? "Parcours de formation pour vos conseillers, basés sur votre base de connaissance."
-          : "Vos formations en cours et à renouveler."}
-      />
-      <p style={{ color: 'var(--neutral-500)', padding: '24px 0' }}>
-        {isAdmin
-          ? 'Vue admin en cours de construction. L\'API backend est déjà disponible (cf docs/PRD-learning-v1.md).'
-          : 'Vue conseiller en cours de construction.'}
-      </p>
-    </div>
-  );
+  if (!isAdmin) {
+    return (
+      <div className="learning-page" style={{ padding: 24 }}>
+        <h1 style={{ fontSize: 24, marginBottom: 8 }}>Mes formations</h1>
+        <p style={{ color: 'var(--neutral-500)' }}>
+          Vue conseiller en cours de construction (commit suivant).
+        </p>
+      </div>
+    );
+  }
+
+  return <LearningAdminPage onEditPath={onEditPath} />;
 }
