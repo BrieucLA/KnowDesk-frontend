@@ -12,7 +12,7 @@ import type {
   LearningPathDetail, LearningModule, LearningModuleResource,
   LearningQuiz, LearningQuizQuestion, LearningResourceType, LearningPathRenewal,
 } from '../types';
-import './learning.css';
+import '../learning.css';
 
 interface LearningPathEditorProps {
   pathId: string;

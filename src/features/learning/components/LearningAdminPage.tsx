@@ -13,7 +13,7 @@ import { useToast }    from '../../../shared/lib/useToast';
 import { ApiError }    from '../../../shared/lib/apiClient';
 import { formatRelative } from '../../../shared/lib/formatDate';
 import type { LearningPath, LearningPathRenewal } from '../types';
-import './learning.css';
+import '../learning.css';
 
 interface LearningAdminPageProps {
   onEditPath: (id: string) => void;

@@ -6,7 +6,7 @@ import { Skeleton } from '../../../shared/components/ui/Skeleton';
 import { sanitizeArticleHtml } from '../../../shared/lib/sanitize';
 import { useToast } from '../../../shared/lib/useToast';
 import type { LearningModuleResource, LearningQuiz, LearningResourceType } from '../types';
-import './learning.css';
+import '../learning.css';
 
 interface LearningPlayerProps {
   moduleId: string;

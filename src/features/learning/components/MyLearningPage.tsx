@@ -8,7 +8,7 @@ import { useToast }   from '../../../shared/lib/useToast';
 import { ApiError }   from '../../../shared/lib/apiClient';
 import { formatRelative } from '../../../shared/lib/formatDate';
 import type { MyLearningPath, LearningCompletionStatus } from '../types';
-import './learning.css';
+import '../learning.css';
 
 interface MyLearningPageProps {
   onOpenModule: (moduleId: string, pathId: string) => void;
