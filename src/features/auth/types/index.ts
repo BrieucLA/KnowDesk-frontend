@@ -8,7 +8,10 @@ export interface LoginCredentials {
 export interface AuthSession {
   user:         User;
   organization: Organization;
-  accessToken:  string;
+  /** Reliquat de l'époque Bearer ; aujourd'hui le token est dans le cookie
+   *  httpOnly, donc optionnel. À retirer quand le fallback Bearer aura
+   *  disparu du backend (voir CLAUDE.md → Refacto à venir). */
+  accessToken?: string;
 }
 
 export interface LoginFormState {

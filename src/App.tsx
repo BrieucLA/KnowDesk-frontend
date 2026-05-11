@@ -32,6 +32,7 @@ import { ImpersonateBanner } from './shared/components/ui/ImpersonateBanner';
 import { NetworkErrorBanner } from './shared/components/ui/NetworkErrorBanner';
 import { ToastContainer }   from './shared/components/ui/ToastContainer';
 import { ProtectedRoute }   from './router/ProtectedRoute';
+import { apiClient }          from './shared/lib/apiClient';
 import {
   useAuthStore, selectIsLoggedIn, selectUserRole,
 } from './store/authStore';
@@ -178,6 +179,28 @@ export function App() {
   const invitationToken = urlParams.get('token');
   const isAcceptInvitation = !!invitationToken;
 
+  // Bootstrap session depuis le cookie quand le store local n'a pas de session
+  // (cas typique : nouvel onglet ouvert depuis l'extension Chrome qui démarre
+  // sans rien en localStorage mais avec un cookie auth `.knowdesk.fr` valide).
+  // On bloque le render initial pendant ce check pour éviter un flash de
+  // LoginPage avant la rehydratation.
+  const [bootValidated, setBootValidated] = useState(isLoggedIn);
+  useEffect(() => {
+    if (isLoggedIn) { setBootValidated(true); return; }
+    let alive = true;
+    apiClient.get<{ user: AuthSession['user']; organization: AuthSession['organization'] }>('/auth/me')
+      .then(data => {
+        if (!alive) return;
+        if (data?.user && data?.organization) {
+          setSession({ user: data.user, organization: data.organization });
+        }
+      })
+      .catch(() => { /* 401/réseau : on tombe sur LoginPage, comportement par défaut */ })
+      .finally(() => { if (alive) setBootValidated(true); });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const needsOnboarding = isLoggedIn && role === 'admin' && !onboardingDone;
 
   const go = useCallback((v: View) => setView(v), []);
@@ -254,6 +277,13 @@ if (isAcceptInvitation && invitationToken) {
   );
 }
 
+
+// Tant que le check session-via-cookie tourne, on évite de flasher la
+// LoginPage : écran neutre minimal. ProtectedRoute fait quelque chose
+// d'analogue sur les routes protégées, ici on couvre le boot global.
+if (!isLoggedIn && !bootValidated) {
+  return <div style={{ minHeight: '100vh' }} aria-busy="true" aria-label="Chargement de la session" />;
+}
 
 if (!isLoggedIn) {
   return (

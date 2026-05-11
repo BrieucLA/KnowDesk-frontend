@@ -35,7 +35,8 @@ const sampleSession: AuthSession = {
 
 describe('authStore', () => {
   beforeEach(() => {
-    // Reset le store ET le sessionStorage entre tests pour éviter la pollution.
+    // Reset le store ET le localStorage entre tests pour éviter la pollution.
+    localStorage.removeItem('knowdesk-auth');
     useAuthStore.setState({
       session:        null,
       isLoaded:       false,
@@ -83,9 +84,9 @@ describe('authStore', () => {
     expect(useAuthStore.getState().impersonating).toBeNull();
   });
 
-  it('persiste la session dans sessionStorage sous la clé knowdesk-auth', () => {
+  it('persiste la session dans localStorage sous la clé knowdesk-auth', () => {
     useAuthStore.getState().setSession(sampleSession);
-    const raw = sessionStorage.getItem('knowdesk-auth');
+    const raw = localStorage.getItem('knowdesk-auth');
     expect(raw).not.toBeNull();
     const parsed = JSON.parse(raw!);
     // Zustand persist enveloppe : { state: {...}, version: 0 }

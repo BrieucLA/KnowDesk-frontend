@@ -6,6 +6,8 @@ import { cleanup } from '@testing-library/react';
 // les fuites de DOM (sinon les `screen` queries voient les renders précédents).
 afterEach(() => {
   cleanup();
-  // Reset sessionStorage pour isoler chaque test du store persisté.
+  // Reset les deux storages pour isoler chaque test du store persisté
+  // (authStore est en localStorage depuis le fix SSO extension/multi-onglets).
   sessionStorage.clear();
+  localStorage.clear();
 });

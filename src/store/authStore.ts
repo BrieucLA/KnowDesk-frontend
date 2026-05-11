@@ -48,7 +48,13 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name:    'knowdesk-auth',
-      storage: createJSONStorage(() => sessionStorage),
+      // localStorage (et pas sessionStorage) pour que la session soit partagée
+      // entre onglets — un onglet ouvert depuis l'extension Chrome OU un tab
+      // ouvert via cmd+click depuis un autre tab démarre avec la session déjà
+      // hydratée plutôt que de se retrouver redirigé vers /login. Le cookie
+      // d'auth reste la source de vérité côté serveur (TTL 15 min, refresh
+      // automatique via apiClient).
+      storage: createJSONStorage(() => localStorage),
       onRehydrateStorage: () => (state) => {
         if (state) state.isLoaded = true;
       },
