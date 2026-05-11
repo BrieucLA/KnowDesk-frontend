@@ -6,7 +6,7 @@ import { NotificationPanel } from '../../../features/notifications/components/No
 // .sidenav__badge est défini dans notifications.css (couplage badge ↔ feature notif)
 import '../../../features/notifications/notifications.css';
 
-export type NavRoute = 'dashboard' | 'search' | 'knowledge' | 'faqs' | 'trees' | 'team' | 'analytics' | 'chats' | 'audit' | 'settings' | 'account';
+export type NavRoute = 'dashboard' | 'search' | 'knowledge' | 'faqs' | 'trees' | 'learning' | 'team' | 'analytics' | 'chats' | 'audit' | 'settings' | 'account';
 
 interface NavItem {
   id:        NavRoute;
@@ -30,6 +30,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'knowledge', label: 'Articles',  href: '/knowledge',  icon: <BookIcon /> },
   { id: 'faqs',      label: 'FAQs',      href: '/faqs',       icon: <FaqIcon /> },
   { id: 'trees',     label: 'Processus', href: '/trees',      icon: <TreeIcon /> },
+  { id: 'learning',  label: 'Formations', href: '/learning',   icon: <LearningIcon /> },
   { id: 'team',      label: 'Équipe',    href: '/team',       icon: <TeamIcon />,  adminOnly: true },
   { id: 'analytics', label: 'Analyse',       href: '/analytics',  icon: <ChartIcon />, adminOnly: true },
   { id: 'chats',     label: 'Conversations', href: '/chats',      icon: <ChatIcon />,  adminOnly: true },
@@ -259,6 +260,16 @@ function TreeIcon() {
       <circle cx="4"  cy="13" r="2" stroke="currentColor" strokeWidth="1.4" fill="none"/>
       <circle cx="14" cy="13" r="2" stroke="currentColor" strokeWidth="1.4" fill="none"/>
       <path d="M9 5v3M9 8l-5 3M9 8l5 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+function LearningIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <path d="M1.5 5.5L9 2l7.5 3.5L9 9 1.5 5.5z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
+      <path d="M4.5 7.5v4.5c0 0 2 1.5 4.5 1.5s4.5-1.5 4.5-1.5V7.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M16 6v4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
     </svg>
   );
 }

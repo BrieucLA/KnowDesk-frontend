@@ -25,6 +25,7 @@ import { SettingsPage }     from './features/settings/components/SettingsPage';
 import { AnalyticsPage }    from './features/analytics/components/AnalyticsPage';
 import { ChatsPage }        from './features/chats/components/ChatsPage';
 import { AuditPage }        from './features/audit/components/AuditPage';
+import { LearningPage }     from './features/learning/components/LearningPage';
 import { SearchBar }        from './features/search/components/SearchBar';
 import { CommandPalette }   from './features/search/components/CommandPalette';
 import { AppLayout }        from './shared/components/layout/AppLayout';
@@ -56,7 +57,8 @@ type Screen =
   | 'tree-editor'
   | 'account'
   | 'faqs'
-  | 'faq-editor';
+  | 'faq-editor'
+  | 'learning';
 
 type View =
   | { screen: 'dashboard' }
@@ -73,7 +75,8 @@ type View =
   | { screen: 'tree-editor'; treeId: string }
   | { screen: 'account' }
   | { screen: 'faqs' }
-  | { screen: 'faq-editor'; faqId?: string };
+  | { screen: 'faq-editor'; faqId?: string }
+  | { screen: 'learning' };
 
 /** Maps URL pathname to a View. Returns null for unmapped paths. */
 function pathToView(pathname: string, fallbackFrom: Screen): View | null {
@@ -84,6 +87,7 @@ function pathToView(pathname: string, fallbackFrom: Screen): View | null {
   if (pathname === '/analytics')                  return { screen: 'analytics' };
   if (pathname === '/chats')                      return { screen: 'chats' };
   if (pathname === '/audit')                      return { screen: 'audit' };
+  if (pathname === '/learning')                   return { screen: 'learning' };
   if (pathname === '/settings')                   return { screen: 'settings' };
   if (pathname === '/account')                    return { screen: 'account' };
   if (pathname === '/trees')                      return { screen: 'trees' };
@@ -123,6 +127,7 @@ function viewToPath(view: View): string | null {
     case 'analytics':   return '/analytics';
     case 'chats':       return '/chats';
     case 'audit':       return '/audit';
+    case 'learning':    return '/learning';
     case 'settings':    return '/settings';
     case 'account':     return '/account';
     case 'faqs':        return '/faqs';
@@ -238,10 +243,11 @@ export function App() {
     : view.screen === 'members'   ? 'team'
     : view.screen === 'analytics' ? 'analytics'
     : view.screen === 'chats'     ? 'chats'
+    : view.screen === 'learning'  ? 'learning'
     : view.screen === 'audit'     ? 'audit'
     : view.screen === 'settings'  ? 'settings'
     : 'dashboard'
-  ) as 'dashboard' | 'search' | 'knowledge' | 'faqs' | 'trees' | 'team' | 'analytics' | 'chats' | 'audit' | 'settings';
+  ) as 'dashboard' | 'search' | 'knowledge' | 'faqs' | 'trees' | 'learning' | 'team' | 'analytics' | 'chats' | 'audit' | 'settings';
 
 // Mode superadmin — accessible via ?superadmin dans l'URL
 if (window.location.search.includes('superadmin')) {
@@ -311,6 +317,7 @@ if (!isLoggedIn) {
             if (route === 'audit')     go({ screen: 'audit'     });
             if (route === 'settings')  go({ screen: 'settings'  });
             if (route === 'trees')     go({ screen: 'trees'     });
+            if (route === 'learning')  go({ screen: 'learning'  });
             if (route === 'faqs')      go({ screen: 'faqs'      });
             if (route === 'account')   go({ screen: 'account'   });
           }}
@@ -376,6 +383,7 @@ if (!isLoggedIn) {
           {view.screen === 'settings' && <SettingsPage />}
           {view.screen === 'chats' && <ChatsPage />}
           {view.screen === 'audit' && <AuditPage />}
+          {view.screen === 'learning' && <LearningPage />}
           {view.screen === 'trees' && (
   <TreesPage
     onOpenTree={id    => go({ screen: 'tree-editor', treeId: id })}
@@ -391,7 +399,7 @@ if (!isLoggedIn) {
   />
 )}
 {view.screen === 'account' && <AccountPage />}
-{!(['dashboard','knowledge','article','tree','editor','members','analytics','chats','audit','settings','trees','tree-editor','account','faqs','faq-editor'] as string[]).includes(view.screen) && (
+{!(['dashboard','knowledge','article','tree','editor','members','analytics','chats','audit','settings','trees','tree-editor','account','faqs','faq-editor','learning'] as string[]).includes(view.screen) && (
   <NotFoundPage onBack={() => go({ screen: 'dashboard' })} />
 )}
         </AppLayout>
