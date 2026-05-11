@@ -244,6 +244,10 @@
 .faq-helpful__btn--active {
   background: var(--brand-50); border-color: var(--brand-300); color: var(--brand-700);
   opacity: 1;
+  cursor: pointer;
+}
+.faq-helpful__btn--active:hover {
+  background: var(--brand-100); border-color: var(--brand-400);
 }
 .faq-helpful__btn:focus-visible {
   outline: 2px solid var(--brand-500); outline-offset: 1px;
@@ -251,6 +255,9 @@
 .faq-helpful__count { font-weight: 500; }
 .faq-helpful__thanks {
   font-size: 12px; color: var(--color-success); font-style: italic;
+}
+.faq-helpful__thanks-hint {
+  font-style: normal; color: var(--neutral-500); font-size: 11px; margin-left: 4px;
 }
 
 /* Variante read-only (liste / éditeur) */

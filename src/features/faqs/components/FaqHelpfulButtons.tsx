@@ -51,13 +51,21 @@ export function FaqHelpfulButtons({
   }, [faqId, helpfulYes, helpfulNo]);
 
   const handleVote = useCallback(async (vote: 'yes' | 'no') => {
-    if (readOnly || voted || voting) return;
+    if (readOnly || voting) return;
+    // Bouton non-voté alors que l'autre l'est : bloqué (le user doit
+    // annuler son vote en cours en recliquant dessus d'abord).
+    if (voted && voted !== vote) return;
+
+    const undo = voted === vote;
     setVoting(true);
     try {
-      const result = await faqsApi.vote(faqId, vote);
+      const result = await faqsApi.vote(faqId, vote, undo);
       setCounts({ yes: result.helpful_yes, no: result.helpful_no });
-      setVoted(vote);
-      try { localStorage.setItem(STORAGE_KEY(faqId), vote); } catch { /* ignore */ }
+      setVoted(undo ? null : vote);
+      try {
+        if (undo) localStorage.removeItem(STORAGE_KEY(faqId));
+        else      localStorage.setItem(STORAGE_KEY(faqId), vote);
+      } catch { /* ignore */ }
       onVoted?.(result);
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : 'Vote impossible.');
@@ -92,9 +100,10 @@ export function FaqHelpfulButtons({
         type="button"
         className={cn('faq-helpful__btn', voted === 'yes' && 'faq-helpful__btn--active')}
         onClick={(e) => { e.stopPropagation(); handleVote('yes'); }}
-        disabled={voting || !!voted}
+        disabled={voting || (voted === 'no')}
+        title={voted === 'yes' ? 'Recliquez pour annuler votre vote' : voted === 'no' ? 'Annulez d\'abord votre 👎 pour changer de vote' : ''}
         aria-pressed={voted === 'yes'}
-        aria-label="Oui, cette réponse a aidé"
+        aria-label={voted === 'yes' ? 'Annuler mon vote « cette réponse a aidé »' : 'Oui, cette réponse a aidé'}
       >
         <span aria-hidden="true">👍</span>
         <span className="faq-helpful__count">{counts.yes}</span>
@@ -104,16 +113,19 @@ export function FaqHelpfulButtons({
         type="button"
         className={cn('faq-helpful__btn', voted === 'no' && 'faq-helpful__btn--active')}
         onClick={(e) => { e.stopPropagation(); handleVote('no'); }}
-        disabled={voting || !!voted}
+        disabled={voting || (voted === 'yes')}
+        title={voted === 'no' ? 'Recliquez pour annuler votre vote' : voted === 'yes' ? 'Annulez d\'abord votre 👍 pour changer de vote' : ''}
         aria-pressed={voted === 'no'}
-        aria-label="Non, cette réponse n'a pas aidé"
+        aria-label={voted === 'no' ? 'Annuler mon vote « cette réponse n\'a pas aidé »' : 'Non, cette réponse n\'a pas aidé'}
       >
         <span aria-hidden="true">👎</span>
         <span className="faq-helpful__count">{counts.no}</span>
       </button>
 
       {voted && size === 'full' && (
-        <span className="faq-helpful__thanks" role="status">Merci !</span>
+        <span className="faq-helpful__thanks" role="status">
+          Merci ! <span className="faq-helpful__thanks-hint">Recliquez pour annuler.</span>
+        </span>
       )}
     </div>
   );

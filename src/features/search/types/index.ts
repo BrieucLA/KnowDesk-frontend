@@ -8,6 +8,11 @@ export interface SearchResult {
   category: string;
   score:    number;        // relevance 0-1, used for ordering
   updatedAt: string;
+  /** Compteurs renvoyés par le backend uniquement pour les FAQs.
+   *  Permet d'afficher les votes des autres utilisateurs dans la
+   *  SearchBar sans recharger la FAQ complète. */
+  helpful_yes?: number;
+  helpful_no?:  number;
 }
 
 export interface SearchState {

@@ -35,8 +35,8 @@ export const faqsApi = {
   setTags: (id: string, tags: string[]) =>
     apiClient.put<{ tags: string[] }>(`/faqs/${id}/tags`, { tags }),
 
-  vote: (id: string, vote: 'yes' | 'no') =>
-    apiClient.post<{ helpful_yes: number; helpful_no: number }>(`/faqs/${id}/helpful`, { vote }),
+  vote: (id: string, vote: 'yes' | 'no', undo?: boolean) =>
+    apiClient.post<{ helpful_yes: number; helpful_no: number }>(`/faqs/${id}/helpful`, { vote, undo }),
 
   markReviewed: (id: string) =>
     apiClient.post<FaqDetail>(`/faqs/${id}/mark-reviewed`, {}),

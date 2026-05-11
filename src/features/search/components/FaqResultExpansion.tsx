@@ -17,9 +17,9 @@ interface FaqResultExpansionProps {
  * la réponse complète in-line + un bouton de copie en 1 clic, plutôt
  * que naviguer vers une page dédiée.
  *
- * Note : les compteurs helpful sont initialisés à 0 ici parce que le
- * payload SearchResult ne les transporte pas (gain de bande passante).
- * Le composant FaqHelpfulButtons sync les vrais compteurs après le 1er vote.
+ * Compteurs helpful : enrichis côté backend via un SELECT batch sur
+ * les hits de type 'faq' (cf search.router.enrichFaqHits). Le user
+ * voit les votes des autres avant de voter.
  */
 export function FaqResultExpansion({ result, onCopy }: FaqResultExpansionProps) {
   return (
@@ -33,8 +33,8 @@ export function FaqResultExpansion({ result, onCopy }: FaqResultExpansionProps) 
       <div className="faq-result-expansion__actions">
         <FaqHelpfulButtons
           faqId={result.id}
-          helpfulYes={0}
-          helpfulNo={0}
+          helpfulYes={result.helpful_yes ?? 0}
+          helpfulNo={result.helpful_no  ?? 0}
           size="compact"
         />
         <div className="faq-result-expansion__actions-spacer" />
