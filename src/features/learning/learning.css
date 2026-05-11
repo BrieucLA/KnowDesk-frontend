@@ -206,3 +206,214 @@
   border-radius: var(--radius-full, 999px);
   text-transform: capitalize;
 }
+
+/* ── My Learning (vue conseiller) ──────────────────────────── */
+.my-learning-section { margin-top: 24px; }
+.my-learning-section + .my-learning-section { margin-top: 32px; }
+
+.my-learning-list {
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column; gap: 12px;
+}
+
+.my-learning-card {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+}
+.my-learning-card--renew { border-left: 4px solid #F59E0B; }
+.my-learning-card--todo  { border-left: 4px solid var(--brand-500); }
+.my-learning-card--done  { border-left: 4px solid #0a7d3a; opacity: 0.85; }
+
+.my-learning-card__head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 12px; margin-bottom: 8px;
+}
+.my-learning-card__title { font-size: 17px; font-weight: 600; margin: 0; }
+.my-learning-card__badges { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.my-learning-card__desc { font-size: 14px; color: var(--neutral-600); margin: 0 0 12px; }
+
+.my-learning-card__progress {
+  display: flex; align-items: center; gap: 10px;
+  margin: 12px 0;
+}
+.my-learning-card__progress-bar {
+  flex: 1; height: 6px;
+  background: var(--neutral-100);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.my-learning-card__progress-fill {
+  height: 100%;
+  background: var(--brand-500);
+  border-radius: 3px;
+  transition: width var(--t-normal);
+}
+.my-learning-card__progress-label {
+  font-size: 12px; color: var(--neutral-600);
+  white-space: nowrap;
+}
+
+.my-learning-card__modules {
+  list-style: none; padding: 0; margin: 12px 0;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.my-learning-mod {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 10px;
+  font-size: 13px;
+  border-radius: var(--radius-sm);
+}
+.my-learning-mod--completed   { color: var(--neutral-500); }
+.my-learning-mod--completed .my-learning-mod__icon { color: #0a7d3a; }
+.my-learning-mod--in_progress { background: var(--brand-50); }
+.my-learning-mod--in_progress .my-learning-mod__icon { color: var(--brand-700); }
+.my-learning-mod--outdated    { background: #FEF6E7; }
+.my-learning-mod--outdated .my-learning-mod__icon { color: #92400E; }
+.my-learning-mod__icon { font-size: 14px; min-width: 16px; }
+.my-learning-mod__name { flex: 1; }
+.my-learning-mod__score, .my-learning-mod__expires {
+  font-size: 11px; color: var(--neutral-500);
+}
+
+.my-learning-card__cta {
+  margin-top: 12px;
+  display: flex; justify-content: flex-end;
+}
+
+/* ── Player module ─────────────────────────────────────────── */
+.learning-player {
+  display: flex; flex-direction: column;
+  min-height: 100vh;
+  background: var(--neutral-50);
+}
+.learning-player__topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 24px;
+  background: var(--neutral-0);
+  border-bottom: 1px solid var(--neutral-200);
+  flex-shrink: 0;
+}
+.learning-player__back {
+  background: none; border: none;
+  color: var(--neutral-600); font-size: 14px;
+  cursor: pointer; padding: 6px 10px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-ui);
+}
+.learning-player__back:hover { background: var(--neutral-100); }
+.learning-player__progress {
+  font-size: 13px;
+  color: var(--neutral-600);
+  font-weight: 500;
+}
+
+.learning-player__body {
+  flex: 1;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  width: 100%;
+}
+.learning-player__loading { padding: 40px 24px; }
+.learning-player__empty {
+  text-align: center;
+  padding: 40px 0;
+  color: var(--neutral-500);
+}
+
+.learning-player__resource {
+  background: var(--neutral-0);
+  border-radius: var(--radius-lg);
+  padding: 32px 40px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.learning-player__type {
+  display: inline-block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--brand-700);
+  background: var(--brand-50);
+  padding: 3px 8px;
+  border-radius: var(--radius-full, 999px);
+  margin-bottom: 12px;
+}
+.learning-player__title {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 20px;
+}
+
+/* Quiz */
+.learning-player__quiz {
+  background: var(--neutral-0);
+  border-radius: var(--radius-lg);
+  padding: 32px 40px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.learning-player__quiz-meta {
+  color: var(--neutral-600);
+  font-size: 13px;
+  margin: 0 0 24px;
+}
+.learning-player__quiz-list {
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column; gap: 24px;
+}
+.learning-player__quiz-item strong {
+  display: block; margin-bottom: 12px;
+  font-size: 15px; color: var(--neutral-900);
+}
+.learning-player__quiz-choices {
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.learning-player__quiz-choices label {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--t-fast);
+  font-size: 14px;
+}
+.learning-player__quiz-choices label:hover {
+  border-color: var(--brand-300);
+  background: var(--brand-50);
+}
+.learning-player__quiz-choices input[type="radio"] {
+  accent-color: var(--brand-500);
+}
+
+/* Done */
+.learning-player__done {
+  background: var(--neutral-0);
+  border-radius: var(--radius-lg);
+  padding: 48px 40px;
+  text-align: center;
+}
+.learning-player__done h1 {
+  font-size: 28px; margin: 0 0 12px;
+}
+.learning-player__done p {
+  font-size: 15px; color: var(--neutral-600);
+  margin: 6px 0;
+}
+.learning-player__done--ok h1 { color: #0a7d3a; }
+.learning-player__done--ko h1 { color: #92400E; }
+.learning-player__done .btn {
+  margin-top: 20px;
+}
+
+.learning-player__footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px;
+  background: var(--neutral-0);
+  border-top: 1px solid var(--neutral-200);
+  flex-shrink: 0;
+  max-width: 760px;
+  margin: 0 auto;
+  width: 100%;
+}

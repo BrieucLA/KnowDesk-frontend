@@ -27,6 +27,7 @@ import { ChatsPage }        from './features/chats/components/ChatsPage';
 import { AuditPage }        from './features/audit/components/AuditPage';
 import { LearningPage }     from './features/learning/components/LearningPage';
 import { LearningPathEditor } from './features/learning/components/LearningPathEditor';
+import { LearningPlayer }     from './features/learning/components/LearningPlayer';
 import { SearchBar }        from './features/search/components/SearchBar';
 import { CommandPalette }   from './features/search/components/CommandPalette';
 import { AppLayout }        from './shared/components/layout/AppLayout';
@@ -60,7 +61,8 @@ type Screen =
   | 'faqs'
   | 'faq-editor'
   | 'learning'
-  | 'learning-edit';
+  | 'learning-edit'
+  | 'learning-play';
 
 type View =
   | { screen: 'dashboard' }
@@ -79,7 +81,8 @@ type View =
   | { screen: 'faqs' }
   | { screen: 'faq-editor'; faqId?: string }
   | { screen: 'learning' }
-  | { screen: 'learning-edit'; pathId: string };
+  | { screen: 'learning-edit'; pathId: string }
+  | { screen: 'learning-play'; moduleId: string };
 
 /** Maps URL pathname to a View. Returns null for unmapped paths. */
 function pathToView(pathname: string, fallbackFrom: Screen): View | null {
@@ -93,6 +96,8 @@ function pathToView(pathname: string, fallbackFrom: Screen): View | null {
   if (pathname === '/learning')                   return { screen: 'learning' };
   const learningEditMatch = pathname.match(/^\/learning\/([^/]+)\/edit$/);
   if (learningEditMatch) return { screen: 'learning-edit', pathId: learningEditMatch[1] };
+  const learningPlayMatch = pathname.match(/^\/learning\/play\/([^/]+)$/);
+  if (learningPlayMatch) return { screen: 'learning-play', moduleId: learningPlayMatch[1] };
   if (pathname === '/settings')                   return { screen: 'settings' };
   if (pathname === '/account')                    return { screen: 'account' };
   if (pathname === '/trees')                      return { screen: 'trees' };
@@ -134,6 +139,7 @@ function viewToPath(view: View): string | null {
     case 'audit':       return '/audit';
     case 'learning':      return '/learning';
     case 'learning-edit': return `/learning/${view.pathId}/edit`;
+    case 'learning-play': return `/learning/play/${view.moduleId}`;
     case 'settings':    return '/settings';
     case 'account':     return '/account';
     case 'faqs':        return '/faqs';
@@ -249,7 +255,7 @@ export function App() {
     : view.screen === 'members'   ? 'team'
     : view.screen === 'analytics' ? 'analytics'
     : view.screen === 'chats'     ? 'chats'
-    : view.screen === 'learning' || view.screen === 'learning-edit' ? 'learning'
+    : view.screen === 'learning' || view.screen === 'learning-edit' || view.screen === 'learning-play' ? 'learning'
     : view.screen === 'audit'     ? 'audit'
     : view.screen === 'settings'  ? 'settings'
     : 'dashboard'
@@ -390,11 +396,20 @@ if (!isLoggedIn) {
           {view.screen === 'chats' && <ChatsPage />}
           {view.screen === 'audit' && <AuditPage />}
           {view.screen === 'learning' && (
-            <LearningPage onEditPath={id => go({ screen: 'learning-edit', pathId: id })} />
+            <LearningPage
+              onEditPath={id => go({ screen: 'learning-edit', pathId: id })}
+              onOpenModule={moduleId => go({ screen: 'learning-play', moduleId })}
+            />
           )}
           {view.screen === 'learning-edit' && (
             <LearningPathEditor
               pathId={view.pathId}
+              onBack={() => go({ screen: 'learning' })}
+            />
+          )}
+          {view.screen === 'learning-play' && (
+            <LearningPlayer
+              moduleId={view.moduleId}
               onBack={() => go({ screen: 'learning' })}
             />
           )}
@@ -413,7 +428,7 @@ if (!isLoggedIn) {
   />
 )}
 {view.screen === 'account' && <AccountPage />}
-{!(['dashboard','knowledge','article','tree','editor','members','analytics','chats','audit','settings','trees','tree-editor','account','faqs','faq-editor','learning','learning-edit'] as string[]).includes(view.screen) && (
+{!(['dashboard','knowledge','article','tree','editor','members','analytics','chats','audit','settings','trees','tree-editor','account','faqs','faq-editor','learning','learning-edit','learning-play'] as string[]).includes(view.screen) && (
   <NotFoundPage onBack={() => go({ screen: 'dashboard' })} />
 )}
         </AppLayout>

@@ -1,32 +1,25 @@
 import { LearningAdminPage } from './LearningAdminPage';
+import { MyLearningPage }    from './MyLearningPage';
 import { useAuthStore, selectUserRole } from '../../../store/authStore';
 
 interface LearningPageProps {
-  onEditPath: (id: string) => void;
+  onEditPath:    (id: string) => void;
+  onOpenModule:  (moduleId: string, pathId: string) => void;
 }
 
 /**
  * Routeur de la page /learning :
- * - admin/manager → liste des parcours (LearningAdminPage)
- * - advisor       → "Mes formations" (commit C — pour l'instant placeholder)
+ *   - admin / manager → liste des parcours (LearningAdminPage)
+ *   - advisor         → "Mes formations" (MyLearningPage)
  *
- * L'édition d'un parcours (modules, ressources, quiz, assignations) se
- * fait sur une route séparée gérée par App.tsx via onEditPath.
+ * L'édition d'un parcours (modules, ressources, quiz, assignations)
+ * vit sur /learning/:id/edit (gérée par App.tsx via onEditPath).
+ * Le player conseiller vit sur /learning/play/:moduleId (via onOpenModule).
  */
-export function LearningPage({ onEditPath }: LearningPageProps) {
+export function LearningPage({ onEditPath, onOpenModule }: LearningPageProps) {
   const role = useAuthStore(selectUserRole);
   const isAdmin = role === 'admin' || role === 'manager';
 
-  if (!isAdmin) {
-    return (
-      <div className="learning-page" style={{ padding: 24 }}>
-        <h1 style={{ fontSize: 24, marginBottom: 8 }}>Mes formations</h1>
-        <p style={{ color: 'var(--neutral-500)' }}>
-          Vue conseiller en cours de construction (commit suivant).
-        </p>
-      </div>
-    );
-  }
-
-  return <LearningAdminPage onEditPath={onEditPath} />;
+  if (isAdmin) return <LearningAdminPage onEditPath={onEditPath} />;
+  return <MyLearningPage onOpenModule={onOpenModule} />;
 }
