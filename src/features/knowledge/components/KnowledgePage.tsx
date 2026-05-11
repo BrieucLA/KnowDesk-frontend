@@ -1039,7 +1039,7 @@ function KnowledgeListView(props: KnowledgeListViewProps) {
         )}
       />
       {reachedLimit && (
-        <div className="knowledge-list__limit-banner" role="status">
+        <div className="list-limit-banner" role="status">
           Affichage des 200 articles les plus récents. Affinez les filtres pour voir plus.
         </div>
       )}

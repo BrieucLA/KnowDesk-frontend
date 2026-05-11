@@ -165,6 +165,11 @@ export function TreesPage({ onOpenTree, onEditTree, onPreviewTree }: TreesPagePr
             </Button>
           )}
         />
+        {trees.length >= 200 && (
+          <div className="list-limit-banner" role="status">
+            Affichage des 200 processus les plus récents. Affinez les filtres pour voir plus.
+          </div>
+        )}
 
         {showCreate && (
           <Modal

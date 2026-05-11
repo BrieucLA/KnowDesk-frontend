@@ -180,6 +180,9 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
   };
 
   const hasActiveFilters = !!search || activeTags.length > 0 || !!categoryId || tab !== 'all';
+  // Bannière limite : on charge perPage=200 — au-delà, on prévient
+  // l'utilisateur. Vraie pagination UI à ajouter en V2 si nécessaire.
+  const reachedLimit = rawItems.length >= 200;
 
   const emptyState = (
     <EmptyState
@@ -220,6 +223,11 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
             </Button>
           )}
         />
+        {reachedLimit && (
+          <div className="list-limit-banner" role="status">
+            Affichage des 200 FAQs les plus récentes. Affinez les filtres pour voir plus.
+          </div>
+        )}
 
         <PageToolbar
           left={(
