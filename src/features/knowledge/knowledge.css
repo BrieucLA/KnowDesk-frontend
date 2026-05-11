@@ -297,3 +297,13 @@
 .knowledge-list__status-cell {
   display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap;
 }
+
+/* Bannière limite 200 articles (avant vraie pagination V2) */
+.knowledge-list__limit-banner {
+  background: #FEF6E7; color: #7A4800;
+  border: 1px solid #FBBF24;
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}

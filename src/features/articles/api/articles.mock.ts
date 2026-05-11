@@ -45,11 +45,11 @@ export const MOCK_ARTICLE: Article = {
 };
 
 export const MOCK_ARTICLE_LIST: ArticleListItem[] = [
-  { id: 'art-1', title: 'Politique de remboursement express',       status: 'published', categoryId: 'cat-1', categoryName: 'Livraisons',    version: 4, authorName: 'Marc Duval',    updatedAt: new Date(Date.now() - 3_600_000).toISOString(),        isStale: false },
-  { id: 'art-2', title: 'Traitement des retours après 30 jours',    status: 'published', categoryId: 'cat-2', categoryName: 'Retours',        version: 2, authorName: 'Sophie Martin', updatedAt: new Date(Date.now() - 86_400_000 * 2).toISOString(),   isStale: false },
-  { id: 'art-3', title: 'Gestion des litiges livraison',            status: 'draft',     categoryId: 'cat-1', categoryName: 'Livraisons',    version: 1, authorName: 'Marc Duval',    updatedAt: new Date(Date.now() - 86_400_000).toISOString(),       isStale: false },
-  { id: 'art-4', title: 'Procédure résiliation abonnement Premium', status: 'published', categoryId: 'cat-3', categoryName: 'Abonnements',   version: 6, authorName: 'Lucie Benoît',  updatedAt: new Date(Date.now() - 86_400_000 * 3).toISOString(),   isStale: false },
-  { id: 'art-5', title: 'Offres de rétention client',               status: 'published', categoryId: 'cat-3', categoryName: 'Abonnements',   version: 3, authorName: 'Lucie Benoît',  updatedAt: new Date(Date.now() - 86_400_000 * 5).toISOString(),   isStale: false },
+  { id: 'art-1', title: 'Politique de remboursement express',       status: 'published', categoryId: 'cat-1', categoryName: 'Livraisons',    version: 4, authorName: 'Marc Duval',    updatedAt: new Date(Date.now() - 3_600_000).toISOString(),        isStale: false, viewsCount: 0 },
+  { id: 'art-2', title: 'Traitement des retours après 30 jours',    status: 'published', categoryId: 'cat-2', categoryName: 'Retours',        version: 2, authorName: 'Sophie Martin', updatedAt: new Date(Date.now() - 86_400_000 * 2).toISOString(),   isStale: false, viewsCount: 0 },
+  { id: 'art-3', title: 'Gestion des litiges livraison',            status: 'draft',     categoryId: 'cat-1', categoryName: 'Livraisons',    version: 1, authorName: 'Marc Duval',    updatedAt: new Date(Date.now() - 86_400_000).toISOString(),       isStale: false, viewsCount: 0 },
+  { id: 'art-4', title: 'Procédure résiliation abonnement Premium', status: 'published', categoryId: 'cat-3', categoryName: 'Abonnements',   version: 6, authorName: 'Lucie Benoît',  updatedAt: new Date(Date.now() - 86_400_000 * 3).toISOString(),   isStale: false, viewsCount: 0 },
+  { id: 'art-5', title: 'Offres de rétention client',               status: 'published', categoryId: 'cat-3', categoryName: 'Abonnements',   version: 3, authorName: 'Lucie Benoît',  updatedAt: new Date(Date.now() - 86_400_000 * 5).toISOString(),   isStale: false, viewsCount: 0 },
 ];
 
 export async function mockGetArticle(id: string): Promise<Article> {

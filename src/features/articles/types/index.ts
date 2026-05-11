@@ -45,4 +45,6 @@ export interface ArticleListItem {
    *  `last_reviewed_at` séparé pour l'instant — si on veut un bouton
    *  « C'est à jour » à la FAQ, faudra une migration. */
   isStale:      boolean;
+  /** Nombre d'events `article.view` sur les 30 derniers jours. */
+  viewsCount:   number;
 }

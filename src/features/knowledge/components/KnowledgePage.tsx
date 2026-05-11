@@ -183,6 +183,7 @@ export function KnowledgePage({ onOpenArticle, onNewArticle }: KnowledgePageProp
           updatedAt:    a.updated_at,
           tags:         Array.isArray(a.tags) ? a.tags : [],
           isStale:      a.is_stale === true,
+          viewsCount:   Number(a.views_30d ?? 0),
         })));
         setLoadingArticles(false);
       })
@@ -352,7 +353,9 @@ export function KnowledgePage({ onOpenArticle, onNewArticle }: KnowledgePageProp
     return (
       <KnowledgeListView
         isAdmin={isAdmin}
+        role={role}
         articles={articles}
+        setArticles={setArticles}
         categories={categories}
         filter={filter}
         setFilter={setFilter}
@@ -382,7 +385,7 @@ export function KnowledgePage({ onOpenArticle, onNewArticle }: KnowledgePageProp
                   categoryId: a.category_id, categoryName: a.category_name ?? '',
                   version: a.version, authorName: a.author_email ?? '',
                   updatedAt: a.updated_at, tags: Array.isArray(a.tags) ? a.tags : [],
-                  isStale: a.is_stale === true,
+                  isStale: a.is_stale === true, viewsCount: Number(a.views_30d ?? 0),
                 }))))
                 .finally(() => setLoadingArticles(false));
             }}
@@ -845,7 +848,9 @@ function flattenForSelect(cats: Category[], depth = 0): Array<{ id: string; inde
 
 interface KnowledgeListViewProps {
   isAdmin:         boolean;
+  role:            string | null;
   articles:        ArticleListItem[];
+  setArticles:     React.Dispatch<React.SetStateAction<ArticleListItem[]>>;
   categories:      Category[];
   filter:          'all' | 'published' | 'draft' | 'stale';
   setFilter:       (f: 'all' | 'published' | 'draft' | 'stale') => void;
@@ -863,18 +868,39 @@ interface KnowledgeListViewProps {
   importModal:     React.ReactNode;
 }
 
-type ArticleSortKey = 'title' | 'category' | 'status' | 'updated_at';
+type ArticleSortKey = 'title' | 'category' | 'status' | 'views' | 'updated_at';
 
 function KnowledgeListView(props: KnowledgeListViewProps) {
   const {
-    isAdmin, articles, categories, filter, setFilter, searchQuery, setSearchQuery,
-    activeTags, setActiveTags, selectedCatId, setSelectedCatId, loadingArticles,
-    orgTags, onOpenArticle, onNewArticle, onOpenImport, importModal,
+    isAdmin, role, articles, setArticles, categories, filter, setFilter,
+    searchQuery, setSearchQuery, activeTags, setActiveTags, selectedCatId,
+    setSelectedCatId, loadingArticles, orgTags, onOpenArticle, onNewArticle,
+    onOpenImport, importModal,
   } = props;
 
+  const navigate = useNavigate();
+  const toast    = useToast();
+  const canDelete = role === 'admin'; // backend route DELETE /articles/:id réservée admin
   const [view,    setView]    = useListViewPref('kd-knowledge-view', 'table');
   const [sortBy,  setSortBy]  = useState<ArticleSortKey>('updated_at');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [confirmDelete, setConfirmDelete] = useState<ArticleListItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!confirmDelete) return;
+    setDeleting(true);
+    try {
+      await apiClient.delete(`/articles/${confirmDelete.id}`);
+      setArticles(prev => prev.filter(a => a.id !== confirmDelete.id));
+      toast.success('Article supprimé.');
+      setConfirmDelete(null);
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'Suppression impossible.');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   // Compteurs onglets — sur articles raw, pas filtrés.
   const counts = useMemo(() => ({
@@ -907,6 +933,7 @@ function KnowledgeListView(props: KnowledgeListViewProps) {
       if (sortBy === 'title')    return sign * a.title.localeCompare(b.title, 'fr');
       if (sortBy === 'category') return sign * (a.categoryName ?? '').localeCompare(b.categoryName ?? '', 'fr');
       if (sortBy === 'status')   return sign * a.status.localeCompare(b.status);
+      if (sortBy === 'views')    return sign * (a.viewsCount - b.viewsCount);
       return sign * (new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime());
     });
   }, [filtered, sortBy, sortDir]);
@@ -962,7 +989,10 @@ function KnowledgeListView(props: KnowledgeListViewProps) {
   const renderRowActions = (a: ArticleListItem) => (
     <ActionMenu
       items={[
-        { label: 'Ouvrir', onClick: () => onOpenArticle(a.id) },
+        { label: 'Ouvrir',   onClick: () => onOpenArticle(a.id) },
+        { label: 'Modifier', onClick: () => navigate(`/articles/${a.id}/edit`), hidden: !isAdmin },
+        { type: 'separator', hidden: !canDelete },
+        { label: 'Supprimer', onClick: () => setConfirmDelete(a), variant: 'danger', hidden: !canDelete },
       ]}
     />
   );
@@ -979,9 +1009,25 @@ function KnowledgeListView(props: KnowledgeListViewProps) {
     />
   );
 
+  // Bannière limite : on charge perPage=200 — au-delà, on prévient l'admin
+  // que tous les résultats ne sont pas visibles. Vraie pagination UI à
+  // ajouter en V2 si besoin (cf message en bas du fichier KnowledgePage).
+  const reachedLimit = articles.length >= 200;
+
   return (
     <div className="knowledge-page-wrap">
       {importModal}
+      {confirmDelete && (
+        <ConfirmDialog
+          title="Supprimer cet article ?"
+          description={`« ${confirmDelete.title} » sera définitivement supprimé.`}
+          confirmLabel="Supprimer"
+          variant="danger"
+          loading={deleting}
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmDelete(null)}
+        />
+      )}
       <PageHeader
         title="Base de connaissance"
         subtitle="Les articles de votre organisation. Processus dans l'onglet dédié, FAQs accessibles via la recherche."
@@ -992,6 +1038,11 @@ function KnowledgeListView(props: KnowledgeListViewProps) {
           </>
         )}
       />
+      {reachedLimit && (
+        <div className="knowledge-list__limit-banner" role="status">
+          Affichage des 200 articles les plus récents. Affinez les filtres pour voir plus.
+        </div>
+      )}
 
       <PageToolbar
         left={(
@@ -1065,6 +1116,8 @@ function KnowledgeListView(props: KnowledgeListViewProps) {
                 </div>
               ),
             },
+            { key: 'views',      label: 'Vues 30j', sortable: true, align: 'right', width: '90px',
+              render: a => a.viewsCount > 0 ? a.viewsCount : <span className="knowledge-list__muted">0</span> },
             { key: 'updated_at', label: 'Mis à jour', sortable: true, width: '140px',
               render: a => formatRelative(a.updatedAt) },
           ]}
