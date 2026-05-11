@@ -230,11 +230,10 @@ export function App() {
   }, [go, view.screen]);
 
   const activeRoute = (
-    view.screen === 'trees' || view.screen === 'tree-editor' ? 'knowledge' :
+    view.screen === 'trees' || view.screen === 'tree-editor' || view.screen === 'tree' ? 'trees' :
     view.screen === 'faqs'  || view.screen === 'faq-editor'  ? 'faqs' :
     view.screen === 'account' ? 'settings' :
-    view.screen === 'knowledge' || view.screen === 'article' ||
-    view.screen === 'tree'      || view.screen === 'editor'
+    view.screen === 'knowledge' || view.screen === 'article' || view.screen === 'editor'
       ? 'knowledge'
     : view.screen === 'members'   ? 'team'
     : view.screen === 'analytics' ? 'analytics'
@@ -242,7 +241,7 @@ export function App() {
     : view.screen === 'audit'     ? 'audit'
     : view.screen === 'settings'  ? 'settings'
     : 'dashboard'
-  ) as 'dashboard' | 'search' | 'knowledge' | 'faqs' | 'team' | 'analytics' | 'chats' | 'audit' | 'settings';
+  ) as 'dashboard' | 'search' | 'knowledge' | 'faqs' | 'trees' | 'team' | 'analytics' | 'chats' | 'audit' | 'settings';
 
 // Mode superadmin — accessible via ?superadmin dans l'URL
 if (window.location.search.includes('superadmin')) {
