@@ -326,7 +326,6 @@ if (!isLoggedIn) {
           {view.screen === 'knowledge' && (
             <KnowledgePage
               onOpenArticle={id  => go({ screen: 'article', articleId: id, from: 'knowledge' })}
-              onOpenTree={treeId => go({ screen: 'tree',    treeId,         from: 'knowledge' })}
               onNewArticle={() => go({ screen: 'editor', from: 'knowledge' })}
             />
           )}

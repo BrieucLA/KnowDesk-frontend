@@ -25,20 +25,10 @@ import type { ArticleListItem } from '../../articles/types';
 
 interface KnowledgePageProps {
   onOpenArticle:      (articleId: string) => void;
-  onOpenTree:         (treeId: string) => void;
   onNewArticle?:      () => void;
 }
 
 type SortKey = 'updated' | 'alpha' | 'popular';
-
-interface TreeListItem {
-  id:           string;
-  title:        string;
-  status:       string;
-  category_id:  string | null;
-  category_name?: string | null;
-  updated_at:   string;
-}
 
 const SIDEBAR_MIN     = 180;
 const SIDEBAR_MAX     = 360;
@@ -48,7 +38,7 @@ const SIDEBAR_DEFAULT = 220;
  * KnowledgePage — the browsable knowledge base.
  * Two-panel layout: collapsible/resizable category sidebar + article list.
  */
-export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: KnowledgePageProps) {
+export function KnowledgePage({ onOpenArticle, onNewArticle }: KnowledgePageProps) {
   const role    = useAuthStore(selectUserRole);
   const isAdmin = role === 'admin' || role === 'manager';
   const toast   = useToast();
@@ -75,7 +65,6 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
   const [tagsExpanded,   setTagsExpanded]   = useState(false);
   const [sort,           setSort]           = useState<SortKey>('updated');
   const [searchQuery,    setSearchQuery]    = useState('');
-  const [trees,          setTrees]          = useState<TreeListItem[]>([]);
 
   // Sidebar persistance
   const [sidebarWidth,     setSidebarWidth]     = useLocalStorageState('knowledge.sidebar.width', SIDEBAR_DEFAULT);
@@ -121,13 +110,6 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
   // Charger les tags de l'org pour les chips de filtre
   useEffect(() => {
     tagsApi.list().then(setOrgTags).catch(() => setOrgTags([]));
-  }, []);
-
-  // Charger les processus guidés publiés (≤ qq dizaines max — fetch unique au mount)
-  useEffect(() => {
-    apiClient.get<TreeListItem[]>('/trees?status=published')
-      .then(setTrees)
-      .catch(() => setTrees([]));
   }, []);
 
   // Load categories on mount
@@ -240,14 +222,6 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
     [categories, selectedCatId],
   );
   const selectedCategory = breadcrumb.length > 0 ? breadcrumb[breadcrumb.length - 1] : null;
-
-  // Trees affichés : ceux attachés à la cat sélectionnée OU à un de ses descendants.
-  // Réplique côté client la logique du backend `findDescendantIds` (cat racine + descendants).
-  const visibleTrees = useMemo(() => {
-    if (!selectedCatId) return trees;
-    const allowed = collectDescendantIds(categories, selectedCatId);
-    return trees.filter(t => t.category_id && allowed.has(t.category_id));
-  }, [trees, categories, selectedCatId]);
 
   // Auto-déplie les ancêtres quand une cat enfant est sélectionnée — sans
   // refermer ce que l'utilisateur a déjà ouvert manuellement.
@@ -363,7 +337,7 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
     <div className="knowledge-page-wrap">
       <PageHeader
         title="Base de connaissance"
-        subtitle="Articles, FAQs et processus de votre organisation."
+        subtitle="Les articles de votre organisation. Processus dans l'onglet dédié, FAQs accessibles via la recherche."
         actions={isAdmin && (
           <>
             <Button variant="ghost" size="md" onClick={() => setShowImportModal(true)}>
@@ -621,32 +595,6 @@ export function KnowledgePage({ onOpenArticle, onOpenTree, onNewArticle }: Knowl
               </li>
             ))}
           </ul>
-        )}
-
-        {/* Processus guidés — masqué si aucun tree pour la cat sélectionnée */}
-        {!loadingArticles && visibleTrees.length > 0 && (
-          <div className="knowledge-trees">
-            <h3 className="knowledge-trees__title">Processus guidés</h3>
-            <ul className="knowledge-article-list" role="list">
-              {visibleTrees.map(tree => (
-                <li key={tree.id}>
-                  <EntityRow
-                    title={tree.title}
-                    subtitle={(
-                      <>
-                        {tree.category_name ?? 'Sans catégorie'}
-                        <span aria-hidden="true"> · </span>
-                        Mis à jour <time dateTime={tree.updated_at}>{formatRelative(tree.updated_at)}</time>
-                      </>
-                    )}
-                    meta={<span className="badge badge--info">Processus</span>}
-                    onClick={() => onOpenTree(tree.id)}
-                    ariaLabel={`Ouvrir le processus ${tree.title}`}
-                  />
-                </li>
-              ))}
-            </ul>
-          </div>
         )}
 
       </main>
