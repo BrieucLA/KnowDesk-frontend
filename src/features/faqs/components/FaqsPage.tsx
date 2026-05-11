@@ -245,7 +245,7 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
             />
           )}
           extra={(
-            <>
+            <div className="faqs-page__filters-extra">
               <CategoryFilter
                 categories={categories}
                 value={categoryId}
@@ -258,7 +258,7 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
                 active={activeTags}
                 onChange={setActiveTags}
               />
-            </>
+            </div>
           )}
         />
 

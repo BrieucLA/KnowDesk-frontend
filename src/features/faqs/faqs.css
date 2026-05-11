@@ -404,3 +404,12 @@
 .data-table__row.faqs-row--focused {
   animation: faqs-row-pulse 2.5s ease-out;
 }
+
+/* FaqsPage — extra toolbar : catégorie sur 1 ligne, tags sur la suivante
+   (sinon les chips tags se décalent à chaque changement de label cat). */
+.faqs-page__filters-extra {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
