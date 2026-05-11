@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { cn }             from '../../../shared/lib/cn';
-import { formatRelative } from '../../../shared/lib/formatDate';
-import type { Member }    from '../types';
-import type { UserRole }  from '../../../shared/types';
+import { cn }              from '../../../shared/lib/cn';
+import { formatRelative }  from '../../../shared/lib/formatDate';
+import { computeInitials } from '../../../shared/lib/initials';
+import type { Member }     from '../types';
+import type { UserRole }   from '../../../shared/types';
 
 interface MemberRowProps {
   member:     Member;
@@ -34,16 +35,7 @@ export function MemberRow({
   const [menuOpen, setMenuOpen] = useState(false);
   const isCurrentUser = member.id === currentUserId;
   const statusCfg     = STATUS_CONFIG[member.status];
-  // Initiales défensives : on accepte first/last absents (membre invité qui
-  // n'a pas encore complété son profil) → on tombe sur l'email. Sinon on
-  // pouvait afficher « BUNDEFINED » quand lastName était la string littérale
-  // « undefined » (cas constaté en prod).
-  const safeFirst = typeof member.firstName === 'string' && member.firstName.trim() && member.firstName !== 'undefined'
-    ? member.firstName.trim() : '';
-  const safeLast = typeof member.lastName === 'string' && member.lastName.trim() && member.lastName !== 'undefined'
-    ? member.lastName.trim() : '';
-  const initials = (safeFirst[0] ?? '') + (safeLast[0] ?? '');
-  const displayInitials = (initials || member.email[0] || '?').toUpperCase();
+  const displayInitials = computeInitials(member);
 
   const handleRoleChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     onChangeRole(member.id, e.target.value as UserRole);
@@ -55,7 +47,7 @@ export function MemberRow({
       {/* Identity */}
       <td className="member-row__cell member-row__identity">
         <div className="member-avatar" aria-hidden="true">
-          {initials}
+          {displayInitials}
         </div>
         <div className="member-row__name-wrap">
           <span className="member-row__name">

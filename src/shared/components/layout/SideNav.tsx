@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { cn } from '../../lib/cn';
+import { computeInitials } from '../../lib/initials';
 import { useAuthStore, selectUserRole } from '../../../store/authStore';
 import { useNotifications } from '../../../features/notifications/hooks/useNotifications';
 import { NotificationPanel } from '../../../features/notifications/components/NotificationPanel';
@@ -171,9 +172,7 @@ function UserAvatar() {
 
   if (!user) return null;
 
-  const initials = user.firstName && user.lastName
-    ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
-    : user.email.slice(0, 2).toUpperCase();
+  const initials = computeInitials(user);
 
   return (
     <button

@@ -36,13 +36,18 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-// Adapte le format API → format frontend
+// Adapte le format API → format frontend. Utilise les vrais first_name /
+// last_name retournés par /members (snake_case). Fallback sur l'email parsé
+// pour la rétro-compat avec les anciennes données (parts avant @ split sur
+// le « . »).
 function adaptMember(raw: any): Member {
-  const nameParts = (raw.email as string).split('@')[0].split('.');
+  const cleanFirst = typeof raw.first_name === 'string' && raw.first_name.trim() ? raw.first_name.trim() : '';
+  const cleanLast  = typeof raw.last_name  === 'string' && raw.last_name.trim()  ? raw.last_name.trim()  : '';
+  const fallbackParts = String(raw.email ?? '').split('@')[0].split('.');
   return {
     id:         raw.id,
-    firstName:  nameParts[0] ?? '',
-    lastName:   nameParts[1] ?? '',
+    firstName:  cleanFirst || fallbackParts[0] || '',
+    lastName:   cleanLast  || fallbackParts[1] || '',
     email:      raw.email,
     role:       raw.role,
     status:     raw.status,
