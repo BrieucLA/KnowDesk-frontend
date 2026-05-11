@@ -296,7 +296,7 @@ export function TreesPage({ onOpenTree, onEditTree, onPreviewTree }: TreesPagePr
                       {tree.status === 'draft' && (
                         <Button variant="ghost" size="sm" onClick={() => publishTree(tree.id)}>Publier</Button>
                       )}
-                      <Button variant="ghost" size="sm" onClick={() => handleDeleteRequest(tree.id)}>Supprimer</Button>
+                      <Button variant="danger" size="sm" onClick={() => handleDeleteRequest(tree.id)}>Supprimer</Button>
                     </>
                   )}
                 />
