@@ -38,6 +38,10 @@ interface DataTableProps<T> {
   emptyState?:    React.ReactNode;
   /** Nombre de lignes squelette pendant le loading (default 5). */
   skeletonRows?:  number;
+  /** Optionnel : ajoute une classe par ligne (typiquement pour highlight). */
+  rowClassName?:  (row: T) => string | undefined;
+  /** Optionnel : pose un ref sur la ligne (typiquement pour scrollIntoView). */
+  rowRef?:        (row: T, el: HTMLTableRowElement | null) => void;
 }
 
 /**
@@ -58,6 +62,8 @@ export function DataTable<T>({
   rowActions,
   emptyState,
   skeletonRows = 5,
+  rowClassName,
+  rowRef,
 }: DataTableProps<T>) {
   const toggleSort = (key: string) => {
     if (!onSortChange) return;
@@ -133,7 +139,8 @@ export function DataTable<T>({
           {data.map(row => (
             <tr
               key={rowKey(row)}
-              className={`data-table__row ${onRowClick ? 'data-table__row--clickable' : ''}`}
+              ref={rowRef ? (el) => rowRef(row, el) : undefined}
+              className={`data-table__row ${onRowClick ? 'data-table__row--clickable' : ''} ${rowClassName?.(row) ?? ''}`}
               onClick={onRowClick ? () => onRowClick(row) : undefined}
             >
               {columns.map(col => (

@@ -395,3 +395,12 @@
 .faqs-cell-helpful__sep {
   color: var(--neutral-300);
 }
+
+/* Highlight de la ligne ciblée via /faqs?focus=ID (deep-link extension). */
+@keyframes faqs-row-pulse {
+  0%   { background: var(--brand-50); box-shadow: inset 3px 0 0 var(--brand-500); }
+  100% { background: transparent;     box-shadow: inset 3px 0 0 transparent; }
+}
+.data-table__row.faqs-row--focused {
+  animation: faqs-row-pulse 2.5s ease-out;
+}

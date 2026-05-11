@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useFaqs }        from '../hooks/useFaqs';
 import '../faqs.css';
 import { Button }         from '../../../shared/components/ui/Button';
@@ -42,6 +43,15 @@ const SORT_TO_COL: Record<FaqSortBy, string> = {
 export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
   const role    = useAuthStore(selectUserRole);
   const canEdit = role === 'admin' || role === 'manager';
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Support du deep-link `/faqs?focus=<id>` (typiquement depuis l'extension
+  // Chrome). On scrolle la ligne ciblée + on l'highlighte 2s puis on
+  // nettoie l'URL pour ne pas re-déclencher au reload.
+  const focusId = new URLSearchParams(location.search).get('focus');
+  const [highlightedId, setHighlightedId] = useState<string | null>(focusId);
+  const focusedRowRef = useRef<HTMLTableRowElement | null>(null);
 
   const [tab,        setTab]        = useState<FilterTab>('all');
   const [search,     setSearch]     = useState('');
@@ -77,6 +87,19 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
     tagsApi.list().then(setOrgTags).catch(() => setOrgTags([]));
     apiClient.get<Category[]>('/categories').then(setCategories).catch(() => setCategories([]));
   }, []);
+
+  // Quand on a un focusId + items chargés : scroll + retire le highlight
+  // après 2.5s + clean l'URL pour ne pas re-déclencher au reload.
+  useEffect(() => {
+    if (!focusId || !focusedRowRef.current) return;
+    focusedRowRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const t = setTimeout(() => {
+      setHighlightedId(null);
+      navigate('/faqs', { replace: true });
+    }, 2500);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusId, focusedRowRef.current]);
 
   // Filtre statut côté frontend (pour préserver les compteurs cohérents)
   const items = useMemo(() => {
@@ -294,6 +317,10 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
           onRowClick={canEdit ? faq => onEditFaq(faq.id) : undefined}
           rowActions={renderRowActions}
           emptyState={emptyState}
+          rowClassName={faq => faq.id === highlightedId ? 'faqs-row--focused' : undefined}
+          rowRef={(faq, el) => {
+            if (faq.id === focusId) focusedRowRef.current = el;
+          }}
         />
       </div>
     </>
