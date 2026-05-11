@@ -34,17 +34,18 @@
   outline-offset: 1px;
 }
 
+/* Rendu dans un portal sur document.body (cf ActionMenu.tsx) avec
+   position fixed + top/left calculés depuis le rect du trigger. Évite
+   le clipping par les parents en `overflow: hidden` (ex: DataTable). */
 .action-menu__popover {
-  position: absolute;
-  top: calc(100% + 4px);
-  right: 0;
+  position: fixed;
   min-width: 160px;
   background: var(--neutral-0, #fff);
   border: 1px solid var(--neutral-200);
   border-radius: var(--radius-md);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   padding: 4px;
-  z-index: 50;
+  z-index: 1000;
   display: flex;
   flex-direction: column;
 }
