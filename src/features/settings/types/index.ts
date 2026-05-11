@@ -9,6 +9,7 @@ export type SettingsSection =
   | 'search'
   | 'tags'
   | 'imports'
+  | 'audit'
   | 'billing'
   | 'danger';
 
@@ -28,7 +29,7 @@ export interface ChatModelMeta {
   description:  string;
 }
 
-export type AiServiceKey = 'chat-response' | 'search-ai' | 'slot-filling' | 'topic-clustering' | 'article-quality';
+export type AiServiceKey = 'chat-response' | 'search-ai' | 'slot-filling' | 'topic-clustering' | 'article-quality' | 'learning-quiz';
 
 export interface AiServiceItem {
   key:         AiServiceKey;

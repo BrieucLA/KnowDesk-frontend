@@ -72,7 +72,14 @@ function userLabel(item: AuditLogItem): string {
   return base;
 }
 
-export function AuditPage() {
+interface AuditPageProps {
+  /** Si true, on omet le PageHeader (utilisé quand AuditPage est rendu
+   *  comme section embarquée dans /settings, qui pose déjà son propre
+   *  header en haut). */
+  embed?: boolean;
+}
+
+export function AuditPage({ embed = false }: AuditPageProps = {}) {
   const toast = useToast();
   const [items,    setItems]    = useState<AuditLogItem[]>([]);
   const [total,    setTotal]    = useState(0);
@@ -111,10 +118,12 @@ export function AuditPage() {
 
   return (
     <section className="audit-page">
-      <PageHeader
-        title="Journal d'activité"
-        subtitle={`Trace des actions sensibles effectuées sur cet espace : modifications de paramètres, gestion des membres, suppressions, impersonation. Conservé 1 an.`}
-      />
+      {!embed && (
+        <PageHeader
+          title="Journal d'activité"
+          subtitle={`Trace des actions sensibles effectuées sur cet espace : modifications de paramètres, gestion des membres, suppressions, impersonation. Conservé 1 an.`}
+        />
+      )}
 
       <PageToolbar
         left={(

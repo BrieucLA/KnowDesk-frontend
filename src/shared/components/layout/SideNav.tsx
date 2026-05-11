@@ -6,7 +6,7 @@ import { NotificationPanel } from '../../../features/notifications/components/No
 // .sidenav__badge est défini dans notifications.css (couplage badge ↔ feature notif)
 import '../../../features/notifications/notifications.css';
 
-export type NavRoute = 'dashboard' | 'search' | 'knowledge' | 'faqs' | 'trees' | 'learning' | 'team' | 'analytics' | 'chats' | 'audit' | 'settings' | 'account';
+export type NavRoute = 'dashboard' | 'search' | 'knowledge' | 'faqs' | 'trees' | 'learning' | 'team' | 'analytics' | 'chats' | 'settings' | 'account';
 
 interface NavItem {
   id:        NavRoute;
@@ -31,14 +31,13 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'faqs',      label: 'FAQs',      href: '/faqs',       icon: <FaqIcon /> },
   { id: 'trees',     label: 'Processus', href: '/trees',      icon: <TreeIcon /> },
   { id: 'learning',  label: 'Formations', href: '/learning',   icon: <LearningIcon /> },
-  { id: 'team',      label: 'Équipe',    href: '/team',       icon: <TeamIcon />,  adminOnly: true },
   { id: 'analytics', label: 'Analyse',       href: '/analytics',  icon: <ChartIcon />, adminOnly: true },
   { id: 'chats',     label: 'Conversations', href: '/chats',      icon: <ChatIcon />,  adminOnly: true },
-  { id: 'audit',     label: 'Audit',         href: '/audit',      icon: <AuditIcon />, adminOnly: true, adminStrict: true },
 ];
 
 const BOTTOM_ITEMS: NavItem[] = [
-  { id: 'settings', label: 'Paramètres', href: '/settings', icon: <SettingsIcon /> },
+  { id: 'team',      label: 'Équipe',     href: '/team',     icon: <TeamIcon />,    adminOnly: true },
+  { id: 'settings',  label: 'Paramètres', href: '/settings', icon: <SettingsIcon /> },
 ];
 
 export function SideNav({ active, onNavigate, onHelp }: SideNavProps) {

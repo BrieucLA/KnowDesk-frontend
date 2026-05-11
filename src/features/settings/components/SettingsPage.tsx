@@ -15,6 +15,7 @@ import { TagsSettingsSection }   from './TagsSettingsSection';
 import { AiSettingsSection }     from './AiSettingsSection';
 import { ChatbotSettingsSection } from './ChatbotSettingsSection';
 import { ImportsSettingsSection } from './ImportsSettingsSection';
+import { AuditPage }              from '../../audit/components/AuditPage';
 import { AiModelsSection }        from './AiModelsSection';
 import { ArticleQualitySettingsSection } from './ArticleQualitySettingsSection';
 import { DirtyContext, useTrackDirty } from '../lib/dirtyContext';
@@ -82,6 +83,7 @@ export function SettingsPage({ initialSection = 'general' }: SettingsPageProps) 
             {activeSection === 'search'        && <SearchSettingsSection />}
             {activeSection === 'tags'          && <TagsSettingsSection />}
             {activeSection === 'imports'       && <ImportsSettingsSection />}
+            {activeSection === 'audit'         && <AuditPage embed />}
             {activeSection === 'billing'       && <SectionBilling />}
             {activeSection === 'danger'        && <SectionDanger />}
           </div>
@@ -196,6 +198,8 @@ function navTree(isAdmin: boolean): NavEntry[] {
         keywords: ['clé', 'token', 'public', 'apikey', 'webhook'] },
       { type: 'leaf', id: 'imports', label: 'Imports',
         keywords: ['pdf', 'docx', 'pptx'] },
+      { type: 'leaf', id: 'audit', label: 'Audit',
+        keywords: ['journal', 'activité', 'logs', 'historique', 'sécurité', 'compliance', 'impersonation'] },
     ]},
     { type: 'leaf', id: 'billing', label: 'Facturation',
       keywords: ['plan', 'pro', 'enterprise', 'facture', 'stripe', 'abonnement'] },
