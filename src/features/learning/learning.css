@@ -149,11 +149,82 @@
   flex: 1; font-size: 14px; min-width: 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.module-editor__add-grid {
-  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+/* ── Resource picker (combobox unifié article/faq/tree) ──────── */
+.resource-picker {
+  position: relative;
 }
-@media (max-width: 600px) {
-  .module-editor__add-grid { grid-template-columns: 1fr; }
+.resource-picker__dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0; right: 0;
+  z-index: 20;
+  max-height: 320px;
+  overflow-y: auto;
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  padding: 4px;
+}
+.resource-picker__empty {
+  padding: 16px 12px;
+  font-size: 13px;
+  color: var(--neutral-600);
+  text-align: center;
+}
+.resource-picker__section + .resource-picker__section {
+  margin-top: 4px;
+  border-top: 1px solid var(--neutral-100);
+  padding-top: 4px;
+}
+.resource-picker__section-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--neutral-500);
+  padding: 8px 10px 4px;
+}
+.resource-picker__list {
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column;
+}
+.resource-picker__option {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  font: inherit;
+  color: var(--neutral-900);
+  cursor: pointer;
+  transition: background var(--t-fast);
+}
+.resource-picker__option:hover,
+.resource-picker__option:focus-visible {
+  background: var(--neutral-50);
+  outline: none;
+}
+.resource-picker__option-label {
+  flex: 1; min-width: 0;
+  font-size: 14px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.resource-picker__option-add {
+  font-size: 18px; line-height: 1;
+  color: var(--neutral-400);
+  width: 20px; text-align: center;
+}
+.resource-picker__option:hover .resource-picker__option-add {
+  color: var(--brand-600);
+}
+
+.module-editor__picker-hint {
+  margin: 6px 2px 0;
+  font-size: 12px;
+  color: var(--neutral-500);
 }
 
 /* ── Quiz preview ────────────────────────────────────────────── */

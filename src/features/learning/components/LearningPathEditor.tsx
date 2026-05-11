@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { learningApi } from '../api/learningApi';
 import { apiClient, ApiError } from '../../../shared/lib/apiClient';
 import { PageHeader } from '../../../shared/components/layout/PageHeader';
@@ -417,32 +417,16 @@ function ModuleEditorModal({ module, pathId, onClose, onRename }: {
               ))}
             </ul>
 
-            <div className="module-editor__add-grid">
-              <select
-                className="learning-form__select"
-                value=""
-                onChange={e => { if (e.target.value) addResource('article', e.target.value); e.currentTarget.value = ''; }}
-              >
-                <option value="">+ Ajouter un article…</option>
-                {articles.map(a => <option key={a.id} value={a.id}>{a.title}</option>)}
-              </select>
-              <select
-                className="learning-form__select"
-                value=""
-                onChange={e => { if (e.target.value) addResource('faq', e.target.value); e.currentTarget.value = ''; }}
-              >
-                <option value="">+ Ajouter une FAQ…</option>
-                {faqs.map(f => <option key={f.id} value={f.id}>{f.question}</option>)}
-              </select>
-              <select
-                className="learning-form__select"
-                value=""
-                onChange={e => { if (e.target.value) addResource('tree', e.target.value); e.currentTarget.value = ''; }}
-              >
-                <option value="">+ Ajouter un processus…</option>
-                {trees.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}
-              </select>
-            </div>
+            <ResourcePicker
+              articles={articles}
+              faqs={faqs}
+              trees={trees}
+              alreadyAdded={resources}
+              onPick={addResource}
+            />
+            <p className="module-editor__picker-hint">
+              Tapez pour filtrer articles, FAQs et processus.
+            </p>
           </>
         )}
 
@@ -489,6 +473,155 @@ function ModuleEditorModal({ module, pathId, onClose, onRename }: {
         )}
       </div>
     </Modal>
+  );
+}
+
+// ── Picker unifié : 1 input qui filtre articles + FAQs + processus ──
+
+interface ResourcePickerItem {
+  type:  LearningResourceType;
+  id:    string;
+  label: string;
+}
+
+function ResourcePicker({ articles, faqs, trees, alreadyAdded, onPick }: {
+  articles:     ArticleLite[];
+  faqs:         FaqLite[];
+  trees:        TreeLite[];
+  alreadyAdded: LearningModuleResource[];
+  onPick:       (type: LearningResourceType, id: string) => void;
+}) {
+  const [query, setQuery] = useState('');
+  const [open,  setOpen]  = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  // Items déjà ajoutés → filtrés pour ne pas pourrir le dropdown.
+  const addedKey = useMemo(
+    () => new Set(alreadyAdded.map(r => `${r.resource_type}:${r.resource_id}`)),
+    [alreadyAdded],
+  );
+
+  const allItems: ResourcePickerItem[] = useMemo(() => [
+    ...articles.map(a => ({ type: 'article' as const, id: a.id, label: a.title })),
+    ...faqs    .map(f => ({ type: 'faq'     as const, id: f.id, label: f.question })),
+    ...trees   .map(t => ({ type: 'tree'    as const, id: t.id, label: t.title })),
+  ], [articles, faqs, trees]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return allItems
+      .filter(it => !addedKey.has(`${it.type}:${it.id}`))
+      .filter(it => q === '' || it.label.toLowerCase().includes(q));
+  }, [allItems, addedKey, query]);
+
+  // Groupage par type pour les sections du dropdown.
+  const groups = useMemo(() => ({
+    article: filtered.filter(i => i.type === 'article').slice(0, 20),
+    faq:     filtered.filter(i => i.type === 'faq')    .slice(0, 20),
+    tree:    filtered.filter(i => i.type === 'tree')   .slice(0, 20),
+  }), [filtered]);
+
+  // Click outside ferme.
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [open]);
+
+  const pick = (type: LearningResourceType, id: string) => {
+    onPick(type, id);
+    setQuery('');
+    // Garde le focus sur l'input pour enchaîner les ajouts.
+    setOpen(true);
+  };
+
+  const totalShown = groups.article.length + groups.faq.length + groups.tree.length;
+
+  return (
+    <div ref={wrapRef} className="resource-picker">
+      <Input
+        id="resource-picker-input"
+        type="text"
+        placeholder="+ Ajouter une ressource — article, FAQ ou processus…"
+        value={query}
+        onChange={e => { setQuery(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        autoComplete="off"
+      />
+      {open && (
+        <div className="resource-picker__dropdown" role="listbox">
+          {totalShown === 0 ? (
+            <div className="resource-picker__empty">
+              {alreadyAdded.length === 0 && allItems.length === 0
+                ? 'Aucun contenu publié dans cette organisation.'
+                : query.trim() !== ''
+                  ? `Aucun résultat pour « ${query} ».`
+                  : 'Tous les contenus disponibles sont déjà ajoutés.'}
+            </div>
+          ) : (
+            <>
+              {groups.article.length > 0 && (
+                <ResourcePickerSection
+                  type="article"
+                  label="Articles"
+                  items={groups.article}
+                  onPick={pick}
+                />
+              )}
+              {groups.faq.length > 0 && (
+                <ResourcePickerSection
+                  type="faq"
+                  label="FAQs"
+                  items={groups.faq}
+                  onPick={pick}
+                />
+              )}
+              {groups.tree.length > 0 && (
+                <ResourcePickerSection
+                  type="tree"
+                  label="Processus"
+                  items={groups.tree}
+                  onPick={pick}
+                />
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ResourcePickerSection({ type, label, items, onPick }: {
+  type:  LearningResourceType;
+  label: string;
+  items: ResourcePickerItem[];
+  onPick: (type: LearningResourceType, id: string) => void;
+}) {
+  return (
+    <div className="resource-picker__section">
+      <div className="resource-picker__section-title">{label}</div>
+      <ul className="resource-picker__list">
+        {items.map(it => (
+          <li key={`${it.type}:${it.id}`}>
+            <button
+              type="button"
+              className="resource-picker__option"
+              onClick={() => onPick(type, it.id)}
+            >
+              <span className={`chip chip--xs module-editor__type module-editor__type--${type}`}>
+                {type === 'article' ? 'Article' : type === 'faq' ? 'FAQ' : 'Processus'}
+              </span>
+              <span className="resource-picker__option-label">{it.label}</span>
+              <span className="resource-picker__option-add" aria-hidden="true">+</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
