@@ -45,8 +45,12 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  transition: color var(--t-fast);
 }
 .data-table__sort:hover {
+  color: var(--brand-700);
+}
+.data-table__sort--active {
   color: var(--brand-700);
 }
 .data-table__sort:focus-visible {
@@ -56,6 +60,13 @@
 }
 .data-table__sort-icon {
   font-size: 11px;
+  color: var(--neutral-400);
+  transition: color var(--t-fast);
+}
+.data-table__sort:hover .data-table__sort-icon {
+  color: var(--brand-600);
+}
+.data-table__sort--active .data-table__sort-icon {
   color: var(--brand-600);
 }
 

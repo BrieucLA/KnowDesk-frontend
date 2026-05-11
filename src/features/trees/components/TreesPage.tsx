@@ -9,8 +9,9 @@ import { EmptyState }  from '../../../shared/components/ui/EmptyState';
 import { Skeleton }    from '../../../shared/components/ui/Skeleton';
 import { EntityCard }  from '../../../shared/components/ui/EntityCard';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
+import { ActionMenu }        from '../../../shared/components/ui/ActionMenu';
 import { FilterTabs }       from '../../../shared/components/ui/FilterTabs';
-import { CategoryFilter }   from '../../../shared/components/ui/CategoryFilter';
+import { CategoryFilter, aggregateCountsWithDescendants } from '../../../shared/components/ui/CategoryFilter';
 import { DataTable, type SortDir } from '../../../shared/components/ui/DataTable';
 import { ListViewToggle, useListViewPref } from '../../../shared/components/ui/ListViewToggle';
 import { PageHeader }       from '../../../shared/components/layout/PageHeader';
@@ -110,15 +111,22 @@ export function TreesPage({ onOpenTree, onEditTree, onPreviewTree }: TreesPagePr
     setConfirmDeleteId(null);
   }, [confirmDeleteId, deleteTree]);
 
-  const renderRowActions = (tree: QuestionTreeSummary) => isAdmin && (
-    <>
-      <Button variant="ghost" size="sm" onClick={() => onEditTree(tree.id)}>Modifier</Button>
-      <Button variant="ghost" size="sm" onClick={() => onPreviewTree(tree.id)}>Aperçu</Button>
-      {tree.status === 'draft' && (
-        <Button variant="ghost" size="sm" onClick={() => publishTree(tree.id)}>Publier</Button>
-      )}
-      <Button variant="ghost" size="sm" onClick={() => handleDeleteRequest(tree.id)}>Supprimer</Button>
-    </>
+  const renderRowActions = (tree: QuestionTreeSummary) => isAdmin ? (
+    <ActionMenu
+      items={[
+        { label: 'Modifier', onClick: () => onEditTree(tree.id) },
+        { label: 'Aperçu',   onClick: () => onPreviewTree(tree.id) },
+        { label: 'Publier',  onClick: () => publishTree(tree.id), hidden: tree.status === 'published' },
+        { type: 'separator' },
+        { label: 'Supprimer', onClick: () => handleDeleteRequest(tree.id), variant: 'danger' },
+      ]}
+    />
+  ) : null;
+
+  // Counts par catégorie pour le dropdown filtre (cat + descendants agrégés)
+  const categoryCounts = useMemo(
+    () => aggregateCountsWithDescendants(categories, trees),
+    [categories, trees],
   );
 
   const emptyState = (
@@ -217,6 +225,8 @@ export function TreesPage({ onOpenTree, onEditTree, onPreviewTree }: TreesPagePr
               categories={categories}
               value={categoryId}
               onChange={setCategoryId}
+              counts={categoryCounts}
+              totalCount={trees.length}
             />
           )}
         />

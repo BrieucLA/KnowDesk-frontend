@@ -99,8 +99,9 @@ export function DataTable<T>({
                 {col.sortable ? (
                   <button
                     type="button"
-                    className="data-table__sort"
+                    className={`data-table__sort ${sortBy === col.key ? 'data-table__sort--active' : ''}`}
                     onClick={() => toggleSort(col.key)}
+                    title={`Trier par ${col.label.toLowerCase()}`}
                     aria-sort={
                       sortBy === col.key
                         ? sortDir === 'asc' ? 'ascending' : 'descending'
@@ -108,11 +109,11 @@ export function DataTable<T>({
                     }
                   >
                     {col.label}
-                    {sortBy === col.key && (
-                      <span className="data-table__sort-icon" aria-hidden="true">
-                        {sortDir === 'asc' ? '↑' : '↓'}
-                      </span>
-                    )}
+                    <span className="data-table__sort-icon" aria-hidden="true">
+                      {sortBy === col.key
+                        ? (sortDir === 'asc' ? '↑' : '↓')
+                        : '↕'}
+                    </span>
                   </button>
                 ) : (
                   col.label
