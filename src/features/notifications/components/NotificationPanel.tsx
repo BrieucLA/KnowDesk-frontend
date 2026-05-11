@@ -12,9 +12,10 @@ interface NotificationPanelProps {
 }
 
 const TYPE_CONFIG: Record<string, { label: string; icon: string }> = {
-  article_published: { label: 'Article publié',  icon: '📄' },
-  article_updated:   { label: 'Article modifié', icon: '✏️' },
-  member_joined:     { label: 'Nouveau membre',  icon: '👋' },
+  article_published: { label: 'Article publié',     icon: '📄' },
+  article_updated:   { label: 'Article modifié',    icon: '✏️' },
+  member_joined:     { label: 'Nouveau membre',     icon: '👋' },
+  learning_renewal:  { label: 'Module à renouveler', icon: '↻' },
 };
 
 export function NotificationPanel({

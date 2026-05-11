@@ -1,7 +1,8 @@
 export type NotificationType =
   | 'article_published'
   | 'article_updated'
-  | 'member_joined';
+  | 'member_joined'
+  | 'learning_renewal';
 
 export interface Notification {
   id:         string;
