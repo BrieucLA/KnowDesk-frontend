@@ -27,7 +27,7 @@ interface SideNavProps {
 
 const NAV_ITEMS: NavItem[] = [
   { id: 'dashboard', label: 'Accueil',   href: '/',           icon: <HomeIcon /> },
-  { id: 'knowledge', label: 'Base',      href: '/knowledge',  icon: <BookIcon /> },
+  { id: 'knowledge', label: 'Articles',  href: '/knowledge',  icon: <BookIcon /> },
   { id: 'faqs',      label: 'FAQs',      href: '/faqs',       icon: <FaqIcon /> },
   { id: 'trees',     label: 'Processus', href: '/trees',      icon: <TreeIcon /> },
   { id: 'team',      label: 'Équipe',    href: '/team',       icon: <TeamIcon />,  adminOnly: true },

@@ -408,8 +408,8 @@ export function KnowledgePage({ onOpenArticle, onNewArticle }: KnowledgePageProp
   return (
     <div className="knowledge-page-wrap">
       <PageHeader
-        title="Base de connaissance"
-        subtitle="Les articles de votre organisation. Processus dans l'onglet dédié, FAQs accessibles via la recherche."
+        title="Articles"
+        subtitle="Articles de référence pour vos équipes."
         actions={isAdmin && (
           <>
             <Button variant="ghost" size="md" onClick={() => setShowImportModal(true)}>
@@ -1010,11 +1010,11 @@ function KnowledgeListView(props: KnowledgeListViewProps) {
   const hasActiveFilters = !!searchQuery || activeTags.length > 0 || !!selectedCatId || filter !== 'all';
   const emptyState = (
     <EmptyState
-      title={hasActiveFilters ? 'Aucun article ne correspond' : 'Aucun article encore'}
+      title={hasActiveFilters ? 'Aucun article ne correspond' : 'Aucun article pour l\'instant'}
       description={hasActiveFilters
         ? 'Affinez votre recherche ou retirez les filtres.'
         : (isAdmin ? 'Créez votre premier article pour démarrer.' : 'Votre équipe prépare le contenu.')}
-      ctaLabel={isAdmin && !hasActiveFilters ? '+ Créer un article' : undefined}
+      ctaLabel={isAdmin && !hasActiveFilters ? '+ Nouvel article' : undefined}
       onCta={isAdmin && !hasActiveFilters ? onNewArticle : undefined}
     />
   );
@@ -1039,8 +1039,8 @@ function KnowledgeListView(props: KnowledgeListViewProps) {
         />
       )}
       <PageHeader
-        title="Base de connaissance"
-        subtitle="Les articles de votre organisation. Processus dans l'onglet dédié, FAQs accessibles via la recherche."
+        title="Articles"
+        subtitle="Articles de référence pour vos équipes."
         actions={isAdmin && (
           <>
             <Button variant="ghost" size="md" onClick={onOpenImport}>Importer</Button>

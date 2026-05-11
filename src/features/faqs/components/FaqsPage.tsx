@@ -214,7 +214,7 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
       <div className="faqs-page">
         <PageHeader
           title="FAQs"
-          subtitle="Centralisez les questions fréquentes pour des réponses rapides."
+          subtitle="Questions fréquentes et leurs réponses prêtes à copier."
           actions={canEdit && (
             <Button variant="primary" size="md" onClick={onNewFaq}>
               + Nouvelle FAQ

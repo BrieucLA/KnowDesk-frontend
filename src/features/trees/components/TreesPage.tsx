@@ -129,16 +129,17 @@ export function TreesPage({ onOpenTree, onEditTree, onPreviewTree }: TreesPagePr
     [categories, trees],
   );
 
+  const hasActiveFilters = !!search || !!categoryId || tab !== 'all';
   const emptyState = (
     <EmptyState
-      title={search || categoryId || tab !== 'all' ? 'Aucun processus ne correspond' : 'Aucun processus guidé'}
+      title={hasActiveFilters ? 'Aucun processus ne correspond' : 'Aucun processus pour l\'instant'}
       description={
-        search || categoryId || tab !== 'all'
+        hasActiveFilters
           ? 'Affinez votre recherche ou retirez les filtres.'
-          : 'Créez votre premier arbre de décision pour guider vos conseillers.'
+          : 'Créez votre premier processus pour guider vos conseillers.'
       }
-      ctaLabel={isAdmin && !search && !categoryId && tab === 'all' ? '+ Nouveau processus' : undefined}
-      onCta={isAdmin && !search && !categoryId && tab === 'all' ? () => setShowCreate(true) : undefined}
+      ctaLabel={isAdmin && !hasActiveFilters ? '+ Nouveau processus' : undefined}
+      onCta={isAdmin && !hasActiveFilters ? () => setShowCreate(true) : undefined}
     />
   );
 
@@ -158,7 +159,7 @@ export function TreesPage({ onOpenTree, onEditTree, onPreviewTree }: TreesPagePr
       <div className="trees-page">
         <PageHeader
           title="Processus guidés"
-          subtitle="Arbres de décision pour guider vos conseillers."
+          subtitle="Arbres de décision pour guider vos conseillers étape par étape."
           actions={isAdmin && (
             <Button variant="primary" size="md" onClick={() => setShowCreate(true)}>
               + Nouveau processus
