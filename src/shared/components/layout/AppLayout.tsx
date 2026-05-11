@@ -14,7 +14,7 @@ interface AppLayoutProps {
 export function AppLayout({
   children, pageTitle, activeRoute = 'dashboard', onNavigate, onHelp, searchSlot,
 }: AppLayoutProps) {
-  const clearSession  = useAuthStore(s => s.clearSession);
+  const logout        = useAuthStore(s => s.logout);
   const impersonating = useAuthStore(s => s.impersonating);
 
   const handleNavigate = (route: NavRoute) => {
@@ -47,7 +47,7 @@ export function AppLayout({
             <button
               type="button"
               className="topbar__logout"
-              onClick={clearSession}
+              onClick={() => { void logout(); }}
               aria-label="Se déconnecter"
             >
               Déconnexion

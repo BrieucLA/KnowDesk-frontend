@@ -167,8 +167,8 @@ const initials = (() => {
 }
 
 function UserAvatar() {
-  const user         = useAuthStore(s => s.session?.user);
-  const clearSession = useAuthStore(s => s.clearSession);
+  const user   = useAuthStore(s => s.session?.user);
+  const logout = useAuthStore(s => s.logout);
 
   if (!user) return null;
 
@@ -179,7 +179,7 @@ function UserAvatar() {
   return (
     <button
       className="sidenav__avatar"
-      onClick={clearSession}
+      onClick={() => { void logout(); }}
       title={`${user.email} — Se déconnecter`}
       aria-label="Se déconnecter"
     >

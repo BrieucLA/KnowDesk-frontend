@@ -10,6 +10,8 @@ interface AuthState {
   impersonating:  { orgName: string; saToken: string } | null;
   setSession:        (session: AuthSession) => void;
   clearSession:      () => void;
+  /** Vraie déconnexion : POST /auth/logout (clear cookies serveur) puis clearSession. */
+  logout:            () => Promise<void>;
   setOnboardingDone: () => void;
   resetOnboarding:   () => Promise<void>;
   setImpersonating:  (data: { orgName: string; saToken: string } | null) => void;
@@ -30,6 +32,21 @@ export const useAuthStore = create<AuthState>()(
       }),
 
       clearSession: () => set({ session: null, isLoaded: true, onboardingDone: false, impersonating: null }),
+
+      logout: async () => {
+        // POST /auth/logout pour invalider les cookies HTTP-only (access_token
+        // + refresh_token) côté serveur. Sans ce call, le cookie reste valide
+        // et un simple F5 / une visite sur /accept-invitation rehydratent la
+        // session via /auth/me — l'utilisateur se retrouve « reconnecté ».
+        // On tolère les erreurs réseau : on coupe la session locale dans tous
+        // les cas (TTL backend du cookie expirera quoi qu'il arrive).
+        try {
+          await apiClient.post('/auth/logout', {});
+        } catch (err) {
+          console.warn('[authStore] /auth/logout failed:', (err as Error)?.message ?? err);
+        }
+        set({ session: null, isLoaded: true, onboardingDone: false, impersonating: null });
+      },
 
       setOnboardingDone: () => {
         set({ onboardingDone: true });

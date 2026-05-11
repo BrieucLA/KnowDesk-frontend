@@ -7,7 +7,7 @@ interface TopBarProps {
 
 export function TopBar({ title }: TopBarProps) {
   const searchRef  = useRef<HTMLInputElement>(null);
-  const clearSession = useAuthStore(s => s.clearSession);
+  const logout = useAuthStore(s => s.logout);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -44,7 +44,7 @@ export function TopBar({ title }: TopBarProps) {
         <button
           type="button"
           className="topbar__logout"
-          onClick={clearSession}
+          onClick={() => { void logout(); }}
           aria-label="Se déconnecter"
         >
           Déconnexion

@@ -285,8 +285,11 @@ if (isAcceptInvitation && invitationToken) {
   return (
     <AcceptInvitationPage
       token={invitationToken}
-      onSuccess={() => {
-        // Nettoie l'URL et redirige vers le login
+      onSuccess={async () => {
+        // Invalide tout cookie auth résiduel (cas typique : admin invité un
+        // collègue, ouvre lui-même le lien en étant encore connecté). Sans ce
+        // logout, le reload rebascule sur l'ancienne session via /auth/me.
+        await useAuthStore.getState().logout();
         window.history.replaceState({}, '', '/');
         window.location.reload();
       }}
