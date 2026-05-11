@@ -106,6 +106,18 @@ export function useMembers() {
     }
   }, []);
 
+  const reactivate = useCallback(async (id: string) => {
+    dispatch({ type: 'MUTATING', id });
+    try {
+      await apiClient.post(`/members/${id}/reactivate`, {});
+      dispatch({ type: 'UPDATE', id, patch: { status: 'active' } });
+      toast.success('Membre réactivé.');
+    } catch (err) {
+      dispatch({ type: 'MUTATING', id: null });
+      throw err;
+    }
+  }, []);
+
   const resend = useCallback(async (id: string) => {
     dispatch({ type: 'MUTATING', id });
     // En production : appel API pour renvoyer l'email
@@ -113,5 +125,5 @@ export function useMembers() {
     dispatch({ type: 'UPDATE', id, patch: { invitedAt: new Date().toISOString() } });
   }, []);
 
-  return { ...state, invite, changeRole, disable, resend };
+  return { ...state, invite, changeRole, disable, reactivate, resend };
 }

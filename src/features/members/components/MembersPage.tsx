@@ -31,7 +31,7 @@ export function MembersPage() {
   const plan         = session?.organization.plan ?? 'free';
   const currentUserId = session?.user.id ?? '';
 
-  const { members, loading, error, mutating, invite, changeRole, disable, resend } = useMembers();
+  const { members, loading, error, mutating, invite, changeRole, disable, reactivate, resend } = useMembers();
 
   const [filter,      setFilter]      = useState<FilterTab>('all');
   const [showInvite,  setShowInvite]  = useState(false);
@@ -213,6 +213,7 @@ export function MembersPage() {
                   currentUserId={currentUserId}
                   onChangeRole={changeRole}
                   onDisable={disable}
+                  onReactivate={reactivate}
                   onResend={resend}
                 />
               ))}

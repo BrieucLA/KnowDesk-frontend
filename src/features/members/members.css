@@ -114,6 +114,8 @@
 .member-action--resend:hover { border-color: var(--brand-300); background: var(--brand-50); }
 .member-action--danger { color: var(--color-danger); border-color: var(--color-danger-border); }
 .member-action--danger:hover { background: var(--color-danger-bg); }
+.member-action--reactivate { color: #0a7d3a; border-color: #b7e0c5; }
+.member-action--reactivate:hover { background: #ecfdf5; border-color: #0a7d3a; }
 
 /* Skeleton rows */
 .member-sk-avatar  { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; }

@@ -8,9 +8,10 @@ interface MemberRowProps {
   member:     Member;
   isMutating: boolean;
   currentUserId: string;
-  onChangeRole: (id: string, role: UserRole) => void;
-  onDisable:    (id: string) => void;
-  onResend:     (id: string) => void;
+  onChangeRole:  (id: string, role: UserRole) => void;
+  onDisable:     (id: string) => void;
+  onReactivate:  (id: string) => void;
+  onResend:      (id: string) => void;
 }
 
 const STATUS_CONFIG = {
@@ -28,12 +29,21 @@ const ROLE_LABELS: Record<UserRole, string> = {
 
 export function MemberRow({
   member, isMutating, currentUserId,
-  onChangeRole, onDisable, onResend,
+  onChangeRole, onDisable, onReactivate, onResend,
 }: MemberRowProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const isCurrentUser = member.id === currentUserId;
   const statusCfg     = STATUS_CONFIG[member.status];
-  const initials      = `${member.firstName[0]}${member.lastName[0]}`.toUpperCase();
+  // Initiales défensives : on accepte first/last absents (membre invité qui
+  // n'a pas encore complété son profil) → on tombe sur l'email. Sinon on
+  // pouvait afficher « BUNDEFINED » quand lastName était la string littérale
+  // « undefined » (cas constaté en prod).
+  const safeFirst = typeof member.firstName === 'string' && member.firstName.trim() && member.firstName !== 'undefined'
+    ? member.firstName.trim() : '';
+  const safeLast = typeof member.lastName === 'string' && member.lastName.trim() && member.lastName !== 'undefined'
+    ? member.lastName.trim() : '';
+  const initials = (safeFirst[0] ?? '') + (safeLast[0] ?? '');
+  const displayInitials = (initials || member.email[0] || '?').toUpperCase();
 
   const handleRoleChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     onChangeRole(member.id, e.target.value as UserRole);
@@ -123,6 +133,16 @@ export function MemberRow({
                 aria-label={`Désactiver le compte de ${member.firstName} ${member.lastName}`}
               >
                 Désactiver
+              </button>
+            )}
+            {member.status === 'disabled' && !isCurrentUser && (
+              <button
+                type="button"
+                className="member-action member-action--reactivate"
+                onClick={() => onReactivate(member.id)}
+                aria-label={`Réactiver le compte de ${member.firstName} ${member.lastName}`}
+              >
+                Réactiver
               </button>
             )}
           </>

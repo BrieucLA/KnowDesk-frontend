@@ -21,6 +21,7 @@ const ACTION_LABEL: Record<AuditAction, string> = {
   'member.invited':           'Membre — invité',
   'member.role_changed':      'Membre — rôle modifié',
   'member.disabled':          'Membre — désactivé',
+  'member.reactivated':       'Membre — réactivé',
   'org.settings_updated':     'Org — paramètres modifiés',
   'org.general_updated':      'Org — informations modifiées',
   'org.chat_settings_updated':'Org — chatbot modifié',
