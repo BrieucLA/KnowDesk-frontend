@@ -58,6 +58,10 @@
 .learning-form__row {
   display: flex; align-items: flex-end; gap: 20px; flex-wrap: wrap;
 }
+.learning-form__actions {
+  display: flex; justify-content: flex-end;
+  margin-top: 4px;
+}
 
 /* ── Sections ────────────────────────────────────────────────── */
 .learning-section {

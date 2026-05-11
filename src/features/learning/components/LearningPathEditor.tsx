@@ -217,9 +217,11 @@ export function LearningPathEditor({ pathId, onBack }: LearningPathEditorProps) 
                 </select>
               </label>
             </div>
-            <Button variant="primary" size="sm" onClick={saveHeader} loading={savingHeader}>
-              Sauvegarder
-            </Button>
+            <div className="learning-form__actions">
+              <Button variant="primary" size="sm" onClick={saveHeader} loading={savingHeader}>
+                Sauvegarder
+              </Button>
+            </div>
           </div>
         </section>
 

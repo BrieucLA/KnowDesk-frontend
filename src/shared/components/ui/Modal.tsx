@@ -44,12 +44,20 @@ export function Modal({
   const titleId  = useId();
   const modalRef = useRef<HTMLDivElement>(null);
 
+  // Stabilise onClose pour ne pas re-trigger le focus initial au moindre
+  // re-render du parent (qui passe souvent une fonction inline `() => setX(false)`).
+  const onCloseRef = useRef(onClose);
+  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
+
+  // Focus initial + restore au unmount — exécuté UNE SEULE FOIS au mount.
+  // (Auparavant les deps incluaient onClose, ce qui re-trigerrait le focus
+  // sur le premier champ à chaque keystroke dans un autre champ → bug
+  // "le curseur saute".)
   useEffect(() => {
     const previousFocus = document.activeElement as HTMLElement | null;
     const modalEl = modalRef.current;
     if (!modalEl) return;
 
-    // If nothing inside modal already focused (autoFocus), focus first focusable
     requestAnimationFrame(() => {
       if (!modalEl.contains(document.activeElement)) {
         const first = modalEl.querySelector<HTMLElement>(FOCUSABLE);
@@ -57,10 +65,20 @@ export function Modal({
       }
     });
 
+    return () => {
+      previousFocus?.focus?.();
+    };
+  }, []);
+
+  // Keyboard handler — peut se re-bind au changement de closeOnEscape.
+  useEffect(() => {
+    const modalEl = modalRef.current;
+    if (!modalEl) return;
+
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && closeOnEscape) {
         e.stopPropagation();
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (e.key !== 'Tab') return;
@@ -82,11 +100,8 @@ export function Modal({
     };
 
     document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      previousFocus?.focus?.();
-    };
-  }, [onClose, closeOnEscape]);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [closeOnEscape]);
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (closeOnBackdrop && e.target === e.currentTarget) onClose();
