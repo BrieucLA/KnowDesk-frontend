@@ -10,6 +10,9 @@ export type AuditAction =
   | 'faq.created' | 'faq.updated' | 'faq.deleted'
   | 'tree.created' | 'tree.deleted' | 'tree.archived'
   | 'category.created' | 'category.deleted' | 'category.moved'
+  | 'learning.path.created' | 'learning.path.updated' | 'learning.path.deleted'
+  | 'learning.module.created' | 'learning.module.updated' | 'learning.module.deleted'
+  | 'learning.assigned' | 'learning.unassigned'
   | 'superadmin.impersonate.start' | 'superadmin.impersonate.stop';
 
 export interface AuditLogItem {

@@ -66,3 +66,19 @@
   max-height: 300px; overflow: auto; margin: 0;
   white-space: pre-wrap; word-break: break-all;
 }
+.audit-detail__tech-toggle {
+  background: none; border: none; padding: 0;
+  font: inherit; color: var(--neutral-500);
+  font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.04em; font-weight: 500;
+  cursor: pointer;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.audit-detail__tech-toggle:hover { color: var(--neutral-700); }
+.audit-detail__tech { margin: 6px 0 0; padding-left: 12px; border-left: 2px solid var(--neutral-100); }
+.audit-detail__tech > div { display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; }
+.audit-detail__tech dt {
+  font-size: 11px; color: var(--neutral-500); text-transform: uppercase;
+  letter-spacing: 0.04em; font-weight: 500;
+}
+.audit-detail__tech dd { margin: 0; font-size: 13px; color: var(--neutral-800); word-break: break-word; }

@@ -42,6 +42,14 @@ const ACTION_LABEL: Record<AuditAction, string> = {
   'category.created':         'Catégorie — créée',
   'category.deleted':         'Catégorie — supprimée',
   'category.moved':           'Catégorie — modifiée',
+  'learning.path.created':    'Parcours de formation — créé',
+  'learning.path.updated':    'Parcours de formation — modifié',
+  'learning.path.deleted':    'Parcours de formation — supprimé',
+  'learning.module.created':  'Module de formation — créé',
+  'learning.module.updated':  'Module de formation — modifié',
+  'learning.module.deleted':  'Module de formation — supprimé',
+  'learning.assigned':        'Formation — assignée à un conseiller',
+  'learning.unassigned':      'Formation — désaffectée d\'un conseiller',
   'superadmin.impersonate.start': 'Superadmin — impersonation',
   'superadmin.impersonate.stop':  'Superadmin — fin impersonation',
 };
@@ -239,18 +247,124 @@ export function AuditPage({ embed = false }: AuditPageProps = {}) {
               </div>
             )}
             {detail.metadata && Object.keys(detail.metadata).length > 0 && (
-              <div>
-                <dt>Métadonnées</dt>
-                <dd>
-                  <pre className="audit-detail__json">
-                    {JSON.stringify(detail.metadata, null, 2)}
-                  </pre>
-                </dd>
-              </div>
+              <MetadataView meta={detail.metadata as Record<string, unknown>} />
             )}
           </dl>
         </Modal>
       )}
     </section>
   );
+}
+
+// ── Vue lisible du metadata d'un audit log ────────────────────────
+// Remplace le JSON.stringify brut par une liste clés-valeurs avec labels
+// FR. Les champs techniques (IP, userAgent) sont regroupés derrière un
+// disclosure, et l'on garde un fallback « JSON brut » pour debug.
+
+const META_LABELS: Record<string, string> = {
+  to:                   'Nouvelle valeur',
+  from:                 'Ancienne valeur',
+  field:                'Champ modifié',
+  fields:               'Champs modifiés',
+  email:                'Email',
+  role:                 'Rôle',
+  name:                 'Nom',
+  title:                'Titre',
+  visibility:           'Visibilité',
+  status:               'Statut',
+  reason:               'Motif',
+  count:                'Nombre',
+  impersonatedBy:       'Impersonifié par (ID)',
+  impersonatedByEmail:  'Impersonifié par',
+};
+
+const META_TECHNICAL_KEYS = new Set(['ip', 'userAgent', 'orgId', 'sessionId']);
+
+function MetadataView({ meta }: { meta: Record<string, unknown> }) {
+  const [showTech, setShowTech] = React.useState(false);
+  const [showRaw,  setShowRaw]  = React.useState(false);
+
+  const entries = Object.entries(meta);
+  const business  = entries.filter(([k]) => !META_TECHNICAL_KEYS.has(k));
+  const technical = entries.filter(([k]) =>  META_TECHNICAL_KEYS.has(k));
+
+  return (
+    <>
+      {business.length > 0 && (
+        <>
+          {business.map(([key, value]) => (
+            <div key={key}>
+              <dt>{META_LABELS[key] ?? key}</dt>
+              <dd>{renderMetaValue(value)}</dd>
+            </div>
+          ))}
+        </>
+      )}
+
+      {technical.length > 0 && (
+        <div>
+          <dt>
+            <button
+              type="button"
+              className="audit-detail__tech-toggle"
+              onClick={() => setShowTech(s => !s)}
+              aria-expanded={showTech}
+            >
+              {showTech ? '▾' : '▸'} Détails techniques ({technical.length})
+            </button>
+          </dt>
+          {showTech && (
+            <dd>
+              <dl className="audit-detail__tech">
+                {technical.map(([key, value]) => (
+                  <div key={key}>
+                    <dt>{META_LABELS[key] ?? key}</dt>
+                    <dd>{renderMetaValue(value)}</dd>
+                  </div>
+                ))}
+              </dl>
+            </dd>
+          )}
+        </div>
+      )}
+
+      <div>
+        <dt>
+          <button
+            type="button"
+            className="audit-detail__tech-toggle"
+            onClick={() => setShowRaw(s => !s)}
+            aria-expanded={showRaw}
+          >
+            {showRaw ? '▾' : '▸'} JSON brut
+          </button>
+        </dt>
+        {showRaw && (
+          <dd>
+            <pre className="audit-detail__json">
+              {JSON.stringify(meta, null, 2)}
+            </pre>
+          </dd>
+        )}
+      </div>
+    </>
+  );
+}
+
+function renderMetaValue(v: unknown): React.ReactNode {
+  if (v === null || v === undefined) return <em>—</em>;
+  if (typeof v === 'string') {
+    // Tronque les longues chaînes (userAgent etc.) avec preview + title
+    if (v.length > 120) {
+      return <span title={v}>{v.slice(0, 117)}…</span>;
+    }
+    return v;
+  }
+  if (typeof v === 'boolean') return v ? 'oui' : 'non';
+  if (typeof v === 'number')  return String(v);
+  if (Array.isArray(v)) {
+    return v.length === 0 ? <em>(vide)</em> : v.map(x => String(x)).join(', ');
+  }
+  // Objet imbriqué : fallback JSON compact
+  return <code>{JSON.stringify(v)}</code>;
 }
