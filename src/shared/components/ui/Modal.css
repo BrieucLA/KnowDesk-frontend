@@ -13,6 +13,11 @@
 
 .modal {
   width: 100%; max-width: 440px;
+  /* Limite la hauteur pour que les modales avec beaucoup de contenu
+     (ex: éditeur de module Learning avec un quiz de 5 questions)
+     restent scrollables au lieu de déborder en dessous de l'écran. */
+  max-height: calc(100vh - 48px);
+  display: flex; flex-direction: column;
   background: var(--neutral-0);
   border: 1px solid var(--neutral-200);
   border-radius: var(--radius-xl);
@@ -26,6 +31,7 @@
 .modal__header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 20px 24px 0; margin-bottom: 20px;
+  flex-shrink: 0;
 }
 .modal__title { font-size: 18px; font-weight: 500; letter-spacing: -0.02em; }
 .modal__close {
@@ -41,11 +47,24 @@
 .modal__body {
   display: flex; flex-direction: column; gap: 16px;
   padding: 0 24px 24px;
+  /* Scroll interne quand le contenu dépasse la hauteur max de la modale.
+     Le footer (`.modal__actions`) reste à la fin du body et redevient
+     visible quand l'utilisateur scrolle. */
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
 }
 .modal__actions {
   display: flex; justify-content: flex-end; gap: 8px;
   padding-top: 8px; margin-top: 4px;
   border-top: 1px solid var(--neutral-100);
+  /* Sticky bottom : actions toujours visibles même si on scrolle au
+     milieu du body. Plus pratique pour les longues modales (quiz). */
+  position: sticky;
+  bottom: -24px;
+  background: var(--neutral-0);
+  padding-bottom: 16px;
+  margin-bottom: -8px;
 }
 
 /* ConfirmDialog — variante étroite de Modal. */
