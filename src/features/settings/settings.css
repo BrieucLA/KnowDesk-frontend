@@ -350,6 +350,15 @@
   display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
   min-height: 28px;
 }
+.synonym-chip {
+  display: inline-flex; align-items: center;
+  padding: 2px 8px;
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  font-size: 13px; color: var(--neutral-800);
+  line-height: 1.4;
+}
 .synonym-item__edit {
   display: flex; flex-direction: column; gap: 8px;
 }

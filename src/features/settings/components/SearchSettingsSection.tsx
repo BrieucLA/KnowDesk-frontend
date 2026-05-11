@@ -100,7 +100,7 @@ function SynonymItem({
         </div>
       ) : (
         <>
-          <div className="synonym-item__list">
+          <div className="synonym-item__chips">
             {item.synonyms.map(s => <span key={s} className="synonym-chip">{s}</span>)}
           </div>
           <div className="synonym-item__actions">
