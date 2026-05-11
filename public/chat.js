@@ -170,9 +170,15 @@
       + '.msg { display: flex; gap: 6px; max-width: 85%; }'
       + '.msg--user { align-self: flex-end; }'
       + '.msg--bot { align-self: flex-start; }'
-      + '.msg__bubble { padding: 9px 12px; border-radius: 12px; font-size: 13.5px; line-height: 1.45; word-wrap: break-word; white-space: pre-wrap; }'
-      + '.msg--user .msg__bubble { background: var(--kd-primary, #5B6CFF); color: white; border-bottom-right-radius: 3px; }'
+      + '.msg__bubble { padding: 9px 12px; border-radius: 12px; font-size: 13.5px; line-height: 1.45; word-wrap: break-word; }'
+      + '.msg--user .msg__bubble { background: var(--kd-primary, #5B6CFF); color: white; border-bottom-right-radius: 3px; white-space: pre-wrap; }'
       + '.msg--bot .msg__bubble { background: white; color: #1a1a1a; border-bottom-left-radius: 3px; box-shadow: 0 1px 2px rgba(0,0,0,.06); }'
+      + '.msg--bot .msg__bubble strong { font-weight: 600; }'
+      + '.msg--bot .msg__bubble em { font-style: italic; }'
+      + '.msg--bot .msg__bubble code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.9em; background: #f1f3f5; padding: 1px 4px; border-radius: 3px; }'
+      + '.msg--bot .msg__bubble ul, .msg--bot .msg__bubble ol { margin: 6px 0; padding-left: 22px; }'
+      + '.msg--bot .msg__bubble li { margin: 2px 0; }'
+      + '.msg--bot .msg__bubble li::marker { color: #9aa0a6; }'
       + '.msg__cite { font-size: 9px; vertical-align: super; color: var(--kd-primary, #5B6CFF); font-weight: 600; }'
       + '.cursor { display: inline-block; width: 1.5px; height: 12px; background: currentColor; margin-left: 2px; vertical-align: middle; animation: kd-blink 0.9s steps(2) infinite; }'
       + '@keyframes kd-blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }'
@@ -247,7 +253,82 @@
   // Strip les éventuelles citations [n] que Mistral pourrait laisser malgré
   // l'instruction du prompt — on les retire à l'affichage pour rester propre.
   function stripCitations(text) {
-    return String(text).replace(/\s*\[\d+\]\s*/g, ' ').replace(/\s+/g, ' ').trim();
+    // On conserve les newlines (utiles pour le rendu markdown des listes /
+    // paragraphes), on ne collapse que les espaces horizontaux multiples.
+    return String(text).replace(/\s*\[\d+\]\s*/g, ' ').replace(/[ \t]+/g, ' ').trim();
+  }
+
+  // Escape HTML pour usage dans innerHTML. À appeler AVANT toute substitution
+  // markdown, qui réintroduit ensuite ses propres balises contrôlées.
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  // Mini-renderer markdown : couvre les patterns que Mistral émet en
+  // pratique sur le chat (**gras**, *italique*, listes - / 1. , code `inline`,
+  // retours ligne). Pas un parseur complet — juste assez pour un rendu propre
+  // sans dépendance externe. Sécurité : on échappe le HTML d'abord, puis on
+  // réintroduit nos propres balises whitelistées.
+  function renderMarkdown(raw) {
+    var s = escapeHtml(raw);
+
+    // Code inline `xxx`
+    s = s.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+
+    // Gras **xxx** (à faire AVANT italique pour ne pas le casser)
+    s = s.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+
+    // Italique *xxx* — uniquement si l'astérisque est entouré de mots
+    s = s.replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s.,;:!?)]|$)/g, '$1<em>$2</em>');
+
+    // Listes : on traite ligne par ligne pour grouper les items contigus
+    var lines = s.split('\n');
+    var out = [];
+    var listType = null;     // 'ul' | 'ol' | null
+    var listBuf  = [];
+
+    function flushList() {
+      if (listBuf.length > 0) {
+        out.push('<' + listType + '>' + listBuf.join('') + '</' + listType + '>');
+        listBuf  = [];
+        listType = null;
+      }
+    }
+
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+      var mUl = /^\s*[-•]\s+(.+)$/.exec(line);
+      var mOl = /^\s*\d+[.)]\s+(.+)$/.exec(line);
+      if (mUl) {
+        if (listType && listType !== 'ul') flushList();
+        listType = 'ul';
+        listBuf.push('<li>' + mUl[1] + '</li>');
+      } else if (mOl) {
+        if (listType && listType !== 'ol') flushList();
+        listType = 'ol';
+        listBuf.push('<li>' + mOl[1] + '</li>');
+      } else {
+        flushList();
+        out.push(line);
+      }
+    }
+    flushList();
+
+    s = out.join('\n');
+
+    // Paragraphes : double newline → break visuel ; simple newline → <br>.
+    // On ne wrap PAS en <p> pour rester léger dans la bulle.
+    s = s.replace(/\n{2,}/g, '<br><br>').replace(/\n/g, '<br>');
+
+    // Cleanup : <br> juste avant/après une liste = rendu doublé
+    s = s.replace(/<br>(\s*<(ul|ol)>)/g, '$1').replace(/(<\/(ul|ol)>\s*)<br>/g, '$1');
+
+    return s;
   }
 
   function renderMessages(root) {
@@ -260,7 +341,14 @@
       msg.className = 'msg msg--' + (turn.role === 'visitor' || turn.role === 'user' ? 'user' : 'bot');
       var bubble = document.createElement('div');
       bubble.className = 'msg__bubble';
-      bubble.textContent = stripCitations(turn.content);
+      // Bot : rendu markdown (gras, listes, retours ligne) ; visitor : texte
+      // brut pour ne pas exposer d'injection HTML via le message saisi.
+      var isBot = !(turn.role === 'visitor' || turn.role === 'user');
+      if (isBot) {
+        bubble.innerHTML = renderMarkdown(stripCitations(turn.content));
+      } else {
+        bubble.textContent = stripCitations(turn.content);
+      }
       msg.appendChild(bubble);
       messagesEl.appendChild(msg);
 
@@ -329,10 +417,11 @@
       messagesEl.appendChild(msg);
       lastMsg = bubble;
     }
-    // En streaming, on garde le texte tel quel + cursor ; le strip définitif
-    // se fait au render final via renderMessages.
-    lastMsg.innerHTML = '';
-    lastMsg.appendChild(document.createTextNode(stripCitations(partialText)));
+    // En streaming, on rend déjà le markdown au fil de l'eau pour que le
+    // visiteur voit le gras / les listes se former plutôt qu'un mur de
+    // texte avec des ** flottants. Le re-render final via renderMessages
+    // garde la même sortie.
+    lastMsg.innerHTML = renderMarkdown(stripCitations(partialText));
     var cur = document.createElement('span');
     cur.className = 'cursor';
     lastMsg.appendChild(cur);
