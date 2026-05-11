@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { LoginPage }        from './features/auth/components/LoginPage';
 import { VerifyEmailPage }  from './features/auth/components/VerifyEmailPage';
+import { PrivacyPage }      from './features/privacy/PrivacyPage';
 import { EmailVerificationBanner } from './features/auth/components/EmailVerificationBanner';
 import { OnboardingPage }   from './features/onboarding/components/OnboardingPage';
 import { DashboardPage }    from './features/dashboard/components/DashboardPage';
@@ -232,6 +233,11 @@ return <ApiDocsApp />;
 // Confirmation d'email — accessible sans être connecté.
 if (window.location.pathname === '/verify-email') {
   return <VerifyEmailPage />;
+}
+
+// Politique de confidentialité — page publique, requise par Chrome Web Store.
+if (window.location.pathname === '/privacy') {
+  return <PrivacyPage />;
 }
 
 // Page d'acceptation d'invitation — accessible sans être connecté
