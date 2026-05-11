@@ -1,0 +1,41 @@
+.tags-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  row-gap: 6px;
+}
+.tags-filter__label {
+  color: var(--neutral-600);
+  font-weight: 500;
+  margin-right: 4px;
+  font-size: 12px;
+}
+.tags-filter__toggle {
+  background: transparent;
+  border: 1px dashed var(--neutral-300);
+  color: var(--neutral-600);
+  border-radius: var(--radius-full, 999px);
+  font-size: 12px;
+  padding: 2px 10px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all var(--t-fast);
+}
+.tags-filter__toggle:hover {
+  border-color: var(--brand-400);
+  color: var(--brand-700);
+}
+.tags-filter__clear {
+  background: transparent;
+  border: none;
+  color: var(--brand-600);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 6px;
+  text-decoration: underline;
+  font-family: inherit;
+}
+.tags-filter__clear:hover {
+  color: var(--brand-700);
+}

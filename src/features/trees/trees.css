@@ -281,3 +281,10 @@
 }
 .tree-resolution__restart:hover { color: var(--neutral-600); }
 
+
+/* TreesPage — toolbar additions */
+.trees-page__toolbar-right {
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.trees-page__title { font-weight: 500; color: var(--neutral-900); }
+.trees-page__muted { color: var(--neutral-400); }

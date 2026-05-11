@@ -1,0 +1,107 @@
+.data-table {
+  width: 100%;
+  background: var(--neutral-0, #fff);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.data-table__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-family: var(--font-ui);
+}
+
+/* Header */
+.data-table__th {
+  background: var(--neutral-50);
+  color: var(--neutral-600);
+  font-weight: 500;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--neutral-200);
+  white-space: nowrap;
+}
+.data-table__th--left   { text-align: left; }
+.data-table__th--center { text-align: center; }
+.data-table__th--right  { text-align: right; }
+.data-table__th--actions {
+  width: 1px;
+  padding-right: 14px;
+}
+
+.data-table__sort {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.data-table__sort:hover {
+  color: var(--brand-700);
+}
+.data-table__sort:focus-visible {
+  outline: 2px solid var(--brand-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+.data-table__sort-icon {
+  font-size: 11px;
+  color: var(--brand-600);
+}
+
+/* Body */
+.data-table__row {
+  border-bottom: 1px solid var(--neutral-100);
+  transition: background var(--t-fast);
+}
+.data-table__row:last-child {
+  border-bottom: none;
+}
+.data-table__row--clickable {
+  cursor: pointer;
+}
+.data-table__row--clickable:hover {
+  background: var(--neutral-50);
+}
+.data-table__row--clickable:focus-within {
+  background: var(--brand-50);
+}
+
+.data-table__td {
+  padding: 12px 14px;
+  color: var(--neutral-900);
+  vertical-align: middle;
+}
+.data-table__td--left   { text-align: left; }
+.data-table__td--center { text-align: center; }
+.data-table__td--right  { text-align: right; }
+.data-table__td--actions {
+  width: 1px;
+  white-space: nowrap;
+  padding-right: 8px;
+}
+.data-table__td--actions > * + * {
+  margin-left: 2px;
+}
+
+/* Skeleton */
+.data-table__skel {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.data-table__skel-row {
+  height: 36px;
+  border-radius: var(--radius-sm);
+}

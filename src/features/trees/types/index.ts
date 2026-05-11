@@ -41,6 +41,7 @@ export interface QuestionTreeSummary {
   title:         string;
   description:   string | null;
   status:        TreeStatus;
+  category_id:   string | null;
   category_name: string | null;
   updated_at:    string;
 }
