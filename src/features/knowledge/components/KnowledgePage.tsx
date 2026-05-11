@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CategoryTree, type CategoryActions } from './CategoryTree';
+import { FilterTabs }     from '../../../shared/components/ui/FilterTabs';
+import { TagsFilter }     from '../../../shared/components/ui/TagsFilter';
+import { CategoryFilter, aggregateCountsWithDescendants } from '../../../shared/components/ui/CategoryFilter';
+import { DataTable, type SortDir } from '../../../shared/components/ui/DataTable';
+import { ListViewToggle, useListViewPref } from '../../../shared/components/ui/ListViewToggle';
+import { ActionMenu }     from '../../../shared/components/ui/ActionMenu';
+import { PageToolbar, PageToolbarSearch } from '../../../shared/components/layout/PageToolbar';
 import '../knowledge.css';
 import { EmptyState }       from '../../../shared/components/ui/EmptyState';
 import { StatusBadge }      from '../../../shared/components/ui/StatusBadge';
@@ -337,6 +344,53 @@ export function KnowledgePage({ onOpenArticle, onNewArticle }: KnowledgePageProp
     }
   }, [newCatName, newCatParentId, selectedCatId, toast, setExpandedIdsArr]);
 
+
+  // Toggle vue : par défaut sans sidebar (nouvelle UI cohérente avec /faqs
+  // et /trees), `?sidebar=true` réactive l'arbo (mode legacy / power user).
+  const sidebarMode = new URLSearchParams(location.search).get('sidebar') === 'true';
+  if (!sidebarMode) {
+    return (
+      <KnowledgeListView
+        isAdmin={isAdmin}
+        articles={articles}
+        categories={categories}
+        filter={filter}
+        setFilter={setFilter}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        activeTags={activeTags}
+        setActiveTags={setActiveTags}
+        selectedCatId={selectedCatId}
+        setSelectedCatId={setSelectedCatId}
+        loadingArticles={loadingArticles}
+        orgTags={orgTags}
+        onOpenArticle={onOpenArticle}
+        onNewArticle={onNewArticle}
+        onOpenImport={() => setShowImportModal(true)}
+        importModal={showImportModal ? (
+          <ImportModal
+            onClose={() => setShowImportModal(false)}
+            onCompleted={() => {
+              setShowImportModal(false);
+              setLoadingArticles(true);
+              const params = new URLSearchParams();
+              params.set('perPage', '200');
+              params.set('sort', sort);
+              apiClient.get<ArticleListItem[]>(`/articles?${params.toString()}`)
+                .then(data => setArticles(data.map((a: any) => ({
+                  id: a.id, title: a.title, status: a.status,
+                  categoryId: a.category_id, categoryName: a.category_name ?? '',
+                  version: a.version, authorName: a.author_email ?? '',
+                  updatedAt: a.updated_at, tags: Array.isArray(a.tags) ? a.tags : [],
+                  isStale: a.is_stale === true,
+                }))))
+                .finally(() => setLoadingArticles(false));
+            }}
+          />
+        ) : null}
+      />
+    );
+  }
 
   return (
     <div className="knowledge-page-wrap">
@@ -776,4 +830,288 @@ function flattenForSelect(cats: Category[], depth = 0): Array<{ id: string; inde
     if (cat.children.length > 0) out.push(...flattenForSelect(cat.children, depth + 1));
   }
   return out;
+}
+
+// ───────────────────────────────────────────────────────────────────
+// Vue alternative (default — sans sidebar)
+//
+// Rendu cohérent avec /faqs et /trees : PageToolbar (tabs statut +
+// search + cat dropdown + tags + view toggle) + DataTable ou cartes.
+// Conservée comme sous-composant local pour partager le state du
+// parent sans en faire un export public — l'arbre des fichiers reste
+// inchangé. Activable via défaut, basculable vers la sidebar via
+// `?sidebar=true`.
+// ───────────────────────────────────────────────────────────────────
+
+interface KnowledgeListViewProps {
+  isAdmin:         boolean;
+  articles:        ArticleListItem[];
+  categories:      Category[];
+  filter:          'all' | 'published' | 'draft' | 'stale';
+  setFilter:       (f: 'all' | 'published' | 'draft' | 'stale') => void;
+  searchQuery:     string;
+  setSearchQuery:  (q: string) => void;
+  activeTags:      string[];
+  setActiveTags:   (tags: string[]) => void;
+  selectedCatId:   string | null;
+  setSelectedCatId:(id: string | null) => void;
+  loadingArticles: boolean;
+  orgTags:         OrgTag[];
+  onOpenArticle:   (id: string) => void;
+  onNewArticle?:   () => void;
+  onOpenImport:    () => void;
+  importModal:     React.ReactNode;
+}
+
+type ArticleSortKey = 'title' | 'category' | 'status' | 'updated_at';
+
+function KnowledgeListView(props: KnowledgeListViewProps) {
+  const {
+    isAdmin, articles, categories, filter, setFilter, searchQuery, setSearchQuery,
+    activeTags, setActiveTags, selectedCatId, setSelectedCatId, loadingArticles,
+    orgTags, onOpenArticle, onNewArticle, onOpenImport, importModal,
+  } = props;
+
+  const [view,    setView]    = useListViewPref('kd-knowledge-view', 'table');
+  const [sortBy,  setSortBy]  = useState<ArticleSortKey>('updated_at');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+  // Compteurs onglets — sur articles raw, pas filtrés.
+  const counts = useMemo(() => ({
+    all:       articles.length,
+    published: articles.filter(a => a.status === 'published').length,
+    draft:     articles.filter(a => a.status === 'draft').length,
+    stale:     articles.filter(a => a.isStale).length,
+  }), [articles]);
+
+  // Filtre les articles selon onglet + cat + search + tags
+  const filtered = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return articles.filter(a => {
+      if (filter === 'stale')             { if (!a.isStale) return false; }
+      else if (filter !== 'all'           && a.status !== filter) return false;
+      if (selectedCatId && a.categoryId !== selectedCatId) {
+        // Inclut aussi les descendants (mêmes règles que la sidebar)
+        const desc = collectDescendantIds(categories, selectedCatId);
+        if (!desc.has(a.categoryId)) return false;
+      }
+      if (q && !a.title.toLowerCase().includes(q)) return false;
+      if (activeTags.length > 0 && !activeTags.every(t => a.tags?.includes(t))) return false;
+      return true;
+    });
+  }, [articles, filter, selectedCatId, searchQuery, activeTags, categories]);
+
+  const sorted = useMemo(() => {
+    const sign = sortDir === 'asc' ? 1 : -1;
+    return [...filtered].sort((a, b) => {
+      if (sortBy === 'title')    return sign * a.title.localeCompare(b.title, 'fr');
+      if (sortBy === 'category') return sign * (a.categoryName ?? '').localeCompare(b.categoryName ?? '', 'fr');
+      if (sortBy === 'status')   return sign * a.status.localeCompare(b.status);
+      return sign * (new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime());
+    });
+  }, [filtered, sortBy, sortDir]);
+
+  const handleSortChange = (key: string, dir: SortDir) => {
+    setSortBy(key as ArticleSortKey); setSortDir(dir);
+  };
+
+  // Counts catégorie agrégés (cat + descendants) — sur articles raw
+  const categoryCounts = useMemo(
+    () => aggregateCountsWithDescendants(
+      categories,
+      articles.map(a => ({ category_id: a.categoryId })),
+    ),
+    [categories, articles],
+  );
+
+  // Counts tags locaux : nb d'articles taggés `name` dans la liste filtrée
+  // PAR statut/cat/search (pas par activeTags pour permettre le toggle).
+  const baseForTags = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return articles.filter(a => {
+      if (filter === 'stale')   { if (!a.isStale) return false; }
+      else if (filter !== 'all' && a.status !== filter) return false;
+      if (selectedCatId && a.categoryId !== selectedCatId) {
+        const desc = collectDescendantIds(categories, selectedCatId);
+        if (!desc.has(a.categoryId)) return false;
+      }
+      if (q && !a.title.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }, [articles, filter, selectedCatId, searchQuery, categories]);
+
+  const tagCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const a of baseForTags) {
+      if (!Array.isArray(a.tags)) continue;
+      for (const t of a.tags) counts[t] = (counts[t] ?? 0) + 1;
+    }
+    return counts;
+  }, [baseForTags]);
+
+  const tagOptions = useMemo(() => orgTags
+    .map(t => ({
+      id:          t.display_name,
+      displayName: t.display_name,
+      count:       tagCounts[t.display_name] ?? 0,
+    }))
+    .filter(t => t.count > 0 || activeTags.includes(t.id)),
+    [orgTags, tagCounts, activeTags],
+  );
+
+  const renderRowActions = (a: ArticleListItem) => (
+    <ActionMenu
+      items={[
+        { label: 'Ouvrir', onClick: () => onOpenArticle(a.id) },
+      ]}
+    />
+  );
+
+  const hasActiveFilters = !!searchQuery || activeTags.length > 0 || !!selectedCatId || filter !== 'all';
+  const emptyState = (
+    <EmptyState
+      title={hasActiveFilters ? 'Aucun article ne correspond' : 'Aucun article encore'}
+      description={hasActiveFilters
+        ? 'Affinez votre recherche ou retirez les filtres.'
+        : (isAdmin ? 'Créez votre premier article pour démarrer.' : 'Votre équipe prépare le contenu.')}
+      ctaLabel={isAdmin && !hasActiveFilters ? '+ Créer un article' : undefined}
+      onCta={isAdmin && !hasActiveFilters ? onNewArticle : undefined}
+    />
+  );
+
+  return (
+    <div className="knowledge-page-wrap">
+      {importModal}
+      <PageHeader
+        title="Base de connaissance"
+        subtitle="Les articles de votre organisation. Processus dans l'onglet dédié, FAQs accessibles via la recherche."
+        actions={isAdmin && (
+          <>
+            <Button variant="ghost" size="md" onClick={onOpenImport}>Importer</Button>
+            <Button variant="primary" size="md" onClick={onNewArticle}>+ Nouvel article</Button>
+          </>
+        )}
+      />
+
+      <PageToolbar
+        left={(
+          <FilterTabs
+            options={[
+              { id: 'all',       label: 'Tous',       count: counts.all },
+              { id: 'published', label: 'Publiés',    count: counts.published },
+              { id: 'draft',     label: 'Brouillons', count: counts.draft },
+              { id: 'stale',     label: 'À réviser',  count: counts.stale },
+            ]}
+            value={filter}
+            onChange={setFilter}
+            ariaLabel="Filtrer par statut"
+          />
+        )}
+        right={(
+          <div className="knowledge-list__toolbar-right">
+            <PageToolbarSearch
+              id="knowledge-search"
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Filtrer la page…"
+              ariaLabel="Filtrer les articles"
+            />
+            <ListViewToggle value={view} onChange={setView} />
+          </div>
+        )}
+        extra={(
+          <div className="knowledge-list__filters-extra">
+            <CategoryFilter
+              categories={categories}
+              value={selectedCatId}
+              onChange={setSelectedCatId}
+              counts={categoryCounts}
+              totalCount={articles.length}
+            />
+            <TagsFilter
+              available={tagOptions}
+              active={activeTags}
+              onChange={setActiveTags}
+            />
+          </div>
+        )}
+      />
+
+      {view === 'table' ? (
+        <DataTable<ArticleListItem>
+          columns={[
+            { key: 'title',      label: 'Titre',      sortable: true,
+              render: a => (
+                <div className="knowledge-list__title-cell">
+                  <div className="knowledge-list__title">{a.title}</div>
+                  {a.tags && a.tags.length > 0 && (
+                    <div className="knowledge-list__tags">
+                      {a.tags.slice(0, 4).map(t => (
+                        <span key={t} className="chip chip--readonly chip--xs">{t}</span>
+                      ))}
+                      {a.tags.length > 4 && <span className="knowledge-list__tags-more">+{a.tags.length - 4}</span>}
+                    </div>
+                  )}
+                </div>
+              ),
+            },
+            { key: 'category',   label: 'Catégorie', sortable: true,
+              render: a => a.categoryName || <span className="knowledge-list__muted">—</span> },
+            { key: 'status',     label: 'Statut',     sortable: true,
+              render: a => (
+                <div className="knowledge-list__status-cell">
+                  <StatusBadge status={a.status} />
+                  {a.isStale && <span className="badge badge--warning" title="Non modifié depuis > 6 mois">À réviser</span>}
+                </div>
+              ),
+            },
+            { key: 'updated_at', label: 'Mis à jour', sortable: true, width: '140px',
+              render: a => formatRelative(a.updatedAt) },
+          ]}
+          data={sorted}
+          rowKey={a => a.id}
+          loading={loadingArticles}
+          sortBy={sortBy}
+          sortDir={sortDir}
+          onSortChange={handleSortChange}
+          onRowClick={a => onOpenArticle(a.id)}
+          rowActions={isAdmin ? renderRowActions : undefined}
+          emptyState={emptyState}
+        />
+      ) : loadingArticles ? (
+        <ul className="article-list" aria-busy="true">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <li key={i} className="article-row article-row--skeleton" />
+          ))}
+        </ul>
+      ) : sorted.length === 0 ? emptyState : (
+        <ul className="knowledge-article-list" role="list">
+          {sorted.map(a => (
+            <li key={a.id}>
+              <EntityRow
+                title={a.title}
+                subtitle={(
+                  <>
+                    {a.categoryName || 'Sans catégorie'}
+                    <span aria-hidden="true"> · </span>
+                    {a.authorName} · v{a.version}
+                    <span aria-hidden="true"> · </span>
+                    <time dateTime={a.updatedAt}>{formatRelative(a.updatedAt)}</time>
+                  </>
+                )}
+                meta={(
+                  <>
+                    <StatusBadge status={a.status} />
+                    {a.isStale && <span className="badge badge--warning">À réviser</span>}
+                  </>
+                )}
+                onClick={() => onOpenArticle(a.id)}
+                ariaLabel={`${a.title}, ${a.status}, version ${a.version}`}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }

@@ -271,3 +271,29 @@
   box-shadow: 0 0 0 3px var(--brand-100);
 }
 
+
+/* ── KnowledgeListView (mode default, sans sidebar) ───────────── */
+.knowledge-list__toolbar-right {
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.knowledge-list__filters-extra {
+  display: flex; flex-direction: column; gap: 8px; width: 100%;
+}
+.knowledge-list__title-cell {
+  display: flex; flex-direction: column; gap: 4px; min-width: 0;
+}
+.knowledge-list__title {
+  font-weight: 500; color: var(--neutral-900);
+}
+.knowledge-list__tags {
+  display: flex; flex-wrap: wrap; gap: 4px;
+}
+.knowledge-list__tags-more {
+  font-size: 11px; color: var(--neutral-500);
+}
+.knowledge-list__muted {
+  color: var(--neutral-400);
+}
+.knowledge-list__status-cell {
+  display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap;
+}
