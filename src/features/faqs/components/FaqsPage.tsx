@@ -3,7 +3,6 @@ import { useFaqs }        from '../hooks/useFaqs';
 import '../faqs.css';
 import { Button }         from '../../../shared/components/ui/Button';
 import { EmptyState }     from '../../../shared/components/ui/EmptyState';
-import { StatusBadge }    from '../../../shared/components/ui/StatusBadge';
 import { ConfirmDialog }  from '../../../shared/components/ui/ConfirmDialog';
 import { ActionMenu }     from '../../../shared/components/ui/ActionMenu';
 import { FilterTabs }     from '../../../shared/components/ui/FilterTabs';
@@ -54,18 +53,22 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
   const [orgTags,    setOrgTags]    = useState<OrgTag[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
 
+  // Stratégie : pas de filtre statut/staleOnly envoyé au backend — on charge
+  // tout (jusqu'à perPage=200) et on filtre/compte localement. Permet
+  // d'avoir des compteurs cohérents sur les onglets (Toutes / Publiées /
+  // Brouillons / À réviser) qui ne s'effondrent pas à 0 quand on change
+  // d'onglet. Pour les FAQs (< 200 par org en pratique), le coût est nul.
   const filterPayload = useMemo(() => ({
-    status:     tab === 'stale' || tab === 'all' ? undefined : tab,
-    staleOnly:  tab === 'stale' ? true : undefined,
-    q:          search.trim() || undefined,
-    tags:       activeTags.length > 0 ? activeTags : undefined,
-    categoryId: categoryId ?? undefined,
+    q:                    search.trim() || undefined,
+    tags:                 activeTags.length > 0 ? activeTags : undefined,
+    categoryId:           categoryId ?? undefined,
+    includeSubcategories: !!categoryId, // élargit aux descendants quand cat sélectionnée
     sortBy,
     sortDir,
-    perPage:    50,
-  }), [tab, search, activeTags, categoryId, sortBy, sortDir]);
+    perPage:              200,
+  }), [search, activeTags, categoryId, sortBy, sortDir]);
 
-  const { items, loading, setFilters, remove } = useFaqs(filterPayload);
+  const { items: rawItems, loading, setFilters, remove } = useFaqs(filterPayload);
 
   useEffect(() => { setFilters(filterPayload); }, [filterPayload, setFilters]);
 
@@ -75,17 +78,53 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
     apiClient.get<Category[]>('/categories').then(setCategories).catch(() => setCategories([]));
   }, []);
 
-  const counts = useMemo(() => ({
-    all:       items.length,
-    published: items.filter(f => f.status === 'published').length,
-    draft:     items.filter(f => f.status === 'draft').length,
-    stale:     items.filter(f => f.is_stale).length,
-  }), [items]);
+  // Filtre statut côté frontend (pour préserver les compteurs cohérents)
+  const items = useMemo(() => {
+    return rawItems.filter(f => {
+      if (tab === 'stale')              return f.is_stale;
+      if (tab === 'all')                return true;
+      return f.status === tab;
+    });
+  }, [rawItems, tab]);
 
-  // Counts catégorie agrégés (cat + descendants)
+  // Compteurs par onglet — sur rawItems (avant filter statut)
+  const counts = useMemo(() => ({
+    all:       rawItems.length,
+    published: rawItems.filter(f => f.status === 'published').length,
+    draft:     rawItems.filter(f => f.status === 'draft').length,
+    stale:     rawItems.filter(f => f.is_stale).length,
+  }), [rawItems]);
+
+  // Counts catégorie agrégés (cat + descendants), basés sur rawItems
   const categoryCounts = useMemo(
-    () => aggregateCountsWithDescendants(categories, items),
-    [categories, items],
+    () => aggregateCountsWithDescendants(categories, rawItems),
+    [categories, rawItems],
+  );
+
+  // Counts par tag — calculés sur rawItems (sauf filtres tags eux-mêmes
+  // pour cohérence avec le pattern Articles : counts scopés au statut tab
+  // courant pour que le user voie « combien de FAQs taggées X dans cet
+  // onglet »). Tri par count desc gestionné par TagsFilter.
+  const tagCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const f of items) {
+      if (!Array.isArray(f.tags)) continue;
+      for (const t of f.tags) counts[t] = (counts[t] ?? 0) + 1;
+    }
+    return counts;
+  }, [items]);
+
+  // Tags disponibles avec counts locaux. On garde tous les tags de l'org
+  // (incluant ceux à 0 dans cette vue) pour permettre à l'admin de
+  // sélectionner un tag même s'il n'a aucun item actuellement filtré.
+  const tagOptions = useMemo(() => orgTags
+    .map(t => ({
+      id:          t.name,
+      displayName: t.display_name,
+      count:       tagCounts[t.name] ?? 0,
+    }))
+    .filter(t => t.count > 0 || activeTags.includes(t.id)),
+    [orgTags, tagCounts, activeTags],
   );
 
   const handleSortChange = (key: string, dir: SortDir) => {
@@ -105,16 +144,30 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
     />
   ) : null;
 
+  /** Badge unifié status+visibility : Brouillon / Publié (interne) / Public.
+   *  Évite le doublon visuel "Publié + Public" qui prend 2 lignes. */
+  const renderStatusBadge = (faq: FaqListItem) => {
+    if (faq.status === 'draft') {
+      return <span className="badge badge--secondary">Brouillon</span>;
+    }
+    if (faq.visibility === 'public') {
+      return <span className="badge badge--info" title="Publié et visible publiquement (chatbot)">Public</span>;
+    }
+    return <span className="badge badge--success" title="Publié, visible uniquement en interne">Publié</span>;
+  };
+
+  const hasActiveFilters = !!search || activeTags.length > 0 || !!categoryId || tab !== 'all';
+
   const emptyState = (
     <EmptyState
-      title={search || activeTags.length > 0 || categoryId ? 'Aucune FAQ ne correspond' : 'Aucune FAQ pour l\'instant'}
+      title={hasActiveFilters ? 'Aucune FAQ ne correspond' : 'Aucune FAQ pour l\'instant'}
       description={
-        search || activeTags.length > 0 || categoryId
+        hasActiveFilters
           ? 'Affinez votre recherche ou retirez les filtres.'
           : 'Créez votre première FAQ à partir des questions fréquentes de votre équipe.'
       }
-      ctaLabel={canEdit && !search && activeTags.length === 0 && !categoryId ? '+ Nouvelle FAQ' : undefined}
-      onCta={canEdit && !search && activeTags.length === 0 && !categoryId ? onNewFaq : undefined}
+      ctaLabel={canEdit && !hasActiveFilters ? '+ Nouvelle FAQ' : undefined}
+      onCta={canEdit && !hasActiveFilters ? onNewFaq : undefined}
     />
   );
 
@@ -149,10 +202,10 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
           left={(
             <FilterTabs<FilterTab>
               options={[
-                { id: 'all',       label: 'Toutes',    count: counts.all },
-                { id: 'published', label: 'Publiées',  count: counts.published },
+                { id: 'all',       label: 'Toutes',     count: counts.all },
+                { id: 'published', label: 'Publiées',   count: counts.published },
                 { id: 'draft',     label: 'Brouillons', count: counts.draft },
-                { id: 'stale',     label: 'À réviser', count: counts.stale },
+                { id: 'stale',     label: 'À réviser',  count: counts.stale },
               ]}
               value={tab}
               onChange={setTab}
@@ -175,14 +228,10 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
                 value={categoryId}
                 onChange={setCategoryId}
                 counts={categoryCounts}
-                totalCount={items.length}
+                totalCount={rawItems.length}
               />
               <TagsFilter
-                available={orgTags.map(t => ({
-                  id:          t.name,
-                  displayName: t.display_name,
-                  count:       t.articles_count,
-                }))}
+                available={tagOptions}
                 active={activeTags}
                 onChange={setActiveTags}
               />
@@ -212,29 +261,28 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
             { key: 'status',     label: 'Statut',
               render: faq => (
                 <div className="faqs-cell-status">
-                  <StatusBadge status={faq.status === 'published' ? 'published' : 'draft'} />
-                  {faq.visibility === 'public' && (
-                    <span className="badge badge--info" title="Visible publiquement">Public</span>
-                  )}
+                  {renderStatusBadge(faq)}
                   {faq.is_stale && (
                     <span className="badge badge--warning" title="Dernière révision il y a plus de 6 mois">À réviser</span>
                   )}
                 </div>
               ),
             },
-            { key: 'helpful',    label: '👍 / 👎', align: 'right', sortable: true,
+            { key: 'helpful',    label: 'Score', align: 'right', sortable: true, width: '120px',
               render: faq => {
                 const totalVotes = faq.helpful_yes + faq.helpful_no;
                 return (
-                  <span className={totalVotes < 2 ? 'faqs-cell-muted' : ''}>
-                    {faq.helpful_yes}👍 / {faq.helpful_no}👎
+                  <span className={`faqs-cell-helpful ${totalVotes < 2 ? 'faqs-cell-muted' : ''}`}>
+                    <span className="faqs-cell-helpful__yes">{faq.helpful_yes} 👍</span>
+                    <span className="faqs-cell-helpful__sep">·</span>
+                    <span className="faqs-cell-helpful__no">{faq.helpful_no} 👎</span>
                   </span>
                 );
               },
             },
-            { key: 'views',      label: 'Vues', align: 'right', sortable: true,
+            { key: 'views',      label: 'Vues', align: 'right', sortable: true, width: '70px',
               render: faq => faq.views },
-            { key: 'updated_at', label: 'Mis à jour', sortable: true,
+            { key: 'updated_at', label: 'Mis à jour', sortable: true, width: '120px',
               render: faq => formatRelative(faq.updated_at) },
           ]}
           data={items}

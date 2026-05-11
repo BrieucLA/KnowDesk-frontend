@@ -387,3 +387,11 @@
 .faqs-cell-status {
   display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap;
 }
+.faqs-cell-helpful {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.faqs-cell-helpful__sep {
+  color: var(--neutral-300);
+}

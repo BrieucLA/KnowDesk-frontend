@@ -31,6 +31,8 @@ export type FaqSortDir = 'asc' | 'desc';
 export interface FaqListFilters {
   status?:     FaqStatus;
   categoryId?: string;
+  /** Si true et categoryId fourni → backend élargit aux sous-catégories. */
+  includeSubcategories?: boolean;
   q?:          string;
   staleOnly?:  boolean;
   /** Multi-tag AND : la FAQ doit porter tous les tags. Slugs lowercase. */

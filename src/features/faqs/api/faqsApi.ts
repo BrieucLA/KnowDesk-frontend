@@ -5,6 +5,7 @@ function buildQuery(filters: FaqListFilters): string {
   const p = new URLSearchParams();
   if (filters.status)            p.set('status',     filters.status);
   if (filters.categoryId)        p.set('categoryId', filters.categoryId);
+  if (filters.includeSubcategories) p.set('includeSubcategories', 'true');
   if (filters.q?.trim())         p.set('q',          filters.q.trim());
   if (filters.staleOnly)         p.set('staleOnly',  '1');
   if (filters.tags?.length)      p.set('tags',       filters.tags.join(','));
