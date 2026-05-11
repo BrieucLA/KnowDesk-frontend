@@ -158,3 +158,78 @@
 }
 
 
+
+/* ── Word cloud (verbatims chatbot) ─────────────────────────── */
+.word-cloud {
+  background: var(--neutral-0, #fff);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+.word-cloud__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.word-cloud__title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--neutral-900);
+}
+.word-cloud__toggle {
+  display: inline-flex;
+  background: var(--neutral-100);
+  border-radius: var(--radius-md);
+  padding: 2px;
+}
+.word-cloud__toggle-btn {
+  background: transparent;
+  border: none;
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--neutral-600);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  transition: all var(--t-fast);
+}
+.word-cloud__toggle-btn:hover { color: var(--neutral-900); }
+.word-cloud__toggle-btn--active {
+  background: var(--neutral-0, #fff);
+  color: var(--brand-700);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+  font-weight: 500;
+}
+
+.word-cloud__canvas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 14px;
+  padding: 24px 12px;
+  min-height: 160px;
+  background: linear-gradient(180deg, var(--neutral-50) 0%, var(--brand-50) 100%);
+  border-radius: var(--radius-md);
+  line-height: 1.1;
+}
+.word-cloud__word {
+  display: inline-block;
+  cursor: help;
+  transition: transform var(--t-fast);
+  font-family: var(--font-ui);
+}
+.word-cloud__word:hover {
+  transform: scale(1.08);
+}
+.word-cloud__footer {
+  margin: 12px 0 0;
+  font-size: 11px;
+  color: var(--neutral-500);
+  text-align: right;
+}

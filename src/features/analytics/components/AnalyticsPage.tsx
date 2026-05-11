@@ -66,6 +66,7 @@ export function AnalyticsPage({ onOpenArticle, onCreateFaq }: AnalyticsPageProps
 
       <AiAnswerStatsBanner onCreateFaq={onCreateFaq} />
       <ChatStatsBanner />
+      <ChatWordCloud />
 
       {onCreateFaq && <FaqsToCreateBanner onCreate={onCreateFaq} />}
 
@@ -724,3 +725,101 @@ function FaqsToCreateBanner({ onCreate }: { onCreate: (question: string) => void
   );
 }
 
+
+/* ─────────────────────────────────────────────────────────────────
+   Nuage de mots-clés — verbatims visiteurs du chatbot
+   Effet démo COMEX : visuel d'agrégation des termes les plus
+   fréquents sur les messages clients. Périodes 7j et 30j.
+   Tokenization + stop-words FR + accent normalize côté backend.
+   ───────────────────────────────────────────────────────────────── */
+
+interface WordCloudItem { word: string; count: number }
+
+function ChatWordCloud() {
+  const [days,    setDays]    = useState<7 | 30>(30);
+  const [items,   setItems]   = useState<WordCloudItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    apiClient.get<WordCloudItem[]>(`/analytics/word-cloud?days=${days}`)
+      .then(d => { if (alive) setItems(d); })
+      .catch(() => {})
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
+  }, [days]);
+
+  if (loading && items.length === 0) return null;
+  if (!loading && items.length === 0) return null;
+
+  // Min/max counts pour mapper en font-size proportionnel
+  const maxCount = Math.max(...items.map(i => i.count));
+  const minCount = Math.min(...items.map(i => i.count));
+  const span = Math.max(1, maxCount - minCount);
+
+  const sizeFor = (count: number): number => {
+    // Échelle 14px → 44px linéaire selon le rang dans la plage
+    const ratio = (count - minCount) / span;
+    return Math.round(14 + ratio * 30);
+  };
+  const weightFor = (count: number): number => {
+    const ratio = (count - minCount) / span;
+    return ratio > 0.6 ? 700 : ratio > 0.3 ? 600 : 500;
+  };
+  const colorFor = (count: number): string => {
+    // Du neutre clair au brand foncé selon importance
+    const ratio = (count - minCount) / span;
+    if (ratio > 0.7) return 'var(--brand-700)';
+    if (ratio > 0.4) return 'var(--brand-600)';
+    if (ratio > 0.15) return 'var(--brand-500)';
+    return 'var(--neutral-500)';
+  };
+
+  return (
+    <section className="word-cloud" aria-labelledby="word-cloud-title">
+      <header className="word-cloud__header">
+        <h2 id="word-cloud-title" className="word-cloud__title">
+          ☁️ Nuage de mots — verbatims chatbot
+        </h2>
+        <div className="word-cloud__toggle" role="group" aria-label="Période">
+          <button
+            type="button"
+            className={`word-cloud__toggle-btn ${days === 7 ? 'word-cloud__toggle-btn--active' : ''}`}
+            onClick={() => setDays(7)}
+            aria-pressed={days === 7}
+          >
+            7 jours
+          </button>
+          <button
+            type="button"
+            className={`word-cloud__toggle-btn ${days === 30 ? 'word-cloud__toggle-btn--active' : ''}`}
+            onClick={() => setDays(30)}
+            aria-pressed={days === 30}
+          >
+            30 jours
+          </button>
+        </div>
+      </header>
+      <div className="word-cloud__canvas">
+        {items.map(({ word, count }) => (
+          <span
+            key={word}
+            className="word-cloud__word"
+            style={{
+              fontSize: `${sizeFor(count)}px`,
+              fontWeight: weightFor(count),
+              color: colorFor(count),
+            }}
+            title={`${count} occurrence${count > 1 ? 's' : ''}`}
+          >
+            {word}
+          </span>
+        ))}
+      </div>
+      <p className="word-cloud__footer">
+        {items.length} termes les plus fréquents (mots de liaison filtrés).
+      </p>
+    </section>
+  );
+}
