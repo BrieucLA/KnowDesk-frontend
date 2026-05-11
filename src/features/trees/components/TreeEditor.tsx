@@ -6,6 +6,7 @@ import { Skeleton }       from '../../../shared/components/ui/Skeleton';
 import { ConfirmDialog }  from '../../../shared/components/ui/ConfirmDialog';
 import { useToast }       from '../../../shared/lib/useToast';
 import { sanitizeArticleHtml } from '../../../shared/lib/sanitize';
+import { RichTextEditor }  from '../../editor/components/RichTextEditor';
 import type { TreeNode, NodeAnswer } from '../types';
 
 interface TreeEditorProps {
@@ -148,13 +149,22 @@ export function TreeEditor({ treeId, onBack, onPreview }: TreeEditorProps) {
 
         {editingNode === node.id ? (
           <div className="tree-node__edit">
-            <textarea
-              className="tree-node__textarea"
-              value={nodeEditDraft}
-              onChange={e => setNodeEditDraft(e.target.value)}
-              rows={6}
-              autoFocus
-            />
+            {node.type === 'conclusion' ? (
+              <RichTextEditor
+                value={nodeEditDraft}
+                onChange={setNodeEditDraft}
+                placeholder="Saisir la conclusion…"
+                imageUploadPath={`/trees/${treeId}/images`}
+              />
+            ) : (
+              <textarea
+                className="tree-node__textarea"
+                value={nodeEditDraft}
+                onChange={e => setNodeEditDraft(e.target.value)}
+                rows={3}
+                autoFocus
+              />
+            )}
             <div className="tree-node__edit-actions">
               <Button variant="primary" size="sm" onClick={() => handleUpdateNode(node.id)}>Sauvegarder</Button>
               <Button variant="ghost"   size="sm" onClick={() => setEditingNode(null)}>Annuler</Button>
@@ -196,14 +206,23 @@ export function TreeEditor({ treeId, onBack, onPreview }: TreeEditorProps) {
                       <option value="question">Question</option>
                       <option value="conclusion">Conclusion</option>
                     </select>
-                    <textarea
-                      className="tree-node__textarea"
-                      placeholder={nodeType === 'question' ? 'Saisir la question…' : 'Saisir la conclusion…'}
-                      value={nodeDraft}
-                      onChange={e => setNodeDraft(e.target.value)}
-                      rows={2}
-                      autoFocus
-                    />
+                    {nodeType === 'conclusion' ? (
+                      <RichTextEditor
+                        value={nodeDraft}
+                        onChange={setNodeDraft}
+                        placeholder="Saisir la conclusion…"
+                        imageUploadPath={`/trees/${treeId}/images`}
+                      />
+                    ) : (
+                      <textarea
+                        className="tree-node__textarea"
+                        placeholder="Saisir la question…"
+                        value={nodeDraft}
+                        onChange={e => setNodeDraft(e.target.value)}
+                        rows={2}
+                        autoFocus
+                      />
+                    )}
                     <div className="tree-node__edit-actions">
                       <Button variant="primary" size="sm" onClick={handleAddNode}>Ajouter</Button>
                       <Button variant="ghost"   size="sm" onClick={() => setAddingNode(null)}>Annuler</Button>
@@ -343,14 +362,23 @@ export function TreeEditor({ treeId, onBack, onPreview }: TreeEditorProps) {
               <option value="question">Question</option>
               <option value="conclusion">Conclusion</option>
             </select>
-            <textarea
-              className="tree-node__textarea"
-              placeholder={nodeType === 'question' ? 'Saisir la question…' : 'Saisir la conclusion…'}
-              value={nodeDraft}
-              onChange={e => setNodeDraft(e.target.value)}
-              rows={3}
-              autoFocus
-            />
+            {nodeType === 'conclusion' ? (
+              <RichTextEditor
+                value={nodeDraft}
+                onChange={setNodeDraft}
+                placeholder="Saisir la conclusion…"
+                imageUploadPath={`/trees/${treeId}/images`}
+              />
+            ) : (
+              <textarea
+                className="tree-node__textarea"
+                placeholder="Saisir la question…"
+                value={nodeDraft}
+                onChange={e => setNodeDraft(e.target.value)}
+                rows={3}
+                autoFocus
+              />
+            )}
             <div className="tree-node__edit-actions">
               <Button variant="primary" size="sm" onClick={handleAddNode}>Ajouter</Button>
               <Button variant="ghost"   size="sm" onClick={() => setAddingNode(null)}>Annuler</Button>

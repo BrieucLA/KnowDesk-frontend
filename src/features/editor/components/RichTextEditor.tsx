@@ -53,6 +53,13 @@ interface RichTextEditorProps {
   onViewArticle?: (articleId: string) => void;
   articleId?:     string;
   onBeforeImageUpload?: () => Promise<string | null>;
+  /**
+   * Override l'endpoint d'upload d'image. Si fourni, prend le pas sur
+   * `articleId`/`onBeforeImageUpload`. Path relatif sans le `/api/v1`,
+   * exemple : `/trees/abc-123/images`. Permet de réutiliser cet éditeur
+   * pour d'autres ressources que les articles.
+   */
+  imageUploadPath?: string;
 }
 
 /**
@@ -71,7 +78,8 @@ interface RichTextEditorProps {
  *  - Character count
  */
 export function RichTextEditor({
-  value, onChange, placeholder, readOnly, labelledBy, onViewArticle, articleId, onBeforeImageUpload,
+  value, onChange, placeholder, readOnly, labelledBy, onViewArticle,
+  articleId, onBeforeImageUpload, imageUploadPath,
 }: RichTextEditorProps) {
   const [showLinkModal, setShowLinkModal] = useState(false);
   // Drapeau pour ne pas pousser onChange en boucle quand le parent updatera value.
@@ -164,17 +172,28 @@ export function RichTextEditor({
   // Click sur l'icône image dans la toolbar → upload R2.
   const handleImageUpload = useCallback(async (file: File) => {
     if (!editor) return;
-    let id = articleId;
-    if (!id && onBeforeImageUpload) {
-      id = (await onBeforeImageUpload()) ?? undefined;
+
+    // Détermine l'URL d'upload : `imageUploadPath` override (cas trees,
+    // potentiellement d'autres ressources à l'avenir), sinon flow article
+    // historique (articleId direct, ou onBeforeImageUpload → article id).
+    let uploadPath: string | null = null;
+    if (imageUploadPath) {
+      uploadPath = imageUploadPath;
+    } else {
+      let id = articleId;
+      if (!id && onBeforeImageUpload) {
+        id = (await onBeforeImageUpload()) ?? undefined;
+      }
+      if (id) uploadPath = `/articles/${id}/images`;
     }
-    if (!id) return;
+    if (!uploadPath) return;
+
     const formData = new FormData();
     formData.append('image', file);
 
     try {
       const apiBase = import.meta.env.VITE_API_URL ?? '/api/v1';
-      const res  = await fetch(`${apiBase}/articles/${id}/images`, {
+      const res  = await fetch(`${apiBase}${uploadPath}`, {
         method:      'POST',
         credentials: 'include',
         body:        formData,
@@ -185,7 +204,7 @@ export function RichTextEditor({
     } catch (err) {
       console.warn('[editor] image upload failed', err);
     }
-  }, [editor, articleId, onBeforeImageUpload]);
+  }, [editor, articleId, onBeforeImageUpload, imageUploadPath]);
 
   const handleImageClick = useCallback(() => {
     const input    = document.createElement('input');
@@ -239,7 +258,7 @@ export function RichTextEditor({
             editor={editor}
             onLinkClick={() => setShowLinkModal(true)}
             onImageClick={handleImageClick}
-            hasImage={!!articleId || !!onBeforeImageUpload}
+            hasImage={!!articleId || !!onBeforeImageUpload || !!imageUploadPath}
           />
         )}
         {!readOnly && (
