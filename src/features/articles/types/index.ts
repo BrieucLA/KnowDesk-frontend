@@ -47,4 +47,6 @@ export interface ArticleListItem {
   isStale:      boolean;
   /** Nombre d'events `article.view` sur les 30 derniers jours. */
   viewsCount:   number;
+  /** 'internal' (défaut) ou 'public' — gouvernance visibilité chatbot. */
+  visibility:   'internal' | 'public';
 }

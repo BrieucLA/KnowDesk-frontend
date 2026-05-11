@@ -260,7 +260,14 @@ export function TreesPage({ onOpenTree, onEditTree, onPreviewTree }: TreesPagePr
           <DataTable<QuestionTreeSummary>
             columns={[
               { key: 'title',      label: 'Titre',     sortable: true,
-                render: t => <span className="trees-page__title">{t.title}</span> },
+                render: t => (
+                  <span className="trees-page__title">
+                    {t.visibility === 'internal' && (
+                      <span className="visibility-icon" title="Interne — non exposé au chatbot public" aria-label="Processus interne">🕵️</span>
+                    )}
+                    {t.title}
+                  </span>
+                ) },
               { key: 'category',   label: 'Catégorie', sortable: true,
                 render: t => t.category_name ?? <span className="trees-page__muted">—</span> },
               { key: 'status',     label: 'Statut',

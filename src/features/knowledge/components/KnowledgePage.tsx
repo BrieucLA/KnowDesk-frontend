@@ -192,6 +192,7 @@ export function KnowledgePage({ onOpenArticle, onNewArticle }: KnowledgePageProp
           tags:         Array.isArray(a.tags) ? a.tags : [],
           isStale:      a.is_stale === true,
           viewsCount:   Number(a.views_30d ?? 0),
+          visibility:   (a.visibility === 'public' ? 'public' : 'internal') as 'internal' | 'public',
         })));
         setLoadingArticles(false);
       })
@@ -394,6 +395,7 @@ export function KnowledgePage({ onOpenArticle, onNewArticle }: KnowledgePageProp
                   version: a.version, authorName: a.author_email ?? '',
                   updatedAt: a.updated_at, tags: Array.isArray(a.tags) ? a.tags : [],
                   isStale: a.is_stale === true, viewsCount: Number(a.views_30d ?? 0),
+                  visibility: (a.visibility === 'public' ? 'public' : 'internal') as 'internal' | 'public',
                 }))))
                 .finally(() => setLoadingArticles(false));
             }}
@@ -1102,7 +1104,12 @@ function KnowledgeListView(props: KnowledgeListViewProps) {
             { key: 'title',      label: 'Titre',      sortable: true,
               render: a => (
                 <div className="knowledge-list__title-cell">
-                  <div className="knowledge-list__title">{a.title}</div>
+                  <div className="knowledge-list__title">
+                    {a.visibility === 'internal' && (
+                      <span className="visibility-icon" title="Interne — non exposé au chatbot public" aria-label="Article interne">🕵️</span>
+                    )}
+                    {a.title}
+                  </div>
                   {a.tags && a.tags.length > 0 && (
                     <div className="knowledge-list__tags">
                       {a.tags.slice(0, 4).map(t => (

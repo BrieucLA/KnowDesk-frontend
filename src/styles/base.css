@@ -89,3 +89,19 @@ html, body, #root {
   font-size: 13px;
   margin-bottom: 12px;
 }
+
+/* Icône de visibilité — affichée inline dans la colonne titre pour
+   marquer les items internes (= non exposés au chatbot public).
+   Pas d'icône sur les items publics → moins de bruit visuel sur le
+   pattern attendu (la plupart des items sont internes mais on
+   inverse la sémantique : par convention "espion" = caché du public). */
+.visibility-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  margin-right: 6px;
+  vertical-align: middle;
+  opacity: 0.85;
+  cursor: help;
+}

@@ -167,16 +167,14 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
     />
   ) : null;
 
-  /** Badge unifié status+visibility : Brouillon / Publié (interne) / Public.
-   *  Évite le doublon visuel "Publié + Public" qui prend 2 lignes. */
+  /** Badge statut éditorial pur (publié / brouillon). La visibilité
+   *  interne/public est rendue à part via l'icône 🕵️ inline dans la
+   *  colonne Question — séparation des 2 axes orthogonaux. */
   const renderStatusBadge = (faq: FaqListItem) => {
     if (faq.status === 'draft') {
       return <span className="badge badge--secondary">Brouillon</span>;
     }
-    if (faq.visibility === 'public') {
-      return <span className="badge badge--info" title="Publié et visible publiquement (chatbot)">Public</span>;
-    }
-    return <span className="badge badge--success" title="Publié, visible uniquement en interne">Publié</span>;
+    return <span className="badge badge--success">Publié</span>;
   };
 
   const hasActiveFilters = !!search || activeTags.length > 0 || !!categoryId || tab !== 'all';
@@ -275,7 +273,12 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
             { key: 'question',   label: 'Question',
               render: faq => (
                 <div className="faqs-cell-question">
-                  <div className="faqs-cell-question__text">{faq.question}</div>
+                  <div className="faqs-cell-question__text">
+                    {faq.visibility === 'internal' && (
+                      <span className="visibility-icon" title="Interne — non exposé au chatbot public" aria-label="FAQ interne">🕵️</span>
+                    )}
+                    {faq.question}
+                  </div>
                   {faq.tags.length > 0 && (
                     <div className="faqs-cell-question__tags">
                       {faq.tags.slice(0, 4).map(t => (
