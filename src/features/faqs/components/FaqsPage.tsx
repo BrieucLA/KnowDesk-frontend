@@ -311,8 +311,10 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
                 );
               },
             },
-            { key: 'views',      label: 'Vues', align: 'right', sortable: true, width: '70px',
-              render: faq => faq.views },
+            { key: 'views',      label: 'Vues 30j', align: 'right', sortable: true, width: '90px',
+              render: faq => (faq.views_30d ?? 0) > 0
+                ? (faq.views_30d ?? 0)
+                : <span className="faqs-cell-muted">0</span> },
             { key: 'updated_at', label: 'Mis à jour', sortable: true, width: '120px',
               render: faq => formatRelative(faq.updated_at) },
           ]}

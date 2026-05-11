@@ -10,7 +10,10 @@ export interface FaqListItem {
   category_name:     string | null;
   linked_article_id: string | null;
   position:          number;
+  /** Cumulatif depuis la création — gardé pour compat. */
   views:             number;
+  /** Vues sur les 30 derniers jours (event `faq.view`), parité avec articles. */
+  views_30d:         number;
   helpful_yes:       number;
   helpful_no:        number;
   last_reviewed_at:  string | null;
