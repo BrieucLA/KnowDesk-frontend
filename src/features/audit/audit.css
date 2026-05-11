@@ -82,3 +82,5 @@
   letter-spacing: 0.04em; font-weight: 500;
 }
 .audit-detail__tech dd { margin: 0; font-size: 13px; color: var(--neutral-800); word-break: break-word; }
+.audit-detail__resource-title { font-weight: 500; color: var(--neutral-900); margin-bottom: 2px; }
+.audit-detail__resource-id    { font-size: 11px; color: var(--neutral-500); }

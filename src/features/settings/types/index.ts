@@ -29,7 +29,7 @@ export interface ChatModelMeta {
   description:  string;
 }
 
-export type AiServiceKey = 'chat-response' | 'search-ai' | 'slot-filling' | 'topic-clustering' | 'article-quality' | 'learning-quiz';
+export type AiServiceKey = 'chat-response' | 'search-ai' | 'slot-filling' | 'topic-clustering' | 'article-quality' | 'learning-quiz' | 'chat-query-rewrite';
 
 export interface AiServiceItem {
   key:         AiServiceKey;

@@ -243,7 +243,20 @@ export function AuditPage({ embed = false }: AuditPageProps = {}) {
             {detail.resourceId && (
               <div>
                 <dt>Ressource</dt>
-                <dd><code>{detail.resourceId}</code></dd>
+                <dd>
+                  {(() => {
+                    const t = (detail.metadata as { resourceTitle?: unknown } | null)?.resourceTitle;
+                    if (typeof t === 'string' && t.trim()) {
+                      return (
+                        <>
+                          <div className="audit-detail__resource-title">{t}</div>
+                          <code className="audit-detail__resource-id">{detail.resourceId}</code>
+                        </>
+                      );
+                    }
+                    return <code>{detail.resourceId}</code>;
+                  })()}
+                </dd>
               </div>
             )}
             {detail.metadata && Object.keys(detail.metadata).length > 0 && (
@@ -274,17 +287,59 @@ const META_LABELS: Record<string, string> = {
   status:               'Statut',
   reason:               'Motif',
   count:                'Nombre',
-  impersonatedBy:       'Impersonifié par (ID)',
+  // resourceTitle est intercepté en amont et remonté dans la section
+  // « Ressource » (cf MetadataView). Pas affiché en double dans metadata.
+  resourceTitle:        '',
   impersonatedByEmail:  'Impersonifié par',
 };
 
-const META_TECHNICAL_KEYS = new Set(['ip', 'userAgent', 'orgId', 'sessionId']);
+// Clés techniques rangées derrière un disclosure. `impersonatedBy` (UUID)
+// rejoint ce groupe car redondant avec impersonatedByEmail affiché en clair.
+const META_TECHNICAL_KEYS = new Set(['ip', 'userAgent', 'orgId', 'sessionId', 'impersonatedBy']);
+
+// Labels FR pour les noms de champs internes (utilisés dans metadata.fields
+// pour les actions org.*_settings_updated). Le bloc « Champs modifiés »
+// renvoie des noms anglais issus du backend ; on les rend lisibles ici.
+const FIELD_LABELS: Record<string, string> = {
+  // Chatbot
+  enabled:                'Activation',
+  welcomeMessage:         'Message d\'accueil',
+  fallbackMessage:        'Message de fallback',
+  primaryColor:           'Couleur principale',
+  logoUrl:                'Logo',
+  allowedDomains:         'Domaines autorisés',
+  handoffMode:            'Mode handoff',
+  handoffWebhookUrl:      'Webhook handoff',
+  handoffEmail:           'Email handoff',
+  systemPrompt:           'Prompt système',
+  privacyNotice:          'Disclaimer RGPD',
+  privacyPolicyUrl:       'URL politique de confidentialité',
+  retentionDays:          'Rétention conversations',
+  // Org général
+  name:                   'Nom de l\'organisation',
+  logoUrl_org:            'Logo',
+  timezone:               'Fuseau horaire',
+  // IA
+  industry:               'Secteur d\'activité',
+  ai_tone:                'Tonalité IA',
+  ai_address_form:        'Forme d\'adresse',
+  ai_glossary:            'Glossaire IA',
+  ai_answer_enabled:      'Réponse IA activée',
+  // Modèle chatbot
+  chat_model:             'Modèle chatbot',
+};
+
+function renderFieldName(field: string): string {
+  return FIELD_LABELS[field] ?? field;
+}
 
 function MetadataView({ meta }: { meta: Record<string, unknown> }) {
   const [showTech, setShowTech] = React.useState(false);
   const [showRaw,  setShowRaw]  = React.useState(false);
 
-  const entries = Object.entries(meta);
+  // resourceTitle est déjà affiché dans la section « Ressource » au-dessus
+  // (cf bloc detail.resourceId) — on ne le re-affiche pas en doublon ici.
+  const entries = Object.entries(meta).filter(([k]) => k !== 'resourceTitle');
   const business  = entries.filter(([k]) => !META_TECHNICAL_KEYS.has(k));
   const technical = entries.filter(([k]) =>  META_TECHNICAL_KEYS.has(k));
 
@@ -295,7 +350,7 @@ function MetadataView({ meta }: { meta: Record<string, unknown> }) {
           {business.map(([key, value]) => (
             <div key={key}>
               <dt>{META_LABELS[key] ?? key}</dt>
-              <dd>{renderMetaValue(value)}</dd>
+              <dd>{renderMetaValue(value, key)}</dd>
             </div>
           ))}
         </>
@@ -319,7 +374,7 @@ function MetadataView({ meta }: { meta: Record<string, unknown> }) {
                 {technical.map(([key, value]) => (
                   <div key={key}>
                     <dt>{META_LABELS[key] ?? key}</dt>
-                    <dd>{renderMetaValue(value)}</dd>
+                    <dd>{renderMetaValue(value, key)}</dd>
                   </div>
                 ))}
               </dl>
@@ -351,7 +406,7 @@ function MetadataView({ meta }: { meta: Record<string, unknown> }) {
   );
 }
 
-function renderMetaValue(v: unknown): React.ReactNode {
+function renderMetaValue(v: unknown, key?: string): React.ReactNode {
   if (v === null || v === undefined) return <em>—</em>;
   if (typeof v === 'string') {
     // Tronque les longues chaînes (userAgent etc.) avec preview + title
@@ -363,7 +418,13 @@ function renderMetaValue(v: unknown): React.ReactNode {
   if (typeof v === 'boolean') return v ? 'oui' : 'non';
   if (typeof v === 'number')  return String(v);
   if (Array.isArray(v)) {
-    return v.length === 0 ? <em>(vide)</em> : v.map(x => String(x)).join(', ');
+    if (v.length === 0) return <em>(vide)</em>;
+    // Si la liste correspond à des noms de champs (clé "fields" / "field"),
+    // on remplace chaque nom interne par son libellé FR.
+    if ((key === 'fields' || key === 'field') && v.every(x => typeof x === 'string')) {
+      return (v as string[]).map(renderFieldName).join(', ');
+    }
+    return v.map(x => String(x)).join(', ');
   }
   // Objet imbriqué : fallback JSON compact
   return <code>{JSON.stringify(v)}</code>;
