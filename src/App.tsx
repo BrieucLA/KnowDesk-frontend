@@ -123,6 +123,22 @@ function pathToView(pathname: string, fallbackFrom: Screen): View | null {
   return null;
 }
 
+/**
+ * Paths gérés par les early-returns de l'App (rendu spécial, hors du
+ * système de Views) : le bridge View→URL ne doit PAS les remplacer par
+ * `/` quand `pathToView` retourne null, sinon on perd le query param
+ * (`?token=…`) et l'utilisateur tombe sur LoginPage au lieu du flow
+ * d'invitation / vérif email / privacy.
+ */
+function isSpecialPath(pathname: string, search: string): boolean {
+  if (pathname === '/accept-invitation') return true;
+  if (pathname === '/verify-email')      return true;
+  if (pathname === '/privacy')           return true;
+  if (search.includes('superadmin'))     return true;
+  if (search.includes('api-docs'))       return true;
+  return false;
+}
+
 /** Maps a View back to the canonical URL pathname. */
 function viewToPath(view: View): string | null {
   switch (view.screen) {
@@ -184,6 +200,10 @@ export function App() {
 
   // View → URL : synchronise l'URL quand la navigation est faite via setView
   useEffect(() => {
+    // Sur les paths spéciaux gérés par early-return (invitation, verify-email,
+    // privacy…), on ne touche pas à l'URL — sinon on remplace `/accept-invitation
+    // ?token=…` par `/` et le token est perdu.
+    if (isSpecialPath(location.pathname, location.search)) return;
     const expected = viewToPath(view);
     if (expected && expected !== location.pathname) {
       navigate(expected);
