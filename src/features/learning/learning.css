@@ -596,3 +596,57 @@
 .completions-grid__cell--in_progress .completions-grid__icon { color: var(--brand-600); }
 .completions-grid__cell--outdated    .completions-grid__icon { color: #92400E; }
 .completions-grid__cell--pending     .completions-grid__icon { color: var(--neutral-400); }
+
+/* ── Template picker (modale création parcours) ───────────────── */
+.template-picker {
+  border: none;
+  padding: 0;
+  margin: 0 0 16px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.template-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+@media (max-width: 600px) {
+  .template-picker__grid { grid-template-columns: 1fr; }
+}
+.template-card {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 10px 12px;
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  transition: all var(--t-fast);
+}
+.template-card:hover {
+  border-color: var(--neutral-300);
+  background: var(--neutral-50);
+}
+.template-card--active {
+  border-color: var(--brand-500);
+  background: var(--brand-50, #EFF6FF);
+  box-shadow: 0 0 0 1px var(--brand-500) inset;
+}
+.template-card__icon {
+  font-size: 18px; line-height: 1;
+}
+.template-card__label {
+  font-size: 14px; font-weight: 500;
+  color: var(--neutral-900);
+}
+.template-card__hint {
+  font-size: 12px; color: var(--neutral-500);
+}
+.template-card--active .template-card__hint {
+  color: var(--brand-700);
+}
+.template-picker__note {
+  margin: 4px 2px 0;
+  font-size: 12px;
+  color: var(--neutral-600);
+}

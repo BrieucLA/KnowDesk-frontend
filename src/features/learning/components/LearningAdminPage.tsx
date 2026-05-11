@@ -13,6 +13,7 @@ import { useToast }    from '../../../shared/lib/useToast';
 import { ApiError }    from '../../../shared/lib/apiClient';
 import { formatRelative } from '../../../shared/lib/formatDate';
 import type { LearningPath, LearningPathRenewal } from '../types';
+import { LEARNING_TEMPLATES, findTemplate, type LearningPathTemplate } from '../templates';
 import '../learning.css';
 
 interface LearningAdminPageProps {
@@ -32,11 +33,34 @@ export function LearningAdminPage({ onEditPath }: LearningAdminPageProps) {
   const [sortDir, setSortDir] = useState<SortDir>('desc');
 
   const [showCreate, setShowCreate] = useState(false);
+  const [templateId,   setTemplateId]   = useState<string | null>(null);
   const [newName,    setNewName]    = useState('');
   const [newDesc,    setNewDesc]    = useState('');
   const [newMandatory, setNewMandatory] = useState(false);
   const [newRenewal,   setNewRenewal]   = useState<LearningPathRenewal>(null);
   const [creating,     setCreating]     = useState(false);
+
+  const resetCreateForm = useCallback(() => {
+    setTemplateId(null);
+    setNewName(''); setNewDesc(''); setNewMandatory(false); setNewRenewal(null);
+  }, []);
+
+  // Sélection d'un template : pré-remplit name + description + mandatory +
+  // renewal. Les modules eux sont créés au submit (POST /paths/:id/modules
+  // après création du parcours), pas au moment de la sélection — l'admin
+  // peut ajuster les champs avant submit.
+  const handlePickTemplate = useCallback((tpl: LearningPathTemplate | null) => {
+    setTemplateId(tpl?.id ?? null);
+    if (tpl) {
+      setNewName(tpl.name);
+      setNewDesc(tpl.description);
+      setNewMandatory(tpl.mandatory);
+      setNewRenewal(tpl.renewal_months);
+    } else {
+      // Repasse en « Vierge » : on ne touche pas aux champs déjà saisis,
+      // l'admin garde la main.
+    }
+  }, []);
 
   const [confirmDelete, setConfirmDelete] = useState<LearningPath | null>(null);
   const [deleting,      setDeleting]      = useState(false);
@@ -61,17 +85,35 @@ export function LearningAdminPage({ onEditPath }: LearningAdminPageProps) {
         mandatory:      newMandatory,
         renewal_months: newRenewal,
       });
+
+      // Si un template est sélectionné, on crée ses modules en cascade.
+      // Best-effort : si la création d'un module échoue (ex: rate-limit), on
+      // continue avec les suivants — l'admin verra l'éditeur avec les
+      // modules créés et complètera manuellement.
+      const tpl = findTemplate(templateId);
+      if (tpl) {
+        for (const [i, name] of tpl.modules.entries()) {
+          try {
+            await learningApi.createModule(path.id, { name, position: i });
+          } catch (err) {
+            console.warn('[learning] template module create failed:', name, err);
+          }
+        }
+      }
+
       setPaths(prev => [path, ...prev]);
       setShowCreate(false);
-      setNewName(''); setNewDesc(''); setNewMandatory(false); setNewRenewal(null);
-      toast.success('Parcours créé.');
+      resetCreateForm();
+      toast.success(tpl
+        ? `Parcours créé avec ${tpl.modules.length} modules pré-remplis.`
+        : 'Parcours créé.');
       onEditPath(path.id);
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : 'Création impossible.');
     } finally {
       setCreating(false);
     }
-  }, [newName, newDesc, newMandatory, newRenewal, toast, onEditPath]);
+  }, [newName, newDesc, newMandatory, newRenewal, templateId, resetCreateForm, toast, onEditPath]);
 
   const handleDelete = useCallback(async () => {
     if (!confirmDelete) return;
@@ -131,18 +173,50 @@ export function LearningAdminPage({ onEditPath }: LearningAdminPageProps) {
       {showCreate && (
         <Modal
           title="Nouveau parcours de formation"
-          onClose={() => setShowCreate(false)}
+          onClose={() => { setShowCreate(false); resetCreateForm(); }}
           asForm
           onSubmit={handleCreate}
           footer={
             <>
-              <Button type="button" variant="ghost" size="md" onClick={() => setShowCreate(false)}>Annuler</Button>
+              <Button type="button" variant="ghost" size="md" onClick={() => { setShowCreate(false); resetCreateForm(); }}>Annuler</Button>
               <Button type="submit" variant="primary" size="md" loading={creating} disabled={!newName.trim()}>
                 Créer et éditer
               </Button>
             </>
           }
         >
+          <fieldset className="template-picker">
+            <legend className="learning-form__label">Démarrer avec un template (optionnel)</legend>
+            <div className="template-picker__grid">
+              <button
+                type="button"
+                className={`template-card ${templateId === null ? 'template-card--active' : ''}`}
+                onClick={() => handlePickTemplate(null)}
+              >
+                <span className="template-card__icon" aria-hidden="true">⚪</span>
+                <span className="template-card__label">Vierge</span>
+                <span className="template-card__hint">Tout configurer manuellement</span>
+              </button>
+              {LEARNING_TEMPLATES.map(tpl => (
+                <button
+                  key={tpl.id}
+                  type="button"
+                  className={`template-card ${templateId === tpl.id ? 'template-card--active' : ''}`}
+                  onClick={() => handlePickTemplate(tpl)}
+                >
+                  <span className="template-card__icon" aria-hidden="true">{tpl.icon}</span>
+                  <span className="template-card__label">{tpl.label}</span>
+                  <span className="template-card__hint">{tpl.hint}</span>
+                </button>
+              ))}
+            </div>
+            {templateId && (
+              <p className="template-picker__note">
+                {findTemplate(templateId)?.modules.length} modules seront créés automatiquement. Vous pourrez les renommer ou en ajouter ensuite.
+              </p>
+            )}
+          </fieldset>
+
           <Input
             id="path-name"
             type="text"
