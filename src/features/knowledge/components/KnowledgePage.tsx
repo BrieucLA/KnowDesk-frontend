@@ -125,8 +125,16 @@ export function KnowledgePage({ onOpenArticle, onNewArticle }: KnowledgePageProp
       .then(cats => {
         setCategories(cats);
         setLoadingCats(false);
-        // Auto-select first category seulement si aucune sélection persistée valide
-        if (cats.length > 0 && !selectedCatId) setSelectedCatId(cats[0].id);
+        // En mode sidebar (legacy ?sidebar=true) : auto-select 1ʳᵉ cat car
+        // la sidebar a besoin d'une sélection active (breadcrumb, expand,
+        // contexte cat pour les nouveaux articles).
+        // En mode default (sans sidebar) : laisse `selectedCatId=null` →
+        // dropdown sur « Toutes les catégories » et liste complète, sinon
+        // l'admin voit seulement la 1ʳᵉ cat sans s'en rendre compte.
+        const isSidebarMode = new URLSearchParams(window.location.search).get('sidebar') === 'true';
+        if (isSidebarMode && cats.length > 0 && !selectedCatId) {
+          setSelectedCatId(cats[0].id);
+        }
       });
     // selectedCatId omis volontairement — exécution unique au mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
