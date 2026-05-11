@@ -11,6 +11,7 @@ import { useToast }   from '../../../shared/lib/useToast';
 import type {
   LearningPathDetail, LearningModule, LearningModuleResource,
   LearningQuiz, LearningQuizQuestion, LearningResourceType, LearningPathRenewal,
+  LearningPathCompletions, LearningCompletionStatus,
 } from '../types';
 import '../learning.css';
 
@@ -44,6 +45,9 @@ export function LearningPathEditor({ pathId, onBack }: LearningPathEditorProps) 
 
   // Modale assignations
   const [showAssign, setShowAssign] = useState(false);
+
+  // Modale dashboard suivi
+  const [showCompletions, setShowCompletions] = useState(false);
 
   const reload = useCallback(() => {
     setLoading(true);
@@ -162,6 +166,13 @@ export function LearningPathEditor({ pathId, onBack }: LearningPathEditorProps) 
         />
       )}
 
+      {showCompletions && (
+        <CompletionsModal
+          pathId={path.id}
+          onClose={() => setShowCompletions(false)}
+        />
+      )}
+
       <div className="learning-page">
         <PageHeader
           title={path.name}
@@ -169,6 +180,7 @@ export function LearningPathEditor({ pathId, onBack }: LearningPathEditorProps) 
           actions={(
             <>
               <Button variant="ghost" size="md" onClick={onBack}>← Retour</Button>
+              <Button variant="ghost" size="md" onClick={() => setShowCompletions(true)}>Suivi</Button>
               <Button variant="ghost" size="md" onClick={() => setShowAssign(true)}>Assigner</Button>
             </>
           )}
@@ -701,5 +713,127 @@ function AssignUsersModal({ pathId, onClose }: { pathId: string; onClose: () => 
         </ul>
       )}
     </Modal>
+  );
+}
+
+// ── Modal suivi : grille users × modules avec status par cellule ─────
+
+function CompletionsModal({ pathId, onClose }: { pathId: string; onClose: () => void }) {
+  const toast = useToast();
+  const [data,    setData]    = useState<LearningPathCompletions | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    learningApi.pathCompletions(pathId)
+      .then(d => { if (alive) setData(d); })
+      .catch((err: unknown) => toast.error(err instanceof ApiError ? err.message : 'Erreur de chargement.'))
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
+  }, [pathId, toast]);
+
+  // Stats agrégées en haut de la modale (donne un sens d'un coup d'œil
+  // avant de plonger dans la grille).
+  const stats = useMemo(() => {
+    if (!data) return null;
+    const flat = data.assignments.flatMap(a => a.modules);
+    return {
+      assignees:   data.assignments.length,
+      completed:   flat.filter(m => m.status === 'completed').length,
+      inProgress:  flat.filter(m => m.status === 'in_progress').length,
+      outdated:    flat.filter(m => m.status === 'outdated').length,
+      total:       flat.length,
+    };
+  }, [data]);
+
+  return (
+    <Modal
+      title="Suivi des conseillers"
+      onClose={onClose}
+      size="lg"
+      footer={<Button type="button" variant="primary" size="md" onClick={onClose}>Fermer</Button>}
+    >
+      {loading ? <Skeleton className="sk-card" /> : !data ? null : data.assignments.length === 0 ? (
+        <p className="learning-empty">
+          Aucun conseiller n'est encore assigné à ce parcours. Cliquez sur « Assigner » pour en ajouter.
+        </p>
+      ) : (
+        <>
+          {stats && stats.total > 0 && (
+            <div className="completions-summary">
+              <span><strong>{stats.assignees}</strong> conseiller{stats.assignees > 1 ? 's' : ''}</span>
+              <span className="completions-summary__sep" aria-hidden="true">·</span>
+              <span><strong>{stats.completed}</strong>/{stats.total} modules complétés</span>
+              {stats.inProgress > 0 && (
+                <>
+                  <span className="completions-summary__sep" aria-hidden="true">·</span>
+                  <span>{stats.inProgress} en cours</span>
+                </>
+              )}
+              {stats.outdated > 0 && (
+                <>
+                  <span className="completions-summary__sep" aria-hidden="true">·</span>
+                  <span className="completions-summary__warn">{stats.outdated} à renouveler</span>
+                </>
+              )}
+            </div>
+          )}
+
+          <div className="completions-grid-wrap">
+            <table className="completions-grid">
+              <thead>
+                <tr>
+                  <th className="completions-grid__user-th" scope="col">Conseiller</th>
+                  {data.modules.map(m => (
+                    <th key={m.id} scope="col" className="completions-grid__mod-th" title={m.name}>
+                      <span className="completions-grid__mod-num">{m.position + 1}</span>
+                      <span className="completions-grid__mod-name">{m.name}</span>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {data.assignments.map(a => (
+                  <tr key={a.user_id}>
+                    <th scope="row" className="completions-grid__user">
+                      <span className="completions-grid__user-name">{a.user_name || a.user_email}</span>
+                      {a.user_name && a.user_email && (
+                        <span className="completions-grid__user-email">{a.user_email}</span>
+                      )}
+                    </th>
+                    {data.modules.map(m => {
+                      const cell = a.modules.find(x => x.module_id === m.id);
+                      const status = cell?.status ?? 'pending';
+                      return (
+                        <td key={m.id} className={`completions-grid__cell completions-grid__cell--${status}`}>
+                          <StatusBadgeCell status={status} score={cell?.score ?? null} />
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+    </Modal>
+  );
+}
+
+function StatusBadgeCell({ status, score }: { status: LearningCompletionStatus; score: number | null }) {
+  const icon  = status === 'completed' ? '✓'
+              : status === 'in_progress' ? '◐'
+              : status === 'outdated' ? '↻'
+              : '○';
+  const label = status === 'completed' ? 'Complété'
+              : status === 'in_progress' ? 'En cours'
+              : status === 'outdated' ? 'À renouveler'
+              : 'À faire';
+  return (
+    <span className="completions-grid__badge" title={score !== null ? `${label} — ${score}%` : label}>
+      <span className="completions-grid__icon" aria-hidden="true">{icon}</span>
+      {score !== null && <span className="completions-grid__score">{score}%</span>}
+    </span>
   );
 }
