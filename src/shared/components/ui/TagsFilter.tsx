@@ -67,6 +67,9 @@ export function TagsFilter({
             aria-pressed={isActive}
           >
             {t.displayName}
+            {typeof t.count === 'number' && (
+              <span className="tags-filter__chip-count" aria-hidden="true">{t.count}</span>
+            )}
           </button>
         );
       })}

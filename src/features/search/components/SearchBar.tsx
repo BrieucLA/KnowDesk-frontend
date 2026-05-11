@@ -57,7 +57,18 @@ export function SearchBar({ onSelect, className }: SearchBarProps) {
     if (result.type === 'faq') {
       // Pour une FAQ, on n'ouvre pas une page — on déplie la réponse en place
       // pour permettre la copie en 1 clic. C'est le cas d'usage conseiller.
-      setExpandedFaqId(prev => prev === result.id ? null : result.id);
+      setExpandedFaqId(prev => {
+        const isOpening = prev !== result.id;
+        if (isOpening) {
+          // Tracke la vue côté serveur (incrementViews). Fire-and-forget :
+          // un fail n'empêche pas l'expansion UI. Sans ce ping, la colonne
+          // "Vues" reste à 0 car GET /faqs/:id est noTrack=1 dans l'éditeur.
+          import('../../faqs/api/faqsApi').then(({ faqsApi }) => {
+            faqsApi.get(result.id).catch(() => { /* noop */ });
+          });
+        }
+        return isOpening ? result.id : null;
+      });
     } else {
       setExpandedFaqId(null);
       onSelect(result);
