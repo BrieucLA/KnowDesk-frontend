@@ -59,7 +59,7 @@ export function KnowledgePage({ onOpenArticle, onNewArticle }: KnowledgePageProp
   const [moveCat,          setMoveCat]          = useState<Category | null>(null);
   const [moveTargetId,     setMoveTargetId]     = useState<string | null>(null);
   const [moveLoading,      setMoveLoading]      = useState(false);
-  const [filter,           setFilter]         = useState<'all' | 'published' | 'draft'>('all');
+  const [filter,           setFilter]         = useState<'all' | 'published' | 'draft' | 'stale'>('all');
   const [orgTags,        setOrgTags]        = useState<OrgTag[]>([]);
   const [activeTags,     setActiveTags]     = useState<string[]>([]);
   const [tagsExpanded,   setTagsExpanded]   = useState(false);
@@ -175,6 +175,7 @@ export function KnowledgePage({ onOpenArticle, onNewArticle }: KnowledgePageProp
           authorName:   a.author_email ?? '',
           updatedAt:    a.updated_at,
           tags:         Array.isArray(a.tags) ? a.tags : [],
+          isStale:      a.is_stale === true,
         })));
         setLoadingArticles(false);
       })
@@ -195,7 +196,11 @@ export function KnowledgePage({ onOpenArticle, onNewArticle }: KnowledgePageProp
   const filteredArticles = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     return articles.filter(a => {
-      if (filter !== 'all' && a.status !== filter) return false;
+      if (filter === 'stale') {
+        if (!a.isStale) return false;
+      } else if (filter !== 'all' && a.status !== filter) {
+        return false;
+      }
       if (q && !a.title.toLowerCase().includes(q)) return false;
       // Filtre tag (AND) : l'article doit porter chacun des tags actifs
       if (activeTags.length > 0 && !activeTags.every(t => a.tags?.includes(t))) return false;
@@ -460,7 +465,7 @@ export function KnowledgePage({ onOpenArticle, onNewArticle }: KnowledgePageProp
                 </select>
               </label>
               <div className="knowledge-page__filters" role="tablist" aria-label="Filtrer les articles">
-                {(['all', 'published', 'draft'] as const).map(f => (
+                {(['all', 'published', 'draft', 'stale'] as const).map(f => (
                   <button
                     key={f}
                     role="tab"
@@ -468,7 +473,10 @@ export function KnowledgePage({ onOpenArticle, onNewArticle }: KnowledgePageProp
                     className={`knowledge-filter ${filter === f ? 'knowledge-filter--active' : ''}`}
                     onClick={() => setFilter(f)}
                   >
-                    {f === 'all' ? 'Tous' : f === 'published' ? 'Publiés' : 'Brouillons'}
+                    {f === 'all' ? 'Tous' :
+                     f === 'published' ? 'Publiés' :
+                     f === 'draft' ? 'Brouillons' :
+                     'À réviser'}
                   </button>
                 ))}
               </div>

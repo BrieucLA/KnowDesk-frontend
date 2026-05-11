@@ -366,3 +366,24 @@
 .faq-history__text strong { color: var(--neutral-900); font-weight: 500; }
 .faq-history__text time { color: var(--neutral-400); }
 
+
+/* FaqsPage — cellules du DataTable */
+.faqs-cell-question {
+  display: flex; flex-direction: column; gap: 6px;
+  min-width: 0;
+}
+.faqs-cell-question__text {
+  font-weight: 500; color: var(--neutral-900);
+}
+.faqs-cell-question__tags {
+  display: flex; flex-wrap: wrap; gap: 4px;
+}
+.faqs-cell-question__tags-more {
+  font-size: 11px; color: var(--neutral-500);
+}
+.faqs-cell-muted {
+  color: var(--neutral-400);
+}
+.faqs-cell-status {
+  display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap;
+}

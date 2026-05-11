@@ -40,4 +40,9 @@ export interface ArticleListItem {
   authorName:   string;
   updatedAt:    string;
   tags?:        string[];
+  /** Article publié non modifié depuis > 6 mois. Calculé à la volée
+   *  backend (cf articles.repository.findMany). Pas de
+   *  `last_reviewed_at` séparé pour l'instant — si on veut un bouton
+   *  « C'est à jour » à la FAQ, faudra une migration. */
+  isStale:      boolean;
 }
