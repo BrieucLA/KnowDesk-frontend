@@ -1086,7 +1086,7 @@ function KnowledgeListView(props: KnowledgeListViewProps) {
       {bulkConfirmOpen && (
         <ConfirmDialog
           title={`Supprimer ${selectedIds.size} article${selectedIds.size > 1 ? 's' : ''} ?`}
-          description={`Cette action est irréversible. Les articles utilisés dans des parcours de formation seront automatiquement épargnés et listés à la fin.`}
+          description="Cette action est irréversible."
           confirmLabel="Supprimer"
           variant="danger"
           loading={bulkDeleting}

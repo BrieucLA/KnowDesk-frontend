@@ -202,7 +202,7 @@ export function TreesPage({ onOpenTree, onEditTree, onPreviewTree }: TreesPagePr
       {bulkConfirmOpen && (
         <ConfirmDialog
           title={`Supprimer ${selectedIds.size} processus ?`}
-          description="Cette action est irréversible. Les processus utilisés dans des parcours de formation seront automatiquement épargnés."
+          description="Cette action est irréversible."
           confirmLabel="Supprimer"
           variant="danger"
           loading={bulkDeleting}

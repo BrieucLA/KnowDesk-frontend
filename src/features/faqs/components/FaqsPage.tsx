@@ -239,7 +239,7 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
       {bulkConfirmOpen && (
         <ConfirmDialog
           title={`Supprimer ${selectedIds.size} FAQ${selectedIds.size > 1 ? 's' : ''} ?`}
-          description="Cette action est irréversible. Les FAQs utilisées dans des parcours de formation seront automatiquement épargnées."
+          description="Cette action est irréversible."
           confirmLabel="Supprimer"
           variant="danger"
           loading={bulkDeleting}
