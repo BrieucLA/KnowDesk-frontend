@@ -13,6 +13,7 @@ import { ActionMenu }        from '../../../shared/components/ui/ActionMenu';
 import { FilterTabs }       from '../../../shared/components/ui/FilterTabs';
 import { CategoryFilter, aggregateCountsWithDescendants } from '../../../shared/components/ui/CategoryFilter';
 import { DataTable, type SortDir } from '../../../shared/components/ui/DataTable';
+import { BulkActionBar } from '../../../shared/components/ui/BulkActionBar';
 import { useToast } from '../../../shared/lib/useToast';
 import { ApiError } from '../../../shared/lib/apiClient';
 import { ListViewToggle, useListViewPref } from '../../../shared/components/ui/ListViewToggle';
@@ -36,8 +37,33 @@ type SortKey   = 'title' | 'category' | 'updated_at';
 export function TreesPage({ onOpenTree, onEditTree, onPreviewTree }: TreesPageProps) {
   const role    = useAuthStore(selectUserRole);
   const isAdmin = role === 'admin' || role === 'manager';
-  const { trees, loading, createTree, deleteTree, publishTree } = useTrees();
+  const { trees, loading, createTree, deleteTree, bulkDelete, publishTree } = useTrees();
   const toast = useToast();
+
+  // Bulk selection
+  const [selectedIds,     setSelectedIds]     = useState<Set<string>>(new Set());
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
+  const [bulkDeleting,    setBulkDeleting]    = useState(false);
+
+  const handleBulkDelete = useCallback(async () => {
+    setBulkDeleting(true);
+    try {
+      const res = await bulkDelete([...selectedIds]);
+      setSelectedIds(new Set());
+      setBulkConfirmOpen(false);
+      if (res.deleted.length > 0 && res.blocked.length === 0) {
+        toast.success(`${res.deleted.length} processus supprimé${res.deleted.length > 1 ? 's' : ''}.`);
+      } else if (res.deleted.length > 0 && res.blocked.length > 0) {
+        toast.success(`${res.deleted.length} supprimé${res.deleted.length > 1 ? 's' : ''}. ${res.blocked.length} bloqué${res.blocked.length > 1 ? 's' : ''} (utilisé${res.blocked.length > 1 ? 's' : ''} dans des parcours de formation).`);
+      } else {
+        toast.error(`Aucun processus supprimé : ${res.blocked.length} bloqué${res.blocked.length > 1 ? 's' : ''} par des parcours de formation.`);
+      }
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'Suppression en masse impossible.');
+    } finally {
+      setBulkDeleting(false);
+    }
+  }, [bulkDelete, selectedIds, toast]);
 
   const [tab,        setTab]        = useState<StatusTab>('all');
   const [search,     setSearch]     = useState('');
@@ -164,6 +190,24 @@ export function TreesPage({ onOpenTree, onEditTree, onPreviewTree }: TreesPagePr
           variant="danger"
           onConfirm={handleDeleteConfirm}
           onCancel={() => setConfirmDeleteId(null)}
+        />
+      )}
+      <BulkActionBar
+        count={selectedIds.size}
+        label={n => `${n} processus sélectionné${n > 1 ? 's' : ''}`}
+        onDelete={() => setBulkConfirmOpen(true)}
+        onClear={() => setSelectedIds(new Set())}
+        loading={bulkDeleting}
+      />
+      {bulkConfirmOpen && (
+        <ConfirmDialog
+          title={`Supprimer ${selectedIds.size} processus ?`}
+          description="Cette action est irréversible. Les processus utilisés dans des parcours de formation seront automatiquement épargnés."
+          confirmLabel="Supprimer"
+          variant="danger"
+          loading={bulkDeleting}
+          onConfirm={handleBulkDelete}
+          onCancel={() => setBulkConfirmOpen(false)}
         />
       )}
 
@@ -294,6 +338,9 @@ export function TreesPage({ onOpenTree, onEditTree, onPreviewTree }: TreesPagePr
             onSortChange={handleSortChange}
             onRowClick={t => onOpenTree(t.id)}
             rowActions={renderRowActions}
+            selectable={isAdmin}
+            selectedIds={selectedIds}
+            onSelectionChange={setSelectedIds}
           />
         ) : (
           <ul className="trees-list" role="list">

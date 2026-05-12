@@ -5,6 +5,7 @@ import '../faqs.css';
 import { Button }         from '../../../shared/components/ui/Button';
 import { EmptyState }     from '../../../shared/components/ui/EmptyState';
 import { ConfirmDialog }  from '../../../shared/components/ui/ConfirmDialog';
+import { BulkActionBar }  from '../../../shared/components/ui/BulkActionBar';
 import { ActionMenu }     from '../../../shared/components/ui/ActionMenu';
 import { FilterTabs }     from '../../../shared/components/ui/FilterTabs';
 import { TagsFilter }     from '../../../shared/components/ui/TagsFilter';
@@ -13,7 +14,8 @@ import { DataTable, type SortDir } from '../../../shared/components/ui/DataTable
 import { PageHeader }     from '../../../shared/components/layout/PageHeader';
 import { PageToolbar, PageToolbarSearch } from '../../../shared/components/layout/PageToolbar';
 import { formatRelative } from '../../../shared/lib/formatDate';
-import { apiClient }      from '../../../shared/lib/apiClient';
+import { apiClient, ApiError } from '../../../shared/lib/apiClient';
+import { useToast }       from '../../../shared/lib/useToast';
 import { useAuthStore, selectUserRole } from '../../../store/authStore';
 import { tagsApi, type OrgTag } from '../../articles/api/tagsApi';
 import type { FaqListItem, FaqStatus, FaqSortBy, FaqSortDir } from '../types';
@@ -43,6 +45,7 @@ const SORT_TO_COL: Record<FaqSortBy, string> = {
 export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
   const role    = useAuthStore(selectUserRole);
   const canEdit = role === 'admin' || role === 'manager';
+  const toast   = useToast();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -63,6 +66,11 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
   const [orgTags,    setOrgTags]    = useState<OrgTag[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
 
+  // Bulk selection (admin/manager only)
+  const [selectedIds,     setSelectedIds]     = useState<Set<string>>(new Set());
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
+  const [bulkDeleting,    setBulkDeleting]    = useState(false);
+
   // Stratégie : pas de filtre statut/staleOnly envoyé au backend — on charge
   // tout (jusqu'à perPage=200) et on filtre/compte localement. Permet
   // d'avoir des compteurs cohérents sur les onglets (Toutes / Publiées /
@@ -78,7 +86,7 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
     perPage:              200,
   }), [search, activeTags, categoryId, sortBy, sortDir]);
 
-  const { items: rawItems, loading, setFilters, remove } = useFaqs(filterPayload);
+  const { items: rawItems, loading, setFilters, remove, bulkRemove } = useFaqs(filterPayload);
 
   useEffect(() => { setFilters(filterPayload); }, [filterPayload, setFilters]);
 
@@ -195,6 +203,17 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
     />
   );
 
+  const handleBulkDelete = async () => {
+    setBulkDeleting(true);
+    try {
+      await bulkRemove([...selectedIds]);
+      setSelectedIds(new Set());
+      setBulkConfirmOpen(false);
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
   return (
     <>
       {confirmDelete && (
@@ -208,6 +227,24 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
             if (ok) setConfirmDelete(null);
           }}
           onCancel={() => setConfirmDelete(null)}
+        />
+      )}
+      <BulkActionBar
+        count={selectedIds.size}
+        label={n => `${n} FAQ${n > 1 ? 's' : ''} sélectionnée${n > 1 ? 's' : ''}`}
+        onDelete={() => setBulkConfirmOpen(true)}
+        onClear={() => setSelectedIds(new Set())}
+        loading={bulkDeleting}
+      />
+      {bulkConfirmOpen && (
+        <ConfirmDialog
+          title={`Supprimer ${selectedIds.size} FAQ${selectedIds.size > 1 ? 's' : ''} ?`}
+          description="Cette action est irréversible. Les FAQs utilisées dans des parcours de formation seront automatiquement épargnées."
+          confirmLabel="Supprimer"
+          variant="danger"
+          loading={bulkDeleting}
+          onConfirm={handleBulkDelete}
+          onCancel={() => setBulkConfirmOpen(false)}
         />
       )}
 
@@ -330,6 +367,9 @@ export function FaqsPage({ onNewFaq, onEditFaq }: FaqsPageProps) {
           onRowClick={canEdit ? faq => onEditFaq(faq.id) : undefined}
           rowActions={renderRowActions}
           emptyState={emptyState}
+          selectable={canEdit}
+          selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
           rowClassName={faq => faq.id === highlightedId ? 'faqs-row--focused' : undefined}
           rowRef={(faq, el) => {
             if (faq.id === focusId) focusedRowRef.current = el;

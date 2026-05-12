@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ApiError }     from '../../../shared/lib/apiClient';
+import { apiClient, ApiError } from '../../../shared/lib/apiClient';
 import { useToast }     from '../../../shared/lib/useToast';
 import { faqsApi }      from '../api/faqsApi';
 import type { FaqListItem, FaqListFilters } from '../types';
@@ -46,5 +46,29 @@ export function useFaqs(initialFilters: FaqListFilters = {}) {
     }
   }, [toast]);
 
-  return { items, loading, filters, setFilters, reload, remove };
+  // Bulk delete : partitionne deleted/blocked côté backend, on retire les
+  // supprimés du state local et on toast un récap.
+  const bulkRemove = useCallback(async (ids: string[]): Promise<{ deleted: number; blocked: number }> => {
+    try {
+      const res = await apiClient.post<{
+        deleted: string[];
+        blocked: Array<{ id: string; title: string; pathNames: string[] }>;
+      }>('/faqs/bulk-delete', { ids });
+      const deletedSet = new Set(res.deleted);
+      setItems(prev => prev.filter(f => !deletedSet.has(f.id)));
+      if (res.deleted.length > 0 && res.blocked.length === 0) {
+        toast.success(`${res.deleted.length} FAQ${res.deleted.length > 1 ? 's' : ''} supprimée${res.deleted.length > 1 ? 's' : ''}.`);
+      } else if (res.deleted.length > 0 && res.blocked.length > 0) {
+        toast.success(`${res.deleted.length} supprimée${res.deleted.length > 1 ? 's' : ''}. ${res.blocked.length} bloquée${res.blocked.length > 1 ? 's' : ''} (utilisée${res.blocked.length > 1 ? 's' : ''} dans des parcours de formation).`);
+      } else {
+        toast.error(`Aucune FAQ supprimée : ${res.blocked.length} bloquée${res.blocked.length > 1 ? 's' : ''} par des parcours de formation.`);
+      }
+      return { deleted: res.deleted.length, blocked: res.blocked.length };
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'Suppression en masse impossible.');
+      return { deleted: 0, blocked: 0 };
+    }
+  }, [toast]);
+
+  return { items, loading, filters, setFilters, reload, remove, bulkRemove };
 }

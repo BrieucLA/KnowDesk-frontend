@@ -31,10 +31,20 @@ export function useTrees() {
     setTrees(prev => prev.filter(t => t.id !== id));
   }, []);
 
+  const bulkDelete = useCallback(async (ids: string[]) => {
+    const res = await apiClient.post<{
+      deleted: string[];
+      blocked: Array<{ id: string; title: string; pathNames: string[] }>;
+    }>('/trees/bulk-delete', { ids });
+    const deletedSet = new Set(res.deleted);
+    setTrees(prev => prev.filter(t => !deletedSet.has(t.id)));
+    return res;
+  }, []);
+
   const publishTree = useCallback(async (id: string) => {
     await apiClient.put(`/trees/${id}/publish`);
     setTrees(prev => prev.map(t => t.id === id ? { ...t, status: 'published' as const } : t));
   }, []);
 
-  return { trees, loading, load, createTree, deleteTree, publishTree };
+  return { trees, loading, load, createTree, deleteTree, bulkDelete, publishTree };
 }
