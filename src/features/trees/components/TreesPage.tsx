@@ -13,6 +13,8 @@ import { ActionMenu }        from '../../../shared/components/ui/ActionMenu';
 import { FilterTabs }       from '../../../shared/components/ui/FilterTabs';
 import { CategoryFilter, aggregateCountsWithDescendants } from '../../../shared/components/ui/CategoryFilter';
 import { DataTable, type SortDir } from '../../../shared/components/ui/DataTable';
+import { useToast } from '../../../shared/lib/useToast';
+import { ApiError } from '../../../shared/lib/apiClient';
 import { ListViewToggle, useListViewPref } from '../../../shared/components/ui/ListViewToggle';
 import { PageHeader }       from '../../../shared/components/layout/PageHeader';
 import { PageToolbar, PageToolbarSearch } from '../../../shared/components/layout/PageToolbar';
@@ -35,6 +37,7 @@ export function TreesPage({ onOpenTree, onEditTree, onPreviewTree }: TreesPagePr
   const role    = useAuthStore(selectUserRole);
   const isAdmin = role === 'admin' || role === 'manager';
   const { trees, loading, createTree, deleteTree, publishTree } = useTrees();
+  const toast = useToast();
 
   const [tab,        setTab]        = useState<StatusTab>('all');
   const [search,     setSearch]     = useState('');
@@ -107,9 +110,17 @@ export function TreesPage({ onOpenTree, onEditTree, onPreviewTree }: TreesPagePr
   const handleDeleteRequest = (id: string) => setConfirmDeleteId(id);
   const handleDeleteConfirm = useCallback(async () => {
     if (!confirmDeleteId) return;
-    await deleteTree(confirmDeleteId);
-    setConfirmDeleteId(null);
-  }, [confirmDeleteId, deleteTree]);
+    try {
+      await deleteTree(confirmDeleteId);
+      setConfirmDeleteId(null);
+      toast.success('Processus supprimé.');
+    } catch (err) {
+      // Le backend renvoie 409 quand le processus est référencé dans
+      // un parcours de formation. On affiche le message tel quel.
+      toast.error(err instanceof ApiError ? err.message : 'Suppression impossible.');
+      setConfirmDeleteId(null);
+    }
+  }, [confirmDeleteId, deleteTree, toast]);
 
   const renderRowActions = (tree: QuestionTreeSummary) => isAdmin ? (
     <ActionMenu
