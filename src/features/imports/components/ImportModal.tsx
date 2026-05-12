@@ -179,12 +179,13 @@ export function ImportModal({ onClose, onCompleted }: ImportModalProps) {
                   onChange={() => setSplitMode('split_by_section')}
                 />
                 <span>
-                  <strong>Découper en sections (recommandé pour les gros docs)</strong>
+                  <strong>Découper en articles (recommandé pour les gros docs)</strong>
                   <small>
-                    KnowDesk repère les titres (numérotation, headings Word, lignes en MAJUSCULES)
-                    et crée un article par section. Si aucun titre n'est détecté, fallback
-                    automatique sur 1 article unique. <em>Pour PPTX : ignoré, chaque slide devient
-                    automatiquement un article.</em>
+                    KnowDesk analyse le document avec un modèle vision pour détecter les
+                    articles distincts (y compris quand un titre est sur une page et son
+                    contenu sur la suivante). Si un seul article est trouvé, on retombe
+                    naturellement sur un import unique. <em>Pour PPTX : chaque slide devient
+                    un article ; pour DOCX : on repère les titres Word.</em>
                   </small>
                 </span>
               </label>
