@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '../../../shared/lib/apiClient';
+import { bulkDeleteInChunks } from '../../../shared/lib/bulkDelete';
 import type { QuestionTreeSummary, QuestionTree } from '../types';
 
 export function useTrees() {
@@ -32,10 +33,7 @@ export function useTrees() {
   }, []);
 
   const bulkDelete = useCallback(async (ids: string[]) => {
-    const res = await apiClient.post<{
-      deleted: string[];
-      blocked: Array<{ id: string; title: string; pathNames: string[] }>;
-    }>('/trees/bulk-delete', { ids });
+    const res = await bulkDeleteInChunks('/trees/bulk-delete', ids);
     const deletedSet = new Set(res.deleted);
     setTrees(prev => prev.filter(t => !deletedSet.has(t.id)));
     return res;

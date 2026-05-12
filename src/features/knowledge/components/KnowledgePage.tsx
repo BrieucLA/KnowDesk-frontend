@@ -17,6 +17,7 @@ import { Button }           from '../../../shared/components/ui/Button';
 import { Input }            from '../../../shared/components/ui/Input';
 import { ConfirmDialog }    from '../../../shared/components/ui/ConfirmDialog';
 import { BulkActionBar }    from '../../../shared/components/ui/BulkActionBar';
+import { bulkDeleteInChunks } from '../../../shared/lib/bulkDelete';
 import { EntityRow }        from '../../../shared/components/ui/EntityRow';
 import { PageHeader }       from '../../../shared/components/layout/PageHeader';
 import { knowledgeApi } from '../api/knowledgeApi';
@@ -906,10 +907,7 @@ function KnowledgeListView(props: KnowledgeListViewProps) {
   const handleBulkDelete = useCallback(async () => {
     setBulkDeleting(true);
     try {
-      const res = await apiClient.post<{
-        deleted: string[];
-        blocked: Array<{ id: string; title: string; pathNames: string[] }>;
-      }>('/articles/bulk-delete', { ids: [...selectedIds] });
+      const res = await bulkDeleteInChunks('/articles/bulk-delete', [...selectedIds]);
 
       // Retire les articles bien supprimés du state local
       const deletedSet = new Set(res.deleted);

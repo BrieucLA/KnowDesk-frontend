@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { apiClient, ApiError } from '../../../shared/lib/apiClient';
+import { bulkDeleteInChunks }   from '../../../shared/lib/bulkDelete';
 import { useToast }     from '../../../shared/lib/useToast';
 import { faqsApi }      from '../api/faqsApi';
 import type { FaqListItem, FaqListFilters } from '../types';
@@ -47,13 +48,11 @@ export function useFaqs(initialFilters: FaqListFilters = {}) {
   }, [toast]);
 
   // Bulk delete : partitionne deleted/blocked côté backend, on retire les
-  // supprimés du state local et on toast un récap.
+  // supprimés du state local et on toast un récap. Chunké en lots de 100
+  // pour gérer les gros nettoyages sans saturer le backend.
   const bulkRemove = useCallback(async (ids: string[]): Promise<{ deleted: number; blocked: number }> => {
     try {
-      const res = await apiClient.post<{
-        deleted: string[];
-        blocked: Array<{ id: string; title: string; pathNames: string[] }>;
-      }>('/faqs/bulk-delete', { ids });
+      const res = await bulkDeleteInChunks('/faqs/bulk-delete', ids);
       const deletedSet = new Set(res.deleted);
       setItems(prev => prev.filter(f => !deletedSet.has(f.id)));
       if (res.deleted.length > 0 && res.blocked.length === 0) {
