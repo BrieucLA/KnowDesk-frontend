@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Skeleton } from './Skeleton';
 import './DataTable.css';
 
@@ -97,15 +97,43 @@ export function DataTable<T>({
     && allSelectableIds.some(id => selectedIds?.has(id))
     && !allSelected;
 
-  const toggleRow = (id: string) => {
+  // Anchor pour la sélection en plage avec Shift+click. Garde l'ID de
+  // la dernière ligne cochée SANS shift. Pattern Finder / Gmail.
+  const anchorIdRef = useRef<string | null>(null);
+
+  const toggleRow = (id: string, shiftKey = false) => {
     if (!onSelectionChange || !selectedIds) return;
     const next = new Set(selectedIds);
+
+    if (shiftKey && anchorIdRef.current && anchorIdRef.current !== id) {
+      // Sélection en plage : on étend de l'anchor jusqu'à `id` inclus.
+      // Référence sur la liste affichée (data filtrée/triée par le parent),
+      // pas sur la liste globale — comportement attendu par l'utilisateur.
+      const startIdx = data.findIndex(r => rowKey(r) === anchorIdRef.current);
+      const endIdx   = data.findIndex(r => rowKey(r) === id);
+      if (startIdx !== -1 && endIdx !== -1) {
+        const [from, to] = startIdx <= endIdx ? [startIdx, endIdx] : [endIdx, startIdx];
+        // On force la sélection (add) plutôt qu'un toggle sur la plage :
+        // évite que le shift désélectionne brutalement la moitié visible.
+        for (let i = from; i <= to; i++) {
+          const row = data[i];
+          if (isRowSelectable && !isRowSelectable(row)) continue;
+          next.add(rowKey(row));
+        }
+        onSelectionChange(next);
+        return;
+      }
+    }
+
+    // Click simple (ou shift sans anchor) : toggle + mémorise comme anchor
     if (next.has(id)) next.delete(id); else next.add(id);
+    anchorIdRef.current = id;
     onSelectionChange(next);
   };
   const toggleAll = () => {
     if (!onSelectionChange) return;
     onSelectionChange(allSelected ? new Set() : new Set(allSelectableIds));
+    anchorIdRef.current = null;
   };
 
   if (loading) {
@@ -202,7 +230,12 @@ export function DataTable<T>({
                       aria-label={isSelected ? 'Désélectionner' : 'Sélectionner'}
                       checked={!!isSelected}
                       disabled={!canSelect}
-                      onChange={() => toggleRow(id)}
+                      onChange={e => {
+                        // L'event natif du change (déclenché par click) porte
+                        // shiftKey, contrairement à React.ChangeEvent.
+                        const native = e.nativeEvent as MouseEvent;
+                        toggleRow(id, !!native.shiftKey);
+                      }}
                     />
                   </td>
                 )}
