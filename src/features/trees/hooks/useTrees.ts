@@ -36,8 +36,12 @@ export function useTrees() {
     const res = await bulkDeleteInChunks('/trees/bulk-delete', ids);
     const deletedSet = new Set(res.deleted);
     setTrees(prev => prev.filter(t => !deletedSet.has(t.id)));
+    // Refetch pour rapporter les processus « page suivante » non chargés.
+    if (res.deleted.length > 0) {
+      try { await load(); } catch { /* déjà silencieux côté load */ }
+    }
     return res;
-  }, []);
+  }, [load]);
 
   const publishTree = useCallback(async (id: string) => {
     await apiClient.put(`/trees/${id}/publish`);

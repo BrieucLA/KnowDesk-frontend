@@ -62,12 +62,17 @@ export function useFaqs(initialFilters: FaqListFilters = {}) {
       } else {
         toast.error(`Aucune FAQ supprimée : ${res.blocked.length} bloquée${res.blocked.length > 1 ? 's' : ''} par des parcours de formation.`);
       }
+      // Refetch pour rapporter les FAQs « page suivante » qui n'étaient
+      // pas chargées (perPage cap). Sinon liste presque vide en trompe-l'œil.
+      if (res.deleted.length > 0) {
+        try { await reload(); } catch { /* déjà toasté côté reload */ }
+      }
       return { deleted: res.deleted.length, blocked: res.blocked.length };
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : 'Suppression en masse impossible.');
       return { deleted: 0, blocked: 0 };
     }
-  }, [toast]);
+  }, [toast, reload]);
 
   return { items, loading, filters, setFilters, reload, remove, bulkRemove };
 }

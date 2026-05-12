@@ -56,6 +56,10 @@ export function KnowledgePage({ onOpenArticle, onNewArticle }: KnowledgePageProp
 
   const [categories,     setCategories]     = useState<Category[]>([]);
   const [articles,       setArticles]       = useState<ArticleListItem[]>([]);
+  // Compteur incrémenté après un bulk delete pour forcer un refetch.
+  // Sans ça, supprimer 200 articles sur 500 laisse la liste presque vide
+  // (perPage=200, page 2+ jamais chargée) — trompe-l'œil pour l'admin.
+  const [reloadCounter,  setReloadCounter]  = useState(0);
   const [selectedCatId,  setSelectedCatId]  = useState<string | null>(null);
   const [loadingCats,    setLoadingCats]    = useState(true);
   const [loadingArticles, setLoadingArticles] = useState(false);
@@ -202,7 +206,7 @@ export function KnowledgePage({ onOpenArticle, onNewArticle }: KnowledgePageProp
         toast.error(err instanceof ApiError ? err.message : 'Impossible de charger les articles.');
         setLoadingArticles(false);
       });
-  }, [selectedCatId, sort, toast]);
+  }, [selectedCatId, sort, toast, reloadCounter]);
 
   const toggleTag = useCallback((tag: string) => {
     setActiveTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
@@ -367,6 +371,7 @@ export function KnowledgePage({ onOpenArticle, onNewArticle }: KnowledgePageProp
         role={role}
         articles={articles}
         setArticles={setArticles}
+        onReload={() => setReloadCounter(c => c + 1)}
         categories={categories}
         filter={filter}
         setFilter={setFilter}
@@ -863,6 +868,8 @@ interface KnowledgeListViewProps {
   role:            string | null;
   articles:        ArticleListItem[];
   setArticles:     React.Dispatch<React.SetStateAction<ArticleListItem[]>>;
+  /** Force le parent à refetcher la liste depuis le backend (post bulk delete). */
+  onReload:        () => void;
   categories:      Category[];
   filter:          'all' | 'published' | 'draft' | 'stale';
   setFilter:       (f: 'all' | 'published' | 'draft' | 'stale') => void;
@@ -887,7 +894,7 @@ function KnowledgeListView(props: KnowledgeListViewProps) {
     isAdmin, role, articles, setArticles, categories, filter, setFilter,
     searchQuery, setSearchQuery, activeTags, setActiveTags, selectedCatId,
     setSelectedCatId, loadingArticles, orgTags, onOpenArticle, onNewArticle,
-    onOpenImport, importModal,
+    onOpenImport, importModal, onReload,
   } = props;
 
   const navigate = useNavigate();
@@ -914,6 +921,13 @@ function KnowledgeListView(props: KnowledgeListViewProps) {
       setArticles(prev => prev.filter(a => !deletedSet.has(a.id)));
       setSelectedIds(new Set());
       setBulkConfirmOpen(false);
+
+      // Trigger un refetch pour rapporter les articles « page suivante »
+      // qui n'étaient pas dans le perPage=200 initial. Sans ça, après un
+      // delete massif l'admin voit une liste presque vide à tort.
+      if (res.deleted.length > 0) {
+        onReload();
+      }
 
       // Toast récap : succès + (éventuel) résumé des bloqués
       if (res.deleted.length > 0 && res.blocked.length === 0) {
