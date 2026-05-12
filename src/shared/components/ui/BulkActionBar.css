@@ -1,0 +1,46 @@
+.bulk-action-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex; align-items: center; gap: 16px;
+  padding: 10px 16px;
+  background: var(--neutral-900);
+  color: var(--neutral-0);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  font-size: 13px;
+  animation: bulk-bar-in 0.18s ease-out;
+}
+.bulk-action-bar__count {
+  font-weight: 500;
+  white-space: nowrap;
+}
+.bulk-action-bar__actions {
+  display: flex; gap: 8px;
+}
+.bulk-action-bar__actions .btn {
+  /* Bouton ghost / danger sur fond foncé : on force les couleurs lisibles */
+  background: rgba(255,255,255,0.08);
+  color: var(--neutral-0);
+  border-color: rgba(255,255,255,0.16);
+}
+.bulk-action-bar__actions .btn:hover:not(:disabled) {
+  background: rgba(255,255,255,0.16);
+  border-color: rgba(255,255,255,0.24);
+}
+.bulk-action-bar__actions .btn--danger {
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+  color: white;
+}
+.bulk-action-bar__actions .btn--danger:hover:not(:disabled) {
+  background: #c52323;
+  border-color: #c52323;
+}
+
+@keyframes bulk-bar-in {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}

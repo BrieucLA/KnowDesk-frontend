@@ -16,6 +16,7 @@ import { Modal }            from '../../../shared/components/ui/Modal';
 import { Button }           from '../../../shared/components/ui/Button';
 import { Input }            from '../../../shared/components/ui/Input';
 import { ConfirmDialog }    from '../../../shared/components/ui/ConfirmDialog';
+import { BulkActionBar }    from '../../../shared/components/ui/BulkActionBar';
 import { EntityRow }        from '../../../shared/components/ui/EntityRow';
 import { PageHeader }       from '../../../shared/components/layout/PageHeader';
 import { knowledgeApi } from '../api/knowledgeApi';
@@ -897,6 +898,42 @@ function KnowledgeListView(props: KnowledgeListViewProps) {
   const [confirmDelete, setConfirmDelete] = useState<ArticleListItem | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // ── Bulk selection ────────────────────────────────────────────
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+
+  const handleBulkDelete = useCallback(async () => {
+    setBulkDeleting(true);
+    try {
+      const res = await apiClient.post<{
+        deleted: string[];
+        blocked: Array<{ id: string; title: string; pathNames: string[] }>;
+      }>('/articles/bulk-delete', { ids: [...selectedIds] });
+
+      // Retire les articles bien supprimés du state local
+      const deletedSet = new Set(res.deleted);
+      setArticles(prev => prev.filter(a => !deletedSet.has(a.id)));
+      setSelectedIds(new Set());
+      setBulkConfirmOpen(false);
+
+      // Toast récap : succès + (éventuel) résumé des bloqués
+      if (res.deleted.length > 0 && res.blocked.length === 0) {
+        toast.success(`${res.deleted.length} article${res.deleted.length > 1 ? 's' : ''} supprimé${res.deleted.length > 1 ? 's' : ''}.`);
+      } else if (res.deleted.length > 0 && res.blocked.length > 0) {
+        toast.success(
+          `${res.deleted.length} supprimé${res.deleted.length > 1 ? 's' : ''}. ${res.blocked.length} bloqué${res.blocked.length > 1 ? 's' : ''} (utilisé${res.blocked.length > 1 ? 's' : ''} dans des parcours de formation).`,
+        );
+      } else {
+        toast.error(`Aucun article supprimé : ${res.blocked.length} bloqué${res.blocked.length > 1 ? 's' : ''} par des parcours de formation.`);
+      }
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'Suppression en masse impossible.');
+    } finally {
+      setBulkDeleting(false);
+    }
+  }, [selectedIds, toast]);
+
   const handleDelete = async () => {
     if (!confirmDelete) return;
     setDeleting(true);
@@ -1027,6 +1064,24 @@ function KnowledgeListView(props: KnowledgeListViewProps) {
   return (
     <div className="knowledge-page-wrap">
       {importModal}
+      <BulkActionBar
+        count={selectedIds.size}
+        label={n => `${n} article${n > 1 ? 's' : ''} sélectionné${n > 1 ? 's' : ''}`}
+        onDelete={() => setBulkConfirmOpen(true)}
+        onClear={() => setSelectedIds(new Set())}
+        loading={bulkDeleting}
+      />
+      {bulkConfirmOpen && (
+        <ConfirmDialog
+          title={`Supprimer ${selectedIds.size} article${selectedIds.size > 1 ? 's' : ''} ?`}
+          description={`Cette action est irréversible. Les articles utilisés dans des parcours de formation seront automatiquement épargnés et listés à la fin.`}
+          confirmLabel="Supprimer"
+          variant="danger"
+          loading={bulkDeleting}
+          onConfirm={handleBulkDelete}
+          onCancel={() => setBulkConfirmOpen(false)}
+        />
+      )}
       {confirmDelete && (
         <ConfirmDialog
           title="Supprimer cet article ?"
@@ -1145,6 +1200,9 @@ function KnowledgeListView(props: KnowledgeListViewProps) {
           onRowClick={a => onOpenArticle(a.id)}
           rowActions={isAdmin ? renderRowActions : undefined}
           emptyState={emptyState}
+          selectable={isAdmin}
+          selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
         />
       ) : loadingArticles ? (
         <ul className="article-list" aria-busy="true">

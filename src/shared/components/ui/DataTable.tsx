@@ -42,6 +42,13 @@ interface DataTableProps<T> {
   rowClassName?:  (row: T) => string | undefined;
   /** Optionnel : pose un ref sur la ligne (typiquement pour scrollIntoView). */
   rowRef?:        (row: T, el: HTMLTableRowElement | null) => void;
+  /** Active la colonne de cases à cocher pour sélection multiple.
+   *  Le parent contrôle l'état via `selectedIds` + `onSelectionChange`. */
+  selectable?:   boolean;
+  selectedIds?:  ReadonlySet<string>;
+  onSelectionChange?: (ids: Set<string>) => void;
+  /** Optionnel : empêche la sélection d'une ligne (ex: row.status === 'protected'). */
+  isRowSelectable?: (row: T) => boolean;
 }
 
 /**
@@ -64,6 +71,10 @@ export function DataTable<T>({
   skeletonRows = 5,
   rowClassName,
   rowRef,
+  selectable,
+  selectedIds,
+  onSelectionChange,
+  isRowSelectable,
 }: DataTableProps<T>) {
   const toggleSort = (key: string) => {
     if (!onSortChange) return;
@@ -72,6 +83,29 @@ export function DataTable<T>({
     } else {
       onSortChange(key, 'asc');
     }
+  };
+
+  // ── Sélection multiple ─────────────────────────────────────────
+  const selectableRows = selectable
+    ? data.filter(r => !isRowSelectable || isRowSelectable(r))
+    : [];
+  const allSelectableIds = selectableRows.map(rowKey);
+  const allSelected = selectable
+    && allSelectableIds.length > 0
+    && allSelectableIds.every(id => selectedIds?.has(id));
+  const someSelected = selectable
+    && allSelectableIds.some(id => selectedIds?.has(id))
+    && !allSelected;
+
+  const toggleRow = (id: string) => {
+    if (!onSelectionChange || !selectedIds) return;
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    onSelectionChange(next);
+  };
+  const toggleAll = () => {
+    if (!onSelectionChange) return;
+    onSelectionChange(allSelected ? new Set() : new Set(allSelectableIds));
   };
 
   if (loading) {
@@ -95,6 +129,17 @@ export function DataTable<T>({
       <table className="data-table__table" role="table">
         <thead>
           <tr>
+            {selectable && (
+              <th scope="col" className="data-table__th data-table__th--select">
+                <input
+                  type="checkbox"
+                  aria-label={allSelected ? 'Tout désélectionner' : 'Tout sélectionner'}
+                  checked={allSelected}
+                  ref={el => { if (el) el.indeterminate = !!someSelected; }}
+                  onChange={toggleAll}
+                />
+              </th>
+            )}
             {columns.map(col => (
               <th
                 key={col.key}
@@ -136,31 +181,50 @@ export function DataTable<T>({
           </tr>
         </thead>
         <tbody>
-          {data.map(row => (
-            <tr
-              key={rowKey(row)}
-              ref={rowRef ? (el) => rowRef(row, el) : undefined}
-              className={`data-table__row ${onRowClick ? 'data-table__row--clickable' : ''} ${rowClassName?.(row) ?? ''}`}
-              onClick={onRowClick ? () => onRowClick(row) : undefined}
-            >
-              {columns.map(col => (
-                <td
-                  key={col.key}
-                  className={`data-table__td data-table__td--${col.align ?? 'left'} ${col.cellClassName ?? ''}`}
-                >
-                  {col.render ? col.render(row) : (row as Record<string, unknown>)[col.key] as React.ReactNode}
-                </td>
-              ))}
-              {rowActions && (
-                <td
-                  className="data-table__td data-table__td--actions"
-                  onClick={e => e.stopPropagation()}
-                >
-                  {rowActions(row)}
-                </td>
-              )}
-            </tr>
-          ))}
+          {data.map(row => {
+            const id = rowKey(row);
+            const canSelect = !selectable || !isRowSelectable || isRowSelectable(row);
+            const isSelected = selectable && selectedIds?.has(id);
+            return (
+              <tr
+                key={id}
+                ref={rowRef ? (el) => rowRef(row, el) : undefined}
+                className={`data-table__row ${onRowClick ? 'data-table__row--clickable' : ''} ${isSelected ? 'data-table__row--selected' : ''} ${rowClassName?.(row) ?? ''}`}
+                onClick={onRowClick ? () => onRowClick(row) : undefined}
+              >
+                {selectable && (
+                  <td
+                    className="data-table__td data-table__td--select"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <input
+                      type="checkbox"
+                      aria-label={isSelected ? 'Désélectionner' : 'Sélectionner'}
+                      checked={!!isSelected}
+                      disabled={!canSelect}
+                      onChange={() => toggleRow(id)}
+                    />
+                  </td>
+                )}
+                {columns.map(col => (
+                  <td
+                    key={col.key}
+                    className={`data-table__td data-table__td--${col.align ?? 'left'} ${col.cellClassName ?? ''}`}
+                  >
+                    {col.render ? col.render(row) : (row as Record<string, unknown>)[col.key] as React.ReactNode}
+                  </td>
+                ))}
+                {rowActions && (
+                  <td
+                    className="data-table__td data-table__td--actions"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    {rowActions(row)}
+                  </td>
+                )}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

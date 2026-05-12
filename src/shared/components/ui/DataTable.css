@@ -32,6 +32,28 @@
   width: 1px;
   padding-right: 14px;
 }
+.data-table__th--select {
+  width: 36px;
+  padding-left: 14px;
+  padding-right: 4px;
+}
+.data-table__td--select {
+  width: 36px;
+  padding-left: 14px;
+  padding-right: 4px;
+}
+.data-table__th--select input,
+.data-table__td--select input {
+  cursor: pointer;
+  width: 16px; height: 16px;
+  accent-color: var(--brand-600);
+}
+.data-table__row--selected {
+  background: var(--brand-50);
+}
+.data-table__row--selected:hover {
+  background: var(--brand-100, #DBE4FF);
+}
 
 .data-table__sort {
   background: none;
