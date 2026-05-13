@@ -29,7 +29,7 @@ export interface ChatModelMeta {
   description:  string;
 }
 
-export type AiServiceKey = 'chat-response' | 'search-ai' | 'slot-filling' | 'topic-clustering' | 'article-quality' | 'learning-quiz' | 'chat-query-rewrite';
+export type AiServiceKey = 'chat-response' | 'search-ai' | 'slot-filling' | 'topic-clustering' | 'article-quality' | 'learning-quiz' | 'chat-query-rewrite' | 'import-pdf-slicing' | 'import-pdf-vision';
 
 export interface AiServiceItem {
   key:         AiServiceKey;
@@ -37,6 +37,10 @@ export interface AiServiceItem {
   description: string;
   modifiable:  boolean;
   model:       ChatModelId;
+  /** Si présent, à afficher à la place du label dérivé de availableModels.
+   *  Utilisé pour les services qui utilisent un modèle hors-whitelist chat
+   *  (ex : Pixtral Large pour la vision PDF). */
+  modelLabel?: string | null;
 }
 
 export interface AiServicesPayload {

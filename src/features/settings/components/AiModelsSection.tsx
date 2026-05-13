@@ -134,7 +134,7 @@ function ServiceCard({ service, availableModels, saving, onChangeModel }: Servic
         <div className="ai-models__service-current">
           <span className="ai-models__flag" aria-hidden="true">{flag}</span>
           <span className="ai-models__current-label">
-            {currentMeta?.label ?? service.model}
+            {service.modelLabel ?? currentMeta?.label ?? service.model}
           </span>
           {!service.modifiable && (
             <span className="ai-models__lock" title="Non modifiable en V1" aria-label="Verrouillé">
