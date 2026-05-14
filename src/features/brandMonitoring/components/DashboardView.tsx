@@ -91,15 +91,39 @@ export function DashboardView({ projectId, onReloadProject }: DashboardViewProps
         </div>
       )}
 
-      {hasData && sov && (
-        <section className="bm-card">
-          <h3 className="bm-card__title">Part de voix globale</h3>
-          <p className="bm-card__sub">
-            {sov.totalMentions} mentions cumulées sur {sov.responseCount} réponses.
-          </p>
-          <ShareOfVoiceBars byBrand={sov.byBrand} totalMentions={sov.totalMentions} />
-        </section>
-      )}
+      {hasData && sov && (() => {
+        // R-S6 — si le projet contient des produits (`kind='product'`),
+        // on splitte en 2 cards distinctes pour ne pas mélanger les
+        // analyses : la part de voix Auchan vs Carrefour (enseignes) est
+        // différente de la part de voix Auchan Bio vs Carrefour Bio (produits).
+        const brandsOnly   = sov.byBrand.filter(b => (b.kind ?? 'brand') === 'brand');
+        const productsOnly = sov.byBrand.filter(b => b.kind === 'product');
+        const totalBrand   = brandsOnly.reduce((s, b) => s + b.totalMentions, 0);
+        const totalProduct = productsOnly.reduce((s, b) => s + b.totalMentions, 0);
+        const recalcPct = (arr: typeof sov.byBrand, total: number) =>
+          arr.map(b => ({ ...b, pct: total > 0 ? (b.totalMentions / total) * 100 : 0 }));
+        return (
+          <>
+            <section className="bm-card">
+              <h3 className="bm-card__title">Part de voix — marques</h3>
+              <p className="bm-card__sub">
+                {totalBrand} mentions d'enseignes cumulées sur {sov.responseCount} réponses.
+              </p>
+              <ShareOfVoiceBars byBrand={recalcPct(brandsOnly, totalBrand)} totalMentions={totalBrand} />
+            </section>
+            {productsOnly.length > 0 && (
+              <section className="bm-card">
+                <h3 className="bm-card__title">Part de voix — produits (AI Shopping)</h3>
+                <p className="bm-card__sub">
+                  {totalProduct} mentions de produits cumulées sur {sov.responseCount} réponses.
+                  Mesure ce que l'IA recommande aux utilisateurs sur les questions shopping.
+                </p>
+                <ShareOfVoiceBars byBrand={recalcPct(productsOnly, totalProduct)} totalMentions={totalProduct} />
+              </section>
+            )}
+          </>
+        );
+      })()}
 
       {hasData && <TimelineChart projectId={projectId} />}
 

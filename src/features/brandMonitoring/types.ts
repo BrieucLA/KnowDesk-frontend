@@ -60,12 +60,15 @@ export interface SuggestPromptsPayload {
   prompts:       Array<{ text: string; topicHint: string }>;
 }
 
+export type MonitoredBrandKind = 'brand' | 'product';
+
 export interface MonitoredBrand {
   id:         string;
   project_id: string;
   name:       string;
   aliases:    string[];
   is_owner:   boolean;
+  kind:       MonitoredBrandKind;
   created_at: string;
 }
 
@@ -98,6 +101,7 @@ export interface ShareOfVoiceBrand {
   brandId:       string;
   brandName:     string;
   isOwner:       boolean;
+  kind:          MonitoredBrandKind;
   totalMentions: number;
   pct:           number;
 }

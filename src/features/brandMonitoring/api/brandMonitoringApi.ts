@@ -3,7 +3,7 @@ import type {
   BrandProject, MonitoredBrand, MonitoringPrompt, PromptRun,
   ShareOfVoice, TopicSov, Timeline, ResponseWithMentions,
   IndustryMeta, IndustryKey, SuggestPromptsPayload, LlmMode,
-  ProviderMeta, BrandMonitoringProvider,
+  ProviderMeta, BrandMonitoringProvider, MonitoredBrandKind,
 } from '../types';
 
 const BASE = '/brand-monitoring';
@@ -40,9 +40,9 @@ export const brandMonitoringApi = {
   // Brands
   listBrands:    (projectId: string) =>
     apiClient.get<MonitoredBrand[]>(`${BASE}/projects/${projectId}/brands`),
-  createBrand:   (projectId: string, body: { name: string; aliases: string[]; isOwner: boolean }) =>
+  createBrand:   (projectId: string, body: { name: string; aliases: string[]; isOwner: boolean; kind?: MonitoredBrandKind }) =>
     apiClient.post<MonitoredBrand>(`${BASE}/projects/${projectId}/brands`, body),
-  updateBrand:   (brandId: string, body: { name?: string; aliases?: string[]; isOwner?: boolean }) =>
+  updateBrand:   (brandId: string, body: { name?: string; aliases?: string[]; isOwner?: boolean; kind?: MonitoredBrandKind }) =>
     apiClient.patch<MonitoredBrand>(`${BASE}/brands/${brandId}`, body),
   deleteBrand:   (brandId: string) => apiClient.delete<null>(`${BASE}/brands/${brandId}`),
 
