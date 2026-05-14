@@ -130,7 +130,7 @@ export function DashboardView({ projectId, onReloadProject }: DashboardViewProps
 
       {hasData && <TimelineChart projectId={projectId} />}
 
-      {hasData && alignment && alignment.byBrand.length > 0 && alignment.byBrand.some(b => b.attributesObserved.length > 0) && (
+      {hasData && alignment && alignment.byBrand.length > 0 && (
         <section className="bm-card">
           <h3 className="bm-card__title">Alignement narrative</h3>
           <p className="bm-card__sub">
@@ -144,21 +144,37 @@ export function DashboardView({ projectId, onReloadProject }: DashboardViewProps
                 <div className="bm-alignment-row__head">
                   <strong>{b.isOwner && '⭐ '}{b.brandName}</strong>
                   <span className="bm-alignment-row__meta">
-                    {b.mentionsCount} mention{b.mentionsCount > 1 ? 's' : ''} évaluée{b.mentionsCount > 1 ? 's' : ''}
-                    {alignment.desiredAttributes.length > 0 && <> · score d'alignement <strong>{b.alignmentScore.toFixed(0)}%</strong></>}
+                    {b.mentionsCount === 0
+                      ? <em>0 mention — marque absente des réponses LLM</em>
+                      : <>
+                          {b.mentionsCount} mention{b.mentionsCount > 1 ? 's' : ''} évaluée{b.mentionsCount > 1 ? 's' : ''}
+                          {alignment.desiredAttributes.length > 0 && <> · score d'alignement <strong>{b.alignmentScore.toFixed(0)}%</strong></>}
+                        </>}
                   </span>
                 </div>
-                <div className="bm-alignment-row__attrs">
-                  {b.attributesObserved.slice(0, 12).map(o => (
-                    <span
-                      key={o.attr}
-                      className={`bm-chip ${o.isDesired ? 'bm-chip--owner' : ''}`}
-                      title={`${o.count} mention${o.count > 1 ? 's' : ''} (${o.pct.toFixed(0)}%)${o.isDesired ? ' — attribut souhaité' : ''}`}
-                    >
-                      {o.attr} <small>×{o.count}</small>
-                    </span>
-                  ))}
-                </div>
+                {b.mentionsCount === 0 ? (
+                  <p className="bm-alignment-row__zero">
+                    {b.isOwner
+                      ? '⚠️ Insight critique : ta marque n\'est mentionnée dans AUCUNE réponse LLM sur les prompts actuels. Ajoute des prompts plus génériques (ex : « Quel opérateur choisir ? ») pour voir si tu apparais sur du généraliste, ou révise la stratégie de visibilité.'
+                      : 'Cette marque n\'est mentionnée dans aucune réponse LLM sur les prompts actuels.'}
+                  </p>
+                ) : b.attributesObserved.length === 0 ? (
+                  <p className="bm-alignment-row__zero">
+                    Mentions détectées mais aucun attribut clair extrait par le LLM judge.
+                  </p>
+                ) : (
+                  <div className="bm-alignment-row__attrs">
+                    {b.attributesObserved.slice(0, 12).map(o => (
+                      <span
+                        key={o.attr}
+                        className={`bm-chip ${o.isDesired ? 'bm-chip--owner' : ''}`}
+                        title={`${o.count} mention${o.count > 1 ? 's' : ''} (${o.pct.toFixed(0)}%)${o.isDesired ? ' — attribut souhaité' : ''}`}
+                      >
+                        {o.attr} <small>×{o.count}</small>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>

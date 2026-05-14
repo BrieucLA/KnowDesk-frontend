@@ -480,6 +480,20 @@
   gap: 4px;
 }
 
+.bm-alignment-row__zero {
+  margin: 0;
+  font-size: 12px;
+  color: var(--neutral-600);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.bm-alignment-row.is-owner .bm-alignment-row__zero {
+  color: var(--color-danger, #b91c1c);
+  font-style: normal;
+  font-weight: 500;
+}
+
 /* ── Sources (Sprint 5b) ─────────────────────────────── */
 
 .bm-resp-sources {
