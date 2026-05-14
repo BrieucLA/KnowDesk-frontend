@@ -6,55 +6,56 @@ import type {
 
 const BASE = '/brand-monitoring';
 
-interface ApiEnvelope<T> { data: T; error: string | null }
+// apiClient.get/post/etc retournent déjà body.data déballé.
+// Pas de wrap ApiEnvelope ici sinon double-déballage → undefined.
 
 export const brandMonitoringApi = {
   // Projects
-  listProjects:  () => apiClient.get<ApiEnvelope<BrandProject[]>>(`${BASE}/projects`).then(r => r.data),
-  getProject:    (id: string) => apiClient.get<ApiEnvelope<BrandProject>>(`${BASE}/projects/${id}`).then(r => r.data),
+  listProjects:  () => apiClient.get<BrandProject[]>(`${BASE}/projects`),
+  getProject:    (id: string) => apiClient.get<BrandProject>(`${BASE}/projects/${id}`),
   createProject: (name: string, marketCountry = 'FR') =>
-    apiClient.post<ApiEnvelope<BrandProject>>(`${BASE}/projects`, { name, marketCountry }).then(r => r.data),
-  deleteProject: (id: string) => apiClient.delete(`${BASE}/projects/${id}`),
+    apiClient.post<BrandProject>(`${BASE}/projects`, { name, marketCountry }),
+  deleteProject: (id: string) => apiClient.delete<null>(`${BASE}/projects/${id}`),
 
   // Brands
   listBrands:    (projectId: string) =>
-    apiClient.get<ApiEnvelope<MonitoredBrand[]>>(`${BASE}/projects/${projectId}/brands`).then(r => r.data),
+    apiClient.get<MonitoredBrand[]>(`${BASE}/projects/${projectId}/brands`),
   createBrand:   (projectId: string, body: { name: string; aliases: string[]; isOwner: boolean }) =>
-    apiClient.post<ApiEnvelope<MonitoredBrand>>(`${BASE}/projects/${projectId}/brands`, body).then(r => r.data),
+    apiClient.post<MonitoredBrand>(`${BASE}/projects/${projectId}/brands`, body),
   updateBrand:   (brandId: string, body: { name?: string; aliases?: string[]; isOwner?: boolean }) =>
-    apiClient.patch<ApiEnvelope<MonitoredBrand>>(`${BASE}/brands/${brandId}`, body).then(r => r.data),
-  deleteBrand:   (brandId: string) => apiClient.delete(`${BASE}/brands/${brandId}`),
+    apiClient.patch<MonitoredBrand>(`${BASE}/brands/${brandId}`, body),
+  deleteBrand:   (brandId: string) => apiClient.delete<null>(`${BASE}/brands/${brandId}`),
 
   // Prompts
   listPrompts:   (projectId: string) =>
-    apiClient.get<ApiEnvelope<MonitoringPrompt[]>>(`${BASE}/projects/${projectId}/prompts`).then(r => r.data),
+    apiClient.get<MonitoringPrompt[]>(`${BASE}/projects/${projectId}/prompts`),
   createPrompt:  (projectId: string, body: { text: string; topicHint?: string; active?: boolean }) =>
-    apiClient.post<ApiEnvelope<MonitoringPrompt>>(`${BASE}/projects/${projectId}/prompts`, body).then(r => r.data),
+    apiClient.post<MonitoringPrompt>(`${BASE}/projects/${projectId}/prompts`, body),
   bulkPrompts:   (projectId: string, prompts: Array<{ text: string; topicHint?: string; active?: boolean }>) =>
-    apiClient.post<ApiEnvelope<{ inserted: number; prompts: MonitoringPrompt[] }>>(
+    apiClient.post<{ inserted: number; prompts: MonitoringPrompt[] }>(
       `${BASE}/projects/${projectId}/prompts/bulk`, { prompts },
-    ).then(r => r.data),
+    ),
   updatePrompt:  (promptId: string, body: { text?: string; topicHint?: string; active?: boolean }) =>
-    apiClient.patch<ApiEnvelope<MonitoringPrompt>>(`${BASE}/prompts/${promptId}`, body).then(r => r.data),
-  deletePrompt:  (promptId: string) => apiClient.delete(`${BASE}/prompts/${promptId}`),
+    apiClient.patch<MonitoringPrompt>(`${BASE}/prompts/${promptId}`, body),
+  deletePrompt:  (promptId: string) => apiClient.delete<null>(`${BASE}/prompts/${promptId}`),
 
   // Runs / Analytics
   triggerRun:    (projectId: string) =>
-    apiClient.post<ApiEnvelope<{ enqueued: boolean }>>(`${BASE}/projects/${projectId}/runs`, {}).then(r => r.data),
+    apiClient.post<{ enqueued: boolean }>(`${BASE}/projects/${projectId}/runs`, {}),
   listRuns:      (projectId: string, page = 1, perPage = 20) =>
-    apiClient.get<ApiEnvelope<PromptRun[]>>(`${BASE}/projects/${projectId}/runs?page=${page}&perPage=${perPage}`).then(r => r.data),
+    apiClient.get<PromptRun[]>(`${BASE}/projects/${projectId}/runs?page=${page}&perPage=${perPage}`),
   shareOfVoice:  (projectId: string) =>
-    apiClient.get<ApiEnvelope<ShareOfVoice>>(`${BASE}/projects/${projectId}/share-of-voice`).then(r => r.data),
+    apiClient.get<ShareOfVoice>(`${BASE}/projects/${projectId}/share-of-voice`),
   listResponses: (projectId: string, page = 1, perPage = 20) =>
-    apiClient.get<ApiEnvelope<ResponseWithMentions[]>>(`${BASE}/projects/${projectId}/responses?page=${page}&perPage=${perPage}`).then(r => r.data),
+    apiClient.get<ResponseWithMentions[]>(`${BASE}/projects/${projectId}/responses?page=${page}&perPage=${perPage}`),
 
   // Topics (Sprint 2)
   clusterTopics: (projectId: string) =>
-    apiClient.post<ApiEnvelope<{ topics: Array<{ name: string; promptCount: number }>; assigned: number; costEur: number }>>(
+    apiClient.post<{ topics: Array<{ name: string; promptCount: number }>; assigned: number; costEur: number }>(
       `${BASE}/projects/${projectId}/cluster-topics`, {},
-    ).then(r => r.data),
+    ),
   topics:        (projectId: string) =>
-    apiClient.get<ApiEnvelope<{ topics: TopicSov[] }>>(`${BASE}/projects/${projectId}/topics`).then(r => r.data),
+    apiClient.get<{ topics: TopicSov[] }>(`${BASE}/projects/${projectId}/topics`),
   timeline:      (projectId: string, bucket: 'day' | 'week' = 'week', rangeDays = 90) =>
-    apiClient.get<ApiEnvelope<Timeline>>(`${BASE}/projects/${projectId}/timeline?bucket=${bucket}&rangeDays=${rangeDays}`).then(r => r.data),
+    apiClient.get<Timeline>(`${BASE}/projects/${projectId}/timeline?bucket=${bucket}&rangeDays=${rangeDays}`),
 };
