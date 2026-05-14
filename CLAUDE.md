@@ -362,6 +362,8 @@ Cibles à étendre (par valeur, dans cet ordre) : `apiClient` refresh + retry, `
 
 - **Brand Monitoring — rendering markdown des réponses (Sprint R-S2, mai 2026)** : nouveau composant `MarkdownContent.tsx` qui rend les réponses LLM en HTML safe (titres `##`, listes, **gras**, code, tableaux GFM, liens `target=_blank`, citations `[1]`) au lieu du `<pre>` brut illisible. Dépendances ajoutées : `react-markdown` + `remark-gfm`. CSS dédié `.bm-md` co-localisé dans `brandMonitoring.css`. Pas de raw HTML rendu (react-markdown safe par défaut), donc même un contenu LLM malveillant ne peut pas injecter de script.
 
+- **Brand Monitoring — multi-LLM élargi (Sprint R-S3, mai 2026)** : remplacement du radio « Mode LLM » par une checkbox-list de providers. 6 providers supportés : Mistral Medium (mémoire), Perplexity Sonar Pro (recherche + sources), OpenAI GPT-4o, Anthropic Claude 3.5 Sonnet, Google Gemini 1.5 Pro, xAI Grok-2. `BrandProject.enabled_providers: BrandMonitoringProvider[]` + endpoint `GET /providers` qui liste les meta de chaque provider (label, description, exposesSources, configured). Les providers sans clé API en env sont grisés dans l'UI avec chip « Clé API requise ». Toast info au toggle qui rappelle le multiplicateur de quota (×N providers actifs).
+
 ### Haute priorité
 - Toasts sur les erreurs API
 - Stripe billing — plans, quotas, page de facturation

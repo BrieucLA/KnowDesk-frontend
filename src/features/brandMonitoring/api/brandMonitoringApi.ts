@@ -3,6 +3,7 @@ import type {
   BrandProject, MonitoredBrand, MonitoringPrompt, PromptRun,
   ShareOfVoice, TopicSov, Timeline, ResponseWithMentions,
   IndustryMeta, IndustryKey, SuggestPromptsPayload, LlmMode,
+  ProviderMeta, BrandMonitoringProvider,
 } from '../types';
 
 const BASE = '/brand-monitoring';
@@ -16,8 +17,17 @@ export const brandMonitoringApi = {
   getProject:    (id: string) => apiClient.get<BrandProject>(`${BASE}/projects/${id}`),
   createProject: (name: string, marketCountry = 'FR', industry?: IndustryKey) =>
     apiClient.post<BrandProject>(`${BASE}/projects`, { name, marketCountry, industry }),
-  updateProject: (id: string, body: { name?: string; industry?: IndustryKey | null; sentimentEnabled?: boolean; llmMode?: LlmMode }) =>
+  updateProject: (id: string, body: {
+    name?: string;
+    industry?: IndustryKey | null;
+    sentimentEnabled?: boolean;
+    llmMode?: LlmMode;
+    enabledProviders?: BrandMonitoringProvider[];
+  }) =>
     apiClient.patch<BrandProject>(`${BASE}/projects/${id}`, body),
+
+  // R-S3 — Multi-LLM
+  listProviders: () => apiClient.get<ProviderMeta[]>(`${BASE}/providers`),
   deleteProject: (id: string) => apiClient.delete<null>(`${BASE}/projects/${id}`),
 
   // Industries / suggestions (Sprint 4)

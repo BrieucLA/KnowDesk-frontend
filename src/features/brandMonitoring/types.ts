@@ -12,7 +12,19 @@ export interface IndustryMeta {
 }
 
 export type Sentiment = 'positive' | 'neutral' | 'negative';
-export type LlmMode   = 'memory' | 'search' | 'both';
+export type LlmMode   = 'memory' | 'search' | 'both';   // legacy V1
+export type BrandMonitoringProvider = 'mistral' | 'perplexity' | 'openai' | 'anthropic' | 'gemini' | 'grok';
+
+export interface ProviderMeta {
+  key:            BrandMonitoringProvider;
+  label:          string;
+  description:    string;
+  defaultModel:   string;
+  exposesSources: boolean;
+  /** True si la clé API est posée côté env Railway. Désactive l'option
+   *  dans la UI quand false (tooltip explicatif). */
+  configured:     boolean;
+}
 
 export interface ResponseSource {
   response_id: string;
@@ -29,7 +41,8 @@ export interface BrandProject {
   market_country:     string;
   industry:           IndustryKey | null;
   sentiment_enabled:  boolean;
-  llm_mode:           LlmMode;
+  llm_mode:           LlmMode;                  // legacy
+  enabled_providers:  BrandMonitoringProvider[]; // R-S3
   created_at:         string;
   updated_at:         string;
   deleted_at:         string | null;

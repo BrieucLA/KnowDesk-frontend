@@ -5,7 +5,7 @@ import { Button } from '../../../shared/components/ui/Button';
 import { Input }  from '../../../shared/components/ui/Input';
 import { Skeleton } from '../../../shared/components/ui/Skeleton';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
-import type { MonitoredBrand, IndustryMeta, IndustryKey, BrandProject, LlmMode } from '../types';
+import type { MonitoredBrand, IndustryMeta, IndustryKey, BrandProject, LlmMode, ProviderMeta, BrandMonitoringProvider } from '../types';
 
 interface SettingsViewProps {
   projectId:       string;
@@ -17,6 +17,7 @@ export function SettingsView({ projectId, onReloadProject }: SettingsViewProps) 
   const [project, setProject] = useState<BrandProject | null>(null);
   const [brands,  setBrands]  = useState<MonitoredBrand[]>([]);
   const [industries, setIndustries] = useState<IndustryMeta[]>([]);
+  const [providers,  setProviders]  = useState<ProviderMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingIndustry, setSavingIndustry] = useState(false);
 
@@ -30,14 +31,16 @@ export function SettingsView({ projectId, onReloadProject }: SettingsViewProps) 
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const [b, p, inds] = await Promise.all([
+      const [b, p, inds, prs] = await Promise.all([
         brandMonitoringApi.listBrands(projectId),
         brandMonitoringApi.getProject(projectId),
         brandMonitoringApi.listIndustries(),
+        brandMonitoringApi.listProviders(),
       ]);
       setBrands(b);
       setProject(p);
       setIndustries(inds);
+      setProviders(prs);
     } catch (err) {
       toast.error((err as Error).message ?? 'Chargement impossible.');
     } finally {
@@ -62,18 +65,31 @@ export function SettingsView({ projectId, onReloadProject }: SettingsViewProps) 
     }
   };
 
-  const handleLlmModeChange = async (mode: LlmMode) => {
+  const handleProviderToggle = async (provider: BrandMonitoringProvider, enabled: boolean) => {
+    if (!project) return;
+    const current = project.enabled_providers ?? [];
+    const next = enabled
+      ? Array.from(new Set([...current, provider]))
+      : current.filter(p => p !== provider);
+    if (next.length === 0) {
+      toast.error('Au moins un provider doit rester actif.');
+      return;
+    }
     try {
-      await brandMonitoringApi.updateProject(projectId, { llmMode: mode });
-      setProject(prev => prev ? { ...prev, llm_mode: mode } : prev);
-      toast.success(
-        mode === 'memory' ? 'Mode mémoire (Mistral seul) — pas de sources.'
-        : mode === 'search' ? 'Mode recherche (Perplexity) — sources web exposées.'
-        : 'Mode dual (Mistral + Perplexity) — 2× le coût quota par prompt.',
-      );
+      await brandMonitoringApi.updateProject(projectId, { enabledProviders: next });
+      setProject(prev => prev ? { ...prev, enabled_providers: next } : prev);
+      const labels = providers.filter(p => next.includes(p.key)).map(p => p.label).join(', ');
+      toast.success(`Providers actifs : ${labels}. Chaque prompt sera exécuté sur tous les providers actifs (×${next.length} quota).`);
     } catch (err) {
       toast.error((err as Error).message ?? 'Mise à jour impossible.');
     }
+  };
+
+  // legacy V1 — conservé pour rétrocompat mais plus exposé en UI (R-S3
+  // remplace par les checkbox providers).
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _handleLlmModeChange = async (mode: LlmMode) => {
+    await brandMonitoringApi.updateProject(projectId, { llmMode: mode });
   };
 
   const handleSentimentToggle = async (enabled: boolean) => {
@@ -157,35 +173,39 @@ export function SettingsView({ projectId, onReloadProject }: SettingsViewProps) 
       </section>
 
       <section className="bm-card">
-        <h3 className="bm-card__title">Mode LLM</h3>
+        <h3 className="bm-card__title">Providers LLM</h3>
         <p className="bm-card__sub">
-          <strong>Mémoire</strong> : Mistral seul, simule un utilisateur qui pose une question à un LLM
-          sans recherche web (mesure la notoriété ambiante).
-          <br />
-          <strong>Recherche</strong> : Perplexity Sonar, simule un utilisateur qui fait une recherche augmentée
-          — expose les <strong>sources web citées</strong>.
-          <br />
-          <strong>Les deux</strong> : exécute chaque prompt sur les 2 providers (×2 le coût quota). Permet
-          de comparer notoriété mémoire vs visibilité recherche.
+          Sélectionne les LLM sur lesquels exécuter chaque prompt. <strong>Plus tu en actives, plus ta coverage marché est large</strong>,
+          mais chaque provider activé consomme 1 unité de quota par prompt (multiplie le coût mensuel).
+          Les providers grisés nécessitent une clé API dans Railway (variables d'environnement) avant d'être activables.
         </p>
-        <fieldset className="bm-radio-group">
-          {(['memory', 'search', 'both'] as LlmMode[]).map(mode => (
-            <label key={mode} className={`bm-radio ${(project?.llm_mode ?? 'memory') === mode ? 'is-active' : ''}`}>
-              <input
-                type="radio"
-                name="llm-mode"
-                value={mode}
-                checked={(project?.llm_mode ?? 'memory') === mode}
-                onChange={() => handleLlmModeChange(mode)}
-              />
-              <span>
-                {mode === 'memory' && 'Mémoire (Mistral)'}
-                {mode === 'search' && 'Recherche (Perplexity)'}
-                {mode === 'both'   && 'Les deux'}
-              </span>
-            </label>
-          ))}
-        </fieldset>
+        <div className="bm-providers">
+          {providers.map(p => {
+            const active = project?.enabled_providers?.includes(p.key) ?? false;
+            return (
+              <label
+                key={p.key}
+                className={`bm-provider ${active ? 'is-active' : ''} ${!p.configured ? 'is-disabled' : ''}`}
+                title={!p.configured ? `Clé API non configurée pour ${p.label}` : undefined}
+              >
+                <input
+                  type="checkbox"
+                  checked={active}
+                  disabled={!p.configured}
+                  onChange={e => handleProviderToggle(p.key, e.target.checked)}
+                />
+                <div className="bm-provider__body">
+                  <div className="bm-provider__head">
+                    <strong>{p.label}</strong>
+                    {p.exposesSources && <span className="bm-chip bm-chip--sources">Sources</span>}
+                    {!p.configured && <span className="bm-chip bm-chip--disabled">Clé API requise</span>}
+                  </div>
+                  <p className="bm-provider__desc">{p.description}</p>
+                </div>
+              </label>
+            );
+          })}
+        </div>
       </section>
 
       <section className="bm-card">
