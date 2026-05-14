@@ -62,6 +62,18 @@ export function SettingsView({ projectId, onReloadProject }: SettingsViewProps) 
     }
   };
 
+  const handleSentimentToggle = async (enabled: boolean) => {
+    try {
+      await brandMonitoringApi.updateProject(projectId, { sentimentEnabled: enabled });
+      setProject(prev => prev ? { ...prev, sentiment_enabled: enabled } : prev);
+      toast.success(enabled
+        ? 'Analyse de sentiment activée. Elle sera appliquée aux PROCHAINS runs (consomme 1 quota supplémentaire par réponse).'
+        : 'Analyse de sentiment désactivée.');
+    } catch (err) {
+      toast.error((err as Error).message ?? 'Mise à jour impossible.');
+    }
+  };
+
   useEffect(() => { void reload(); }, [reload]);
 
   const parseAliases = (raw: string): string[] =>
@@ -128,6 +140,25 @@ export function SettingsView({ projectId, onReloadProject }: SettingsViewProps) 
             </select>
           </label>
         </div>
+      </section>
+
+      <section className="bm-card">
+        <h3 className="bm-card__title">Analyse de sentiment (optionnelle)</h3>
+        <p className="bm-card__sub">
+          Quand activée, chaque réponse Mistral est ré-analysée pour évaluer le sentiment
+          (positif / neutre / négatif) de chaque marque mentionnée. Permet de savoir si une
+          marque est citée pour la recommander ou la critiquer. Coût : <strong>1 unité de quota
+          supplémentaire par réponse</strong> — pense à augmenter
+          BRAND_MONITORING_MONTHLY_CALL_QUOTA si tu actives sur tous les projets.
+        </p>
+        <label className="bm-checkbox">
+          <input
+            type="checkbox"
+            checked={project?.sentiment_enabled ?? false}
+            onChange={e => handleSentimentToggle(e.target.checked)}
+          />
+          Activer l'analyse de sentiment sur les prochains runs
+        </label>
       </section>
 
       <section className="bm-card">

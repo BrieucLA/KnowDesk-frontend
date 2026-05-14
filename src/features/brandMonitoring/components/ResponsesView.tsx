@@ -4,7 +4,14 @@ import { useToast } from '../../../shared/lib/useToast';
 import { Skeleton } from '../../../shared/components/ui/Skeleton';
 import { Modal } from '../../../shared/components/ui/Modal';
 import { formatRelative } from '../../../shared/lib/formatDate';
-import type { ResponseWithMentions } from '../types';
+import type { ResponseWithMentions, Sentiment } from '../types';
+
+function sentimentEmoji(s: Sentiment | null): string {
+  if (s === 'positive') return '😊';
+  if (s === 'negative') return '😞';
+  if (s === 'neutral')  return '😐';
+  return '';
+}
 
 interface ResponsesViewProps {
   projectId: string;
@@ -66,8 +73,8 @@ export function ResponsesView({ projectId }: ResponsesViewProps) {
                         .filter(m => m.count > 0)
                         .sort((a, b) => b.count - a.count)
                         .map(m => (
-                          <span key={m.brand_id} className={`bm-chip ${m.isOwner ? 'bm-chip--owner' : ''}`}>
-                            {m.brandName}: {m.count}
+                          <span key={m.brand_id} className={`bm-chip ${m.isOwner ? 'bm-chip--owner' : ''} ${m.sentiment ? `bm-chip--sentiment-${m.sentiment}` : ''}`}>
+                            {sentimentEmoji(m.sentiment)} {m.brandName}: {m.count}
                           </span>
                         ))
                     )}
@@ -98,8 +105,8 @@ export function ResponsesView({ projectId }: ResponsesViewProps) {
             </p>
             <div className="bm-resp-detail__mentions">
               {openResp.mentions.filter(m => m.count > 0).map(m => (
-                <span key={m.brand_id} className={`bm-chip ${m.isOwner ? 'bm-chip--owner' : ''}`}>
-                  {m.brandName}: {m.count}
+                <span key={m.brand_id} className={`bm-chip ${m.isOwner ? 'bm-chip--owner' : ''} ${m.sentiment ? `bm-chip--sentiment-${m.sentiment}` : ''}`}>
+                  {sentimentEmoji(m.sentiment)} {m.brandName}: {m.count}
                 </span>
               ))}
             </div>

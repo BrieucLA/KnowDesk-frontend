@@ -275,6 +275,12 @@
 
 .bm-chip--owner { background: var(--brand-100); color: var(--brand-800); font-weight: 500; }
 
+.bm-chip--sentiment-positive { background: #DCFCE7; color: #166534; }
+.bm-chip--sentiment-neutral  { background: #F3F4F6; color: #4B5563; }
+.bm-chip--sentiment-negative { background: #FEE2E2; color: #991B1B; }
+.bm-chip--owner.bm-chip--sentiment-positive { background: linear-gradient(90deg, var(--brand-100) 0%, #DCFCE7 100%); }
+.bm-chip--owner.bm-chip--sentiment-negative { background: linear-gradient(90deg, var(--brand-100) 0%, #FEE2E2 100%); }
+
 /* ── Responses table ─────────────────────────────────── */
 
 .bm-responses-table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -303,6 +309,31 @@
 .bm-resp-detail { display: flex; flex-direction: column; gap: 12px; }
 .bm-resp-detail__meta { font-size: 13px; color: var(--neutral-700); margin: 0; }
 .bm-resp-detail__mentions { display: flex; flex-wrap: wrap; gap: 4px; }
+/* ── Timeline ─────────────────────────────────────────── */
+
+.bm-timeline__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.bm-timeline__controls { display: flex; gap: 12px; }
+
+.bm-timeline__ctrl {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--neutral-600);
+}
+
+.bm-timeline__ctrl .bm-select { padding: 4px 8px; font-size: 12px; }
+
+.bm-timeline__chart { margin-top: 8px; }
+
 /* ── Select industry ─────────────────────────────────── */
 
 .bm-select-wrap { display: flex; flex-direction: column; gap: 6px; }

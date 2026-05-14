@@ -11,15 +11,18 @@ export interface IndustryMeta {
   promptCount: number;
 }
 
+export type Sentiment = 'positive' | 'neutral' | 'negative';
+
 export interface BrandProject {
-  id:             string;
-  org_id:         string;
-  name:           string;
-  market_country: string;
-  industry:       IndustryKey | null;
-  created_at:     string;
-  updated_at:     string;
-  deleted_at:     string | null;
+  id:                 string;
+  org_id:             string;
+  name:               string;
+  market_country:     string;
+  industry:           IndustryKey | null;
+  sentiment_enabled:  boolean;
+  created_at:         string;
+  updated_at:         string;
+  deleted_at:         string | null;
   // Champs supplémentaires renvoyés par GET /projects/:id
   brandsCount?:    number;
   promptsCount?:   number;
@@ -129,5 +132,6 @@ export interface ResponseWithMentions {
     isOwner:        boolean;
     count:          number;
     first_position: number;
+    sentiment:      Sentiment | null;
   }>;
 }

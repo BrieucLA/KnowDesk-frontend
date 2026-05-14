@@ -16,7 +16,7 @@ export const brandMonitoringApi = {
   getProject:    (id: string) => apiClient.get<BrandProject>(`${BASE}/projects/${id}`),
   createProject: (name: string, marketCountry = 'FR', industry?: IndustryKey) =>
     apiClient.post<BrandProject>(`${BASE}/projects`, { name, marketCountry, industry }),
-  updateProject: (id: string, body: { name?: string; industry?: IndustryKey | null }) =>
+  updateProject: (id: string, body: { name?: string; industry?: IndustryKey | null; sentimentEnabled?: boolean }) =>
     apiClient.patch<BrandProject>(`${BASE}/projects/${id}`, body),
   deleteProject: (id: string) => apiClient.delete<null>(`${BASE}/projects/${id}`),
 

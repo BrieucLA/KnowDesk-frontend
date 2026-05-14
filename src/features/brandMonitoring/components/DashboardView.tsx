@@ -3,6 +3,7 @@ import { brandMonitoringApi } from '../api/brandMonitoringApi';
 import { useToast } from '../../../shared/lib/useToast';
 import { Button } from '../../../shared/components/ui/Button';
 import { Skeleton } from '../../../shared/components/ui/Skeleton';
+import { TimelineChart } from './TimelineChart';
 import type { ShareOfVoice, TopicSov } from '../types';
 
 interface DashboardViewProps {
@@ -99,6 +100,8 @@ export function DashboardView({ projectId, onReloadProject }: DashboardViewProps
           <ShareOfVoiceBars byBrand={sov.byBrand} totalMentions={sov.totalMentions} />
         </section>
       )}
+
+      {hasData && <TimelineChart projectId={projectId} />}
 
       {hasData && topics.length > 0 && (
         <section className="bm-card">
