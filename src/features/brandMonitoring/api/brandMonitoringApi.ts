@@ -4,6 +4,7 @@ import type {
   ShareOfVoice, TopicSov, Timeline, ResponseWithMentions,
   IndustryMeta, IndustryKey, SuggestPromptsPayload, LlmMode,
   ProviderMeta, BrandMonitoringProvider, MonitoredBrandKind,
+  AlignmentPayload,
 } from '../types';
 
 const BASE = '/brand-monitoring';
@@ -23,8 +24,14 @@ export const brandMonitoringApi = {
     sentimentEnabled?: boolean;
     llmMode?: LlmMode;
     enabledProviders?: BrandMonitoringProvider[];
+    alignmentEnabled?: boolean;
+    desiredAttributes?: string[];
   }) =>
     apiClient.patch<BrandProject>(`${BASE}/projects/${id}`, body),
+
+  // R-S7 — Brand alignment
+  alignment: (projectId: string) =>
+    apiClient.get<AlignmentPayload>(`${BASE}/projects/${projectId}/alignment`),
 
   // R-S3 — Multi-LLM
   listProviders: () => apiClient.get<ProviderMeta[]>(`${BASE}/providers`),

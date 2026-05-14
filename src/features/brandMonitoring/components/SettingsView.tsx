@@ -93,6 +93,42 @@ export function SettingsView({ projectId, onReloadProject }: SettingsViewProps) 
     await brandMonitoringApi.updateProject(projectId, { llmMode: mode });
   };
 
+  // R-S7 — saisie textarea libre, parsée en array de strings au save
+  const [attrsDraft, setAttrsDraft] = useState('');
+  const [savingAlign, setSavingAlign] = useState(false);
+
+  // Initialise le draft quand le projet arrive
+  useEffect(() => {
+    if (project) setAttrsDraft((project.desired_attributes ?? []).join(', '));
+  }, [project]);
+
+  const handleAlignmentToggle = async (enabled: boolean) => {
+    try {
+      await brandMonitoringApi.updateProject(projectId, { alignmentEnabled: enabled });
+      setProject(prev => prev ? { ...prev, alignment_enabled: enabled } : prev);
+      toast.success(enabled
+        ? 'Alignement narrative activé. Mistral extraira les attributs associés à chaque marque mentionnée (1 quota supplémentaire par réponse).'
+        : 'Alignement narrative désactivé.');
+    } catch (err) {
+      toast.error((err as Error).message ?? 'Mise à jour impossible.');
+    }
+  };
+
+  const handleSaveAttributes = async () => {
+    const attrs = attrsDraft.split(',').map(s => s.trim().toLowerCase()).filter(s => s.length >= 2);
+    if (attrs.length > 8) { toast.error('Maximum 8 attributs prioritaires.'); return; }
+    setSavingAlign(true);
+    try {
+      await brandMonitoringApi.updateProject(projectId, { desiredAttributes: attrs });
+      setProject(prev => prev ? { ...prev, desired_attributes: attrs } : prev);
+      toast.success(`${attrs.length} attribut${attrs.length > 1 ? 's' : ''} prioritaire${attrs.length > 1 ? 's' : ''} enregistré${attrs.length > 1 ? 's' : ''}.`);
+    } catch (err) {
+      toast.error((err as Error).message ?? 'Enregistrement impossible.');
+    } finally {
+      setSavingAlign(false);
+    }
+  };
+
   const handleSentimentToggle = async (enabled: boolean) => {
     try {
       await brandMonitoringApi.updateProject(projectId, { sentimentEnabled: enabled });
@@ -228,6 +264,42 @@ export function SettingsView({ projectId, onReloadProject }: SettingsViewProps) 
             onChange={e => handleSentimentToggle(e.target.checked)}
           />
           Activer l'analyse de sentiment sur les prochains runs
+        </label>
+      </section>
+
+      <section className="bm-card">
+        <h3 className="bm-card__title">Alignement narrative (optionnel)</h3>
+        <p className="bm-card__sub">
+          Définis le <strong>positionnement souhaité</strong> de ta marque (3-8 attributs prioritaires)
+          et active l'analyse. Pour chaque réponse, Mistral extrait les attributs réellement
+          associés à chaque marque — tu vois si le LLM te décrit aligné avec ton positionnement
+          ou autrement. Coût : <strong>1 unité de quota supplémentaire par réponse</strong>.
+        </p>
+        <div className="bm-form" style={{ marginBottom: 8 }}>
+          <label htmlFor="bm-desired-attrs" className="bm-select-label">
+            Attributs prioritaires (séparés par des virgules, max 8)
+          </label>
+          <textarea
+            id="bm-desired-attrs"
+            className="bm-bulk__textarea"
+            rows={2}
+            value={attrsDraft}
+            onChange={e => setAttrsDraft(e.target.value)}
+            placeholder="prix bas, drive, bio, famille, frais"
+          />
+          <div className="bm-form__actions">
+            <Button variant="primary" size="sm" onClick={handleSaveAttributes} loading={savingAlign}>
+              Enregistrer les attributs
+            </Button>
+          </div>
+        </div>
+        <label className="bm-checkbox">
+          <input
+            type="checkbox"
+            checked={project?.alignment_enabled ?? false}
+            onChange={e => handleAlignmentToggle(e.target.checked)}
+          />
+          Activer l'extraction d'attributs sur les prochains runs
         </label>
       </section>
 

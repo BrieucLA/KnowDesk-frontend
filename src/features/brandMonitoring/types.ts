@@ -34,6 +34,21 @@ export interface ResponseSource {
   position:    number;
 }
 
+// R-S7
+export interface AlignmentBrand {
+  brandId:       string;
+  brandName:     string;
+  isOwner:       boolean;
+  mentionsCount: number;
+  attributesObserved: Array<{ attr: string; count: number; pct: number; isDesired: boolean }>;
+  alignmentScore: number;   // 0-100
+}
+
+export interface AlignmentPayload {
+  desiredAttributes: string[];
+  byBrand:           AlignmentBrand[];
+}
+
 export interface BrandProject {
   id:                 string;
   org_id:             string;
@@ -43,6 +58,8 @@ export interface BrandProject {
   sentiment_enabled:  boolean;
   llm_mode:           LlmMode;                  // legacy
   enabled_providers:  BrandMonitoringProvider[]; // R-S3
+  alignment_enabled:  boolean;                   // R-S7
+  desired_attributes: string[];                  // R-S7
   created_at:         string;
   updated_at:         string;
   deleted_at:         string | null;

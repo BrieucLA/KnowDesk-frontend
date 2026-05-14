@@ -448,6 +448,38 @@
   font-weight: 500;
 }
 
+/* ── Alignment narrative (R-S7) ──────────────────────── */
+
+.bm-alignment { display: flex; flex-direction: column; gap: 12px; }
+
+.bm-alignment-row {
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+}
+
+.bm-alignment-row.is-owner {
+  border-color: var(--brand-300);
+  background: var(--brand-50);
+}
+
+.bm-alignment-row__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bm-alignment-row__meta { color: var(--neutral-600); font-size: 12px; }
+
+.bm-alignment-row__attrs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
 /* ── Sources (Sprint 5b) ─────────────────────────────── */
 
 .bm-resp-sources {

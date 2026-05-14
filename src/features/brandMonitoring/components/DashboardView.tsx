@@ -4,7 +4,7 @@ import { useToast } from '../../../shared/lib/useToast';
 import { Button } from '../../../shared/components/ui/Button';
 import { Skeleton } from '../../../shared/components/ui/Skeleton';
 import { TimelineChart } from './TimelineChart';
-import type { ShareOfVoice, TopicSov } from '../types';
+import type { ShareOfVoice, TopicSov, AlignmentPayload } from '../types';
 
 interface DashboardViewProps {
   projectId:       string;
@@ -15,6 +15,7 @@ export function DashboardView({ projectId, onReloadProject }: DashboardViewProps
   const toast = useToast();
   const [sov,    setSov]    = useState<ShareOfVoice | null>(null);
   const [topics, setTopics] = useState<TopicSov[]>([]);
+  const [alignment, setAlignment] = useState<AlignmentPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
   const [clustering, setClustering] = useState(false);
@@ -22,12 +23,14 @@ export function DashboardView({ projectId, onReloadProject }: DashboardViewProps
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const [s, t] = await Promise.all([
+      const [s, t, a] = await Promise.all([
         brandMonitoringApi.shareOfVoice(projectId),
         brandMonitoringApi.topics(projectId),
+        brandMonitoringApi.alignment(projectId).catch(() => null), // best effort — pas critique
       ]);
       setSov(s);
       setTopics(t.topics);
+      setAlignment(a);
     } catch (err) {
       toast.error((err as Error).message ?? 'Chargement impossible.');
     } finally {
@@ -126,6 +129,41 @@ export function DashboardView({ projectId, onReloadProject }: DashboardViewProps
       })()}
 
       {hasData && <TimelineChart projectId={projectId} />}
+
+      {hasData && alignment && alignment.byBrand.length > 0 && alignment.byBrand.some(b => b.attributesObserved.length > 0) && (
+        <section className="bm-card">
+          <h3 className="bm-card__title">Alignement narrative</h3>
+          <p className="bm-card__sub">
+            {alignment.desiredAttributes.length > 0
+              ? <>Attributs souhaités du positionnement : {alignment.desiredAttributes.map(a => <span key={a} className="bm-chip bm-chip--owner" style={{marginRight:4}}>{a}</span>)}</>
+              : <>Aucun attribut prioritaire défini. Configure-les dans Paramètres pour obtenir le score d'alignement.</>}
+          </p>
+          <div className="bm-alignment">
+            {alignment.byBrand.map(b => (
+              <div key={b.brandId} className={`bm-alignment-row ${b.isOwner ? 'is-owner' : ''}`}>
+                <div className="bm-alignment-row__head">
+                  <strong>{b.isOwner && '⭐ '}{b.brandName}</strong>
+                  <span className="bm-alignment-row__meta">
+                    {b.mentionsCount} mention{b.mentionsCount > 1 ? 's' : ''} évaluée{b.mentionsCount > 1 ? 's' : ''}
+                    {alignment.desiredAttributes.length > 0 && <> · score d'alignement <strong>{b.alignmentScore.toFixed(0)}%</strong></>}
+                  </span>
+                </div>
+                <div className="bm-alignment-row__attrs">
+                  {b.attributesObserved.slice(0, 12).map(o => (
+                    <span
+                      key={o.attr}
+                      className={`bm-chip ${o.isDesired ? 'bm-chip--owner' : ''}`}
+                      title={`${o.count} mention${o.count > 1 ? 's' : ''} (${o.pct.toFixed(0)}%)${o.isDesired ? ' — attribut souhaité' : ''}`}
+                    >
+                      {o.attr} <small>×{o.count}</small>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {hasData && topics.length > 0 && (
         <section className="bm-card">
