@@ -1,8 +1,12 @@
 # KnowDesk — Guide Claude Code
 
+> ⚙️ **Maintenance de ce fichier** : c'est le document de référence frontend, chargé automatiquement au démarrage de chaque session Claude Code. **À mettre à jour systématiquement à chaque évolution significative** : nouvelle feature, nouveau composant partagé, dépendance ajoutée, refacto important. Une feature qui n'est pas dans ce doc est invisible aux futures sessions. Même règle pour `~/KDProject/knowdesk-backend/CLAUDE.md` côté backend.
+
 ## Vue d'ensemble
 
 KnowDesk est un SaaS de base de connaissance pour les équipes service client. Il permet aux conseillers de créer, organiser et consulter des articles et processus guidés (arbres de décision).
+
+Le produit couvre désormais un second périmètre, **Brand Monitoring** (mai 2026) : module additionnel pour surveiller la visibilité d'une marque dans les LLM (Mistral, Perplexity) vs concurrents, avec dashboard part de voix, topics, sentiment, sources web et timeline. Pivot marché GEO (Generative Engine Optimization).
 
 ## Stack technique
 
@@ -82,6 +86,16 @@ src/
     superadmin/                   # Interface superadmin (login, dashboard, impersonnification)
     apidocs/                      # Documentation API publique (?api-docs)
     invitation/                   # Acceptation d'invitation
+    brandMonitoring/              # Brand Monitoring (mai 2026, pivot GEO)
+      BrandMonitoringPage.tsx       # Orchestrateur tabs + onboarding (création projet)
+      api/brandMonitoringApi.ts     # Wrapper apiClient (17 endpoints)
+      types.ts                      # Miroir des types backend
+      components/
+        DashboardView.tsx           # Part de voix globale + par topic + actions run/cluster
+        TimelineChart.tsx           # Line chart Recharts (évolution dans le temps)
+        PromptsView.tsx             # CRUD prompts + modal Suggestions curated
+        ResponsesView.tsx           # Drill-down réponses + modal détail + sources Perplexity
+        SettingsView.tsx            # Mode LLM + secteur + sentiment + marques surveillées
   shared/
     components/
       layout/                     # AppLayout, SideNav, TopBar
@@ -334,6 +348,15 @@ Cibles à étendre (par valeur, dans cet ordre) : `apiClient` refresh + retry, `
 - **Refacto UI/UX (axes A→E)** — `<ConfirmDialog>` (4 `confirm()` natifs remplacés), `<Modal>` partagé avec focus trap (8 modales unifiées), 2 `<input>` bruts → `<Input>`, `fetch()` direct → `apiClient`, error handling unifié (toasts partout, plus aucun silent failure côté UI), 16 styles inline → 8 (tous légitimes runtime)
 - **React Router v6** côté frontend (Phases G1+G2) — toutes les vues (`/dashboard`, `/knowledge`, `/articles/:id`, `/articles/:id/edit`, `/articles/new`, `/trees`, `/trees/:id`, `/trees/:id/edit`, `/members`, `/analytics`, `/settings`, `/account`) ont une URL canonique : deep-linking, F5 préserve l'écran, bouton Précédent fonctionnel, partage de liens. Bridge URL ↔ `useState<View>` dans `App.tsx` (cleanup vers `<Routes>` direct prévu en G3)
 - Pool PG résilient — `pool.on('error')` listener (empêche les crashs silencieux quand un client idle perd sa connexion), `max: 20`, `keepAlive`. Rate limiter skippé en `NODE_ENV=development` pour ne pas gêner le dev local
+- **Brand Monitoring V1 — UI complète (mai 2026, pivot GEO)** — nouveau module produit accessible via sidebar « Brand monitoring » (admin/manager only, icône radar). Route `/brand-monitoring`. Page principale `BrandMonitoringPage.tsx` avec 4 tabs internes :
+  - **Dashboard** : part de voix globale (barres horizontales CSS pures, owner ⭐ en couleur brand) + part de voix par topic (sections collapsibles) + timeline temporelle (line chart Recharts). Actions « Lancer un run » et « Regrouper les prompts par topic ». Header projet : compteurs marques/prompts/runs + quota mensuel restant.
+  - **Prompts** : CRUD prompts (ajout unitaire + import bulk paste + bouton ✨ Suggestions qui ouvre un modal avec 25 prompts curated du secteur, checkbox-list). Toggle actif/inactif inline.
+  - **Réponses** : table drill-down (50 dernières), colonne « Sources » avec compteur (chip bleu si Perplexity), modal détail avec contenu complet + chips mentions colorées par sentiment (😊 vert / 😐 gris / 😞 rouge) + liste des sources web cliquables si présentes.
+  - **Paramètres** : Mode LLM (radio Mémoire / Recherche / Les deux) + Secteur d'activité (Select Énergie / Assurance / Distribution alimentaire / Téléphonie mobile / Luxe pour débloquer Suggestions) + Toggle analyse sentiment + CRUD marques surveillées (owner unique + concurrents avec aliases JSONB).
+
+  Dépendance ajoutée : **Recharts ^3.8** (bundle +130 KB minifié) — utilisée uniquement par TimelineChart. CSS co-localisé `brandMonitoring.css`. Onboarding empty-state si pas encore de projet (formulaire création simple).
+
+  Cf section backend (`knowdesk-backend/CLAUDE.md`) pour le détail de l'API (17 endpoints), les migrations (34-38), les wrappers LLM (mistralClient, perplexityClient), le worker BullMQ et les coûts mesurés.
 
 ### Haute priorité
 - Toasts sur les erreurs API
