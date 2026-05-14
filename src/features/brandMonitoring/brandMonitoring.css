@@ -278,6 +278,7 @@
 .bm-chip--sentiment-positive { background: #DCFCE7; color: #166534; }
 .bm-chip--sentiment-neutral  { background: #F3F4F6; color: #4B5563; }
 .bm-chip--sentiment-negative { background: #FEE2E2; color: #991B1B; }
+.bm-chip--sources            { background: #E0E7FF; color: #3730A3; font-weight: 600; }
 .bm-chip--owner.bm-chip--sentiment-positive { background: linear-gradient(90deg, var(--brand-100) 0%, #DCFCE7 100%); }
 .bm-chip--owner.bm-chip--sentiment-negative { background: linear-gradient(90deg, var(--brand-100) 0%, #FEE2E2 100%); }
 
@@ -351,6 +352,82 @@
 }
 .bm-select:focus { outline: 2px solid var(--brand-300); outline-offset: 1px; }
 .bm-select:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── Radio group (mode LLM) ──────────────────────────── */
+
+.bm-radio-group {
+  display: flex;
+  gap: 8px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  flex-wrap: wrap;
+}
+
+.bm-radio {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--neutral-300);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 13px;
+  background: var(--neutral-0);
+  transition: all var(--t-fast);
+}
+
+.bm-radio:hover { background: var(--neutral-50); }
+.bm-radio.is-active {
+  border-color: var(--brand-500);
+  background: var(--brand-50);
+  color: var(--brand-800);
+  font-weight: 500;
+}
+
+/* ── Sources (Sprint 5b) ─────────────────────────────── */
+
+.bm-resp-sources {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--neutral-200);
+}
+
+.bm-resp-sources__title {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 8px;
+  color: var(--neutral-700);
+}
+
+.bm-resp-sources__list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.bm-resp-sources__item { border-left: 2px solid var(--brand-300); padding-left: 10px; }
+
+.bm-resp-sources__link {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  gap: 8px;
+  align-items: start;
+  color: inherit;
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.bm-resp-sources__link:hover .bm-resp-sources__text strong { color: var(--brand-700); text-decoration: underline; }
+
+.bm-resp-sources__num {
+  color: var(--neutral-500);
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+}
+
+.bm-resp-sources__text { display: flex; flex-direction: column; gap: 2px; }
+.bm-resp-sources__url {
+  color: var(--neutral-500);
+  font-size: 11px;
+  word-break: break-all;
+}
+.bm-resp-sources__snippet { color: var(--neutral-600); font-style: italic; margin-top: 2px; }
 
 /* ── Suggestions modal (Sprint 4) ─────────────────────── */
 

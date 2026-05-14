@@ -56,6 +56,7 @@ export function ResponsesView({ projectId }: ResponsesViewProps) {
                 <th>Date</th>
                 <th>Prompt</th>
                 <th>Mentions détectées</th>
+                <th>Sources</th>
                 <th>Tokens</th>
                 <th>Coût</th>
               </tr>
@@ -77,6 +78,13 @@ export function ResponsesView({ projectId }: ResponsesViewProps) {
                             {sentimentEmoji(m.sentiment)} {m.brandName}: {m.count}
                           </span>
                         ))
+                    )}
+                  </td>
+                  <td className="bm-responses-table__num">
+                    {r.sources && r.sources.length > 0 ? (
+                      <span className="bm-chip bm-chip--sources">{r.sources.length}</span>
+                    ) : (
+                      <span className="bm-responses-table__nomention">—</span>
                     )}
                   </td>
                   <td className="bm-responses-table__num">{r.input_tokens + r.output_tokens}</td>
@@ -111,6 +119,25 @@ export function ResponsesView({ projectId }: ResponsesViewProps) {
               ))}
             </div>
             <pre className="bm-resp-detail__content">{openResp.content}</pre>
+            {openResp.sources && openResp.sources.length > 0 && (
+              <div className="bm-resp-sources">
+                <h4 className="bm-resp-sources__title">Sources citées ({openResp.sources.length})</h4>
+                <ul className="bm-resp-sources__list">
+                  {openResp.sources.map((s, i) => (
+                    <li key={i} className="bm-resp-sources__item">
+                      <a href={s.url} target="_blank" rel="noopener noreferrer" className="bm-resp-sources__link">
+                        <span className="bm-resp-sources__num">[{i + 1}]</span>
+                        <span className="bm-resp-sources__text">
+                          <strong>{s.title ?? new URL(s.url).hostname}</strong>
+                          <span className="bm-resp-sources__url">{s.url}</span>
+                          {s.snippet && <span className="bm-resp-sources__snippet">{s.snippet}</span>}
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </Modal>
       )}

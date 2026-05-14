@@ -5,7 +5,7 @@ import { Button } from '../../../shared/components/ui/Button';
 import { Input }  from '../../../shared/components/ui/Input';
 import { Skeleton } from '../../../shared/components/ui/Skeleton';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
-import type { MonitoredBrand, IndustryMeta, IndustryKey, BrandProject } from '../types';
+import type { MonitoredBrand, IndustryMeta, IndustryKey, BrandProject, LlmMode } from '../types';
 
 interface SettingsViewProps {
   projectId:       string;
@@ -59,6 +59,20 @@ export function SettingsView({ projectId, onReloadProject }: SettingsViewProps) 
       toast.error((err as Error).message ?? 'Enregistrement impossible.');
     } finally {
       setSavingIndustry(false);
+    }
+  };
+
+  const handleLlmModeChange = async (mode: LlmMode) => {
+    try {
+      await brandMonitoringApi.updateProject(projectId, { llmMode: mode });
+      setProject(prev => prev ? { ...prev, llm_mode: mode } : prev);
+      toast.success(
+        mode === 'memory' ? 'Mode mémoire (Mistral seul) — pas de sources.'
+        : mode === 'search' ? 'Mode recherche (Perplexity) — sources web exposées.'
+        : 'Mode dual (Mistral + Perplexity) — 2× le coût quota par prompt.',
+      );
+    } catch (err) {
+      toast.error((err as Error).message ?? 'Mise à jour impossible.');
     }
   };
 
@@ -140,6 +154,38 @@ export function SettingsView({ projectId, onReloadProject }: SettingsViewProps) 
             </select>
           </label>
         </div>
+      </section>
+
+      <section className="bm-card">
+        <h3 className="bm-card__title">Mode LLM</h3>
+        <p className="bm-card__sub">
+          <strong>Mémoire</strong> : Mistral seul, simule un utilisateur qui pose une question à un LLM
+          sans recherche web (mesure la notoriété ambiante).
+          <br />
+          <strong>Recherche</strong> : Perplexity Sonar, simule un utilisateur qui fait une recherche augmentée
+          — expose les <strong>sources web citées</strong>.
+          <br />
+          <strong>Les deux</strong> : exécute chaque prompt sur les 2 providers (×2 le coût quota). Permet
+          de comparer notoriété mémoire vs visibilité recherche.
+        </p>
+        <fieldset className="bm-radio-group">
+          {(['memory', 'search', 'both'] as LlmMode[]).map(mode => (
+            <label key={mode} className={`bm-radio ${(project?.llm_mode ?? 'memory') === mode ? 'is-active' : ''}`}>
+              <input
+                type="radio"
+                name="llm-mode"
+                value={mode}
+                checked={(project?.llm_mode ?? 'memory') === mode}
+                onChange={() => handleLlmModeChange(mode)}
+              />
+              <span>
+                {mode === 'memory' && 'Mémoire (Mistral)'}
+                {mode === 'search' && 'Recherche (Perplexity)'}
+                {mode === 'both'   && 'Les deux'}
+              </span>
+            </label>
+          ))}
+        </fieldset>
       </section>
 
       <section className="bm-card">

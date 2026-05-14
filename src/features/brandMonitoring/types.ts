@@ -12,6 +12,15 @@ export interface IndustryMeta {
 }
 
 export type Sentiment = 'positive' | 'neutral' | 'negative';
+export type LlmMode   = 'memory' | 'search' | 'both';
+
+export interface ResponseSource {
+  response_id: string;
+  url:         string;
+  title:       string | null;
+  snippet:     string | null;
+  position:    number;
+}
 
 export interface BrandProject {
   id:                 string;
@@ -20,6 +29,7 @@ export interface BrandProject {
   market_country:     string;
   industry:           IndustryKey | null;
   sentiment_enabled:  boolean;
+  llm_mode:           LlmMode;
   created_at:         string;
   updated_at:         string;
   deleted_at:         string | null;
@@ -134,4 +144,5 @@ export interface ResponseWithMentions {
     first_position: number;
     sentiment:      Sentiment | null;
   }>;
+  sources: ResponseSource[];
 }
