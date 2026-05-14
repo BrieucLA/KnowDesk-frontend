@@ -7,7 +7,7 @@ import { NotificationPanel } from '../../../features/notifications/components/No
 // .sidenav__badge est défini dans notifications.css (couplage badge ↔ feature notif)
 import '../../../features/notifications/notifications.css';
 
-export type NavRoute = 'dashboard' | 'search' | 'knowledge' | 'faqs' | 'trees' | 'learning' | 'team' | 'analytics' | 'chats' | 'settings' | 'account';
+export type NavRoute = 'dashboard' | 'search' | 'knowledge' | 'faqs' | 'trees' | 'learning' | 'team' | 'analytics' | 'chats' | 'brand-monitoring' | 'settings' | 'account';
 
 interface NavItem {
   id:        NavRoute;
@@ -34,6 +34,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'learning',  label: 'Formations', href: '/learning',   icon: <LearningIcon /> },
   { id: 'analytics', label: 'Analyse',       href: '/analytics',  icon: <ChartIcon />, adminOnly: true },
   { id: 'chats',     label: 'Conversations', href: '/chats',      icon: <ChatIcon />,  adminOnly: true },
+  { id: 'brand-monitoring', label: 'Brand monitoring', href: '/brand-monitoring', icon: <RadarIcon />, adminOnly: true },
 ];
 
 const BOTTOM_ITEMS: NavItem[] = [
@@ -277,6 +278,17 @@ function UserIcon() {
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
       <circle cx="9" cy="6" r="3" stroke="currentColor" strokeWidth="1.4" fill="none"/>
       <path d="M2 16c0-3 3.1-5 7-5s7 2 7 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none"/>
+    </svg>
+  );
+}
+
+function RadarIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <circle cx="9" cy="9" r="7.5" stroke="currentColor" strokeWidth="1.4" fill="none"/>
+      <circle cx="9" cy="9" r="4"   stroke="currentColor" strokeWidth="1.4" fill="none"/>
+      <circle cx="9" cy="9" r="1.2" fill="currentColor"/>
+      <path d="M9 9L14 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
     </svg>
   );
 }

@@ -24,6 +24,7 @@ import { MembersPage }      from './features/members/components/MembersPage';
 import { SettingsPage }     from './features/settings/components/SettingsPage';
 import { AnalyticsPage }    from './features/analytics/components/AnalyticsPage';
 import { ChatsPage }        from './features/chats/components/ChatsPage';
+import { BrandMonitoringPage } from './features/brandMonitoring/BrandMonitoringPage';
 import { LearningPage }     from './features/learning/components/LearningPage';
 import { LearningPathEditor } from './features/learning/components/LearningPathEditor';
 import { LearningPlayer }     from './features/learning/components/LearningPlayer';
@@ -52,6 +53,7 @@ type Screen =
   | 'members'
   | 'analytics'
   | 'chats'
+  | 'brand-monitoring'
   | 'settings'
   | 'trees'
   | 'tree-editor'
@@ -71,6 +73,7 @@ type View =
   | { screen: 'members'  }
   | { screen: 'analytics' }
   | { screen: 'chats' }
+  | { screen: 'brand-monitoring' }
   | { screen: 'settings'; section?: string  }
   | { screen: 'trees' }
   | { screen: 'tree-editor'; treeId: string }
@@ -89,6 +92,7 @@ function pathToView(pathname: string, fallbackFrom: Screen): View | null {
   if (pathname === '/members')                    return { screen: 'members' };
   if (pathname === '/analytics')                  return { screen: 'analytics' };
   if (pathname === '/chats')                      return { screen: 'chats' };
+  if (pathname === '/brand-monitoring')           return { screen: 'brand-monitoring' };
   // /audit reste un deep-link mais ouvre désormais la section Audit
   // dans /settings — la page standalone a été dépréciée.
   if (pathname === '/audit')                      return { screen: 'settings', section: 'audit' };
@@ -151,6 +155,7 @@ function viewToPath(view: View): string | null {
     case 'members':     return '/members';
     case 'analytics':   return '/analytics';
     case 'chats':       return '/chats';
+    case 'brand-monitoring': return '/brand-monitoring';
     case 'learning':      return '/learning';
     case 'learning-edit': return `/learning/${view.pathId}/edit`;
     case 'learning-play': return `/learning/play/${view.moduleId}`;
@@ -273,10 +278,11 @@ export function App() {
     : view.screen === 'members'   ? 'team'
     : view.screen === 'analytics' ? 'analytics'
     : view.screen === 'chats'     ? 'chats'
+    : view.screen === 'brand-monitoring' ? 'brand-monitoring'
     : view.screen === 'learning' || view.screen === 'learning-edit' || view.screen === 'learning-play' ? 'learning'
     : view.screen === 'settings'  ? 'settings'
     : 'dashboard'
-  ) as 'dashboard' | 'search' | 'knowledge' | 'faqs' | 'trees' | 'learning' | 'team' | 'analytics' | 'chats' | 'settings';
+  ) as 'dashboard' | 'search' | 'knowledge' | 'faqs' | 'trees' | 'learning' | 'team' | 'analytics' | 'chats' | 'brand-monitoring' | 'settings';
 
 // Mode superadmin — accessible via ?superadmin dans l'URL
 if (window.location.search.includes('superadmin')) {
@@ -346,6 +352,7 @@ if (!isLoggedIn) {
             if (route === 'team')      go({ screen: 'members'   });
             if (route === 'analytics') go({ screen: 'analytics' });
             if (route === 'chats')     go({ screen: 'chats'     });
+            if (route === 'brand-monitoring') go({ screen: 'brand-monitoring' });
             if (route === 'settings')  go({ screen: 'settings'  });
             if (route === 'trees')     go({ screen: 'trees'     });
             if (route === 'learning')  go({ screen: 'learning'  });
@@ -415,6 +422,7 @@ if (!isLoggedIn) {
             <SettingsPage initialSection={view.section as any} />
           )}
           {view.screen === 'chats' && <ChatsPage />}
+          {view.screen === 'brand-monitoring' && <BrandMonitoringPage />}
           {view.screen === 'learning' && (
             <LearningPage
               onEditPath={id => go({ screen: 'learning-edit', pathId: id })}
@@ -448,7 +456,7 @@ if (!isLoggedIn) {
   />
 )}
 {view.screen === 'account' && <AccountPage />}
-{!(['dashboard','knowledge','article','tree','editor','members','analytics','chats','settings','trees','tree-editor','account','faqs','faq-editor','learning','learning-edit','learning-play'] as string[]).includes(view.screen) && (
+{!(['dashboard','knowledge','article','tree','editor','members','analytics','chats','brand-monitoring','settings','trees','tree-editor','account','faqs','faq-editor','learning','learning-edit','learning-play'] as string[]).includes(view.screen) && (
   <NotFoundPage onBack={() => go({ screen: 'dashboard' })} />
 )}
         </AppLayout>
