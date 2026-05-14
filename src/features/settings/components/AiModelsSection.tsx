@@ -97,29 +97,43 @@ export function AiModelsSection() {
       </header>
 
       <div className="ai-models__list">
-        {data.categories.map(cat => {
-          const servicesInCat = data.services.filter(s => s.category === cat.key);
-          if (servicesInCat.length === 0) return null;
-          return (
-            <div key={cat.key} className="ai-models__category">
-              <div className="ai-models__category-head">
-                <h3 className="ai-models__category-title">{cat.label}</h3>
-                <p className="ai-models__category-desc">{cat.description}</p>
+        {(data.categories ?? []).length === 0 ? (
+          // Fallback : backend pas encore redéployé OU services anciens
+          // sans `category`. On affiche les services à plat sans groupage.
+          data.services.map(svc => (
+            <ServiceCard
+              key={svc.key}
+              service={svc}
+              availableModels={data.availableModels}
+              saving={saving}
+              onChangeModel={handleChatModelChange}
+            />
+          ))
+        ) : (
+          data.categories.map(cat => {
+            const servicesInCat = data.services.filter(s => s.category === cat.key);
+            if (servicesInCat.length === 0) return null;
+            return (
+              <div key={cat.key} className="ai-models__category">
+                <div className="ai-models__category-head">
+                  <h3 className="ai-models__category-title">{cat.label}</h3>
+                  <p className="ai-models__category-desc">{cat.description}</p>
+                </div>
+                <div className="ai-models__category-services">
+                  {servicesInCat.map(svc => (
+                    <ServiceCard
+                      key={svc.key}
+                      service={svc}
+                      availableModels={data.availableModels}
+                      saving={saving}
+                      onChangeModel={handleChatModelChange}
+                    />
+                  ))}
+                </div>
               </div>
-              <div className="ai-models__category-services">
-                {servicesInCat.map(svc => (
-                  <ServiceCard
-                    key={svc.key}
-                    service={svc}
-                    availableModels={data.availableModels}
-                    saving={saving}
-                    onChangeModel={handleChatModelChange}
-                  />
-                ))}
-              </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
     </section>
   );
