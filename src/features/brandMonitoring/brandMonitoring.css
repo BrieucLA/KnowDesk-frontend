@@ -303,6 +303,84 @@
 .bm-resp-detail { display: flex; flex-direction: column; gap: 12px; }
 .bm-resp-detail__meta { font-size: 13px; color: var(--neutral-700); margin: 0; }
 .bm-resp-detail__mentions { display: flex; flex-wrap: wrap; gap: 4px; }
+/* ── Select industry ─────────────────────────────────── */
+
+.bm-select-wrap { display: flex; flex-direction: column; gap: 6px; }
+.bm-select-label { font-size: 13px; font-weight: 500; color: var(--neutral-700); }
+.bm-select {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-300);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--neutral-900);
+  cursor: pointer;
+  max-width: 320px;
+}
+.bm-select:focus { outline: 2px solid var(--brand-300); outline-offset: 1px; }
+.bm-select:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── Suggestions modal (Sprint 4) ─────────────────────── */
+
+.bm-suggest { display: flex; flex-direction: column; gap: 12px; }
+.bm-suggest__intro { color: var(--neutral-700); font-size: 13px; line-height: 1.5; margin: 0; }
+.bm-suggest__actions { display: flex; gap: 8px; }
+.bm-suggest__toggle-all {
+  background: transparent;
+  border: 1px solid var(--neutral-300);
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--neutral-700);
+}
+.bm-suggest__toggle-all:hover { background: var(--neutral-50); }
+
+.bm-suggest__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 50vh;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+}
+
+.bm-suggest__item {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--neutral-100);
+}
+.bm-suggest__item:last-child { border-bottom: 0; }
+.bm-suggest__item label {
+  display: grid;
+  grid-template-columns: 18px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  cursor: pointer;
+  font-size: 13px;
+}
+.bm-suggest__item:hover { background: var(--neutral-50); }
+.bm-suggest__text { color: var(--neutral-900); }
+.bm-suggest__topic {
+  color: var(--neutral-500);
+  font-size: 11px;
+  font-style: italic;
+  white-space: nowrap;
+}
+
+.bm-suggest__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--neutral-200);
+}
+
 .bm-resp-detail__content {
   white-space: pre-wrap;
   background: var(--neutral-50);

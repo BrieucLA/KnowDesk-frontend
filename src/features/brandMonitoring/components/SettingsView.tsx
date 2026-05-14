@@ -5,7 +5,7 @@ import { Button } from '../../../shared/components/ui/Button';
 import { Input }  from '../../../shared/components/ui/Input';
 import { Skeleton } from '../../../shared/components/ui/Skeleton';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
-import type { MonitoredBrand } from '../types';
+import type { MonitoredBrand, IndustryMeta, IndustryKey, BrandProject } from '../types';
 
 interface SettingsViewProps {
   projectId:       string;
@@ -14,8 +14,11 @@ interface SettingsViewProps {
 
 export function SettingsView({ projectId, onReloadProject }: SettingsViewProps) {
   const toast = useToast();
+  const [project, setProject] = useState<BrandProject | null>(null);
   const [brands,  setBrands]  = useState<MonitoredBrand[]>([]);
+  const [industries, setIndustries] = useState<IndustryMeta[]>([]);
   const [loading, setLoading] = useState(true);
+  const [savingIndustry, setSavingIndustry] = useState(false);
 
   // formulaire création brand
   const [newName,    setNewName]    = useState('');
@@ -27,14 +30,37 @@ export function SettingsView({ projectId, onReloadProject }: SettingsViewProps) 
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await brandMonitoringApi.listBrands(projectId);
-      setBrands(data);
+      const [b, p, inds] = await Promise.all([
+        brandMonitoringApi.listBrands(projectId),
+        brandMonitoringApi.getProject(projectId),
+        brandMonitoringApi.listIndustries(),
+      ]);
+      setBrands(b);
+      setProject(p);
+      setIndustries(inds);
     } catch (err) {
       toast.error((err as Error).message ?? 'Chargement impossible.');
     } finally {
       setLoading(false);
     }
   }, [projectId, toast]);
+
+  const handleIndustryChange = async (value: string) => {
+    const industry = value === '' ? null : value as IndustryKey;
+    setSavingIndustry(true);
+    try {
+      await brandMonitoringApi.updateProject(projectId, { industry });
+      setProject(prev => prev ? { ...prev, industry } : prev);
+      onReloadProject();
+      if (industry) {
+        toast.success('Secteur enregistré. Tu peux maintenant utiliser le bouton « ✨ Suggestions de prompts » dans l\'onglet Prompts.');
+      }
+    } catch (err) {
+      toast.error((err as Error).message ?? 'Enregistrement impossible.');
+    } finally {
+      setSavingIndustry(false);
+    }
+  };
 
   useEffect(() => { void reload(); }, [reload]);
 
@@ -79,6 +105,31 @@ export function SettingsView({ projectId, onReloadProject }: SettingsViewProps) 
 
   return (
     <div className="bm-settings">
+      <section className="bm-card">
+        <h3 className="bm-card__title">Secteur d'activité du projet</h3>
+        <p className="bm-card__sub">
+          Définit le secteur pour débloquer la bibliothèque de prompts curated
+          (25 questions adaptées à ton marché, disponibles dans l'onglet Prompts).
+        </p>
+        <div className="bm-form">
+          <label className="bm-select-wrap" htmlFor="bm-industry">
+            <span className="bm-select-label">Secteur</span>
+            <select
+              id="bm-industry"
+              className="bm-select"
+              value={project?.industry ?? ''}
+              onChange={e => handleIndustryChange(e.target.value)}
+              disabled={savingIndustry}
+            >
+              <option value="">— Non défini —</option>
+              {industries.map(ind => (
+                <option key={ind.key} value={ind.key}>{ind.label} ({ind.promptCount} prompts)</option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </section>
+
       <section className="bm-card">
         <h3 className="bm-card__title">Ajouter une marque surveillée</h3>
         <p className="bm-card__sub">

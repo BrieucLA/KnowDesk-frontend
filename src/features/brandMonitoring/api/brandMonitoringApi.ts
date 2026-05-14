@@ -2,6 +2,7 @@ import { apiClient } from '../../../shared/lib/apiClient';
 import type {
   BrandProject, MonitoredBrand, MonitoringPrompt, PromptRun,
   ShareOfVoice, TopicSov, Timeline, ResponseWithMentions,
+  IndustryMeta, IndustryKey, SuggestPromptsPayload,
 } from '../types';
 
 const BASE = '/brand-monitoring';
@@ -13,9 +14,18 @@ export const brandMonitoringApi = {
   // Projects
   listProjects:  () => apiClient.get<BrandProject[]>(`${BASE}/projects`),
   getProject:    (id: string) => apiClient.get<BrandProject>(`${BASE}/projects/${id}`),
-  createProject: (name: string, marketCountry = 'FR') =>
-    apiClient.post<BrandProject>(`${BASE}/projects`, { name, marketCountry }),
+  createProject: (name: string, marketCountry = 'FR', industry?: IndustryKey) =>
+    apiClient.post<BrandProject>(`${BASE}/projects`, { name, marketCountry, industry }),
+  updateProject: (id: string, body: { name?: string; industry?: IndustryKey | null }) =>
+    apiClient.patch<BrandProject>(`${BASE}/projects/${id}`, body),
   deleteProject: (id: string) => apiClient.delete<null>(`${BASE}/projects/${id}`),
+
+  // Industries / suggestions (Sprint 4)
+  listIndustries: () => apiClient.get<IndustryMeta[]>(`${BASE}/industries`),
+  suggestPrompts: (projectId: string, industry?: IndustryKey) =>
+    apiClient.get<SuggestPromptsPayload>(
+      `${BASE}/projects/${projectId}/suggest-prompts${industry ? `?industry=${industry}` : ''}`,
+    ),
 
   // Brands
   listBrands:    (projectId: string) =>

@@ -3,11 +3,20 @@
  * Pas généré auto en V1 — synchroniser à la main si on ajoute des champs.
  */
 
+export type IndustryKey = 'energy' | 'insurance' | 'grocery' | 'mobile_telecom' | 'luxury';
+
+export interface IndustryMeta {
+  key:         IndustryKey;
+  label:       string;
+  promptCount: number;
+}
+
 export interface BrandProject {
   id:             string;
   org_id:         string;
   name:           string;
   market_country: string;
+  industry:       IndustryKey | null;
   created_at:     string;
   updated_at:     string;
   deleted_at:     string | null;
@@ -17,6 +26,12 @@ export interface BrandProject {
   runsCount?:      number;
   monthlyQuota?:   number;
   quotaRemaining?: number;
+}
+
+export interface SuggestPromptsPayload {
+  industry:      IndustryKey;
+  industryLabel: string;
+  prompts:       Array<{ text: string; topicHint: string }>;
 }
 
 export interface MonitoredBrand {

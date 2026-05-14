@@ -5,7 +5,8 @@ import { Button } from '../../../shared/components/ui/Button';
 import { Input }  from '../../../shared/components/ui/Input';
 import { Skeleton } from '../../../shared/components/ui/Skeleton';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
-import type { MonitoringPrompt } from '../types';
+import { Modal } from '../../../shared/components/ui/Modal';
+import type { MonitoringPrompt, SuggestPromptsPayload } from '../types';
 
 interface PromptsViewProps {
   projectId:       string;
@@ -23,6 +24,13 @@ export function PromptsView({ projectId, onReloadProject }: PromptsViewProps) {
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkSaving, setBulkSaving] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<MonitoringPrompt | null>(null);
+
+  // Sprint 4 — Suggesteur curated
+  const [suggestOpen, setSuggestOpen] = useState(false);
+  const [suggestData, setSuggestData] = useState<SuggestPromptsPayload | null>(null);
+  const [suggestLoading, setSuggestLoading] = useState(false);
+  const [selectedSugs, setSelectedSugs] = useState<Set<number>>(new Set());
+  const [importingSugs, setImportingSugs] = useState(false);
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -98,6 +106,57 @@ export function PromptsView({ projectId, onReloadProject }: PromptsViewProps) {
     }
   };
 
+  const openSuggestions = async () => {
+    setSuggestLoading(true);
+    setSuggestOpen(true);
+    try {
+      const data = await brandMonitoringApi.suggestPrompts(projectId);
+      setSuggestData(data);
+      // Coche tout par défaut — l'admin décoche ce qu'il ne veut pas.
+      setSelectedSugs(new Set(data.prompts.map((_, i) => i)));
+    } catch (err) {
+      const msg = (err as Error).message ?? 'Suggestions indisponibles.';
+      if (msg.includes('Secteur')) {
+        toast.error('Configure d\'abord un secteur dans l\'onglet Paramètres.');
+        setSuggestOpen(false);
+      } else {
+        toast.error(msg);
+      }
+    } finally {
+      setSuggestLoading(false);
+    }
+  };
+
+  const toggleSug = (idx: number) => {
+    setSelectedSugs(prev => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx); else next.add(idx);
+      return next;
+    });
+  };
+
+  const handleImportSuggestions = async () => {
+    if (!suggestData) return;
+    const toImport = suggestData.prompts
+      .filter((_, i) => selectedSugs.has(i))
+      .map(p => ({ text: p.text, topicHint: p.topicHint }));
+    if (toImport.length === 0) { toast.error('Aucun prompt sélectionné.'); return; }
+    setImportingSugs(true);
+    try {
+      const r = await brandMonitoringApi.bulkPrompts(projectId, toImport);
+      toast.success(`${r.inserted} prompts importés depuis la bibliothèque ${suggestData.industryLabel}.`);
+      setSuggestOpen(false);
+      setSuggestData(null);
+      setSelectedSugs(new Set());
+      await reload();
+      onReloadProject();
+    } catch (err) {
+      toast.error((err as Error).message ?? 'Import impossible.');
+    } finally {
+      setImportingSugs(false);
+    }
+  };
+
   if (loading) return <Skeleton className="bm-skeleton-card" />;
 
   return (
@@ -127,6 +186,9 @@ export function PromptsView({ projectId, onReloadProject }: PromptsViewProps) {
           <div className="bm-form__actions">
             <Button variant="primary" size="md" onClick={handleCreate} loading={saving} disabled={newText.trim().length < 5}>
               Ajouter
+            </Button>
+            <Button variant="secondary" size="md" onClick={openSuggestions}>
+              ✨ Suggestions de prompts
             </Button>
             <Button variant="ghost" size="md" onClick={() => setBulkOpen(o => !o)}>
               {bulkOpen ? 'Annuler import bulk' : '+ Import bulk (CSV)'}
@@ -199,6 +261,62 @@ export function PromptsView({ projectId, onReloadProject }: PromptsViewProps) {
           onConfirm={handleDelete}
           onCancel={() => setPendingDelete(null)}
         />
+      )}
+
+      {suggestOpen && (
+        <Modal
+          title={suggestData ? `Suggestions — ${suggestData.industryLabel}` : 'Suggestions de prompts'}
+          size="lg"
+          onClose={() => { setSuggestOpen(false); setSuggestData(null); }}
+        >
+          {suggestLoading && <Skeleton className="bm-skeleton-card" />}
+          {!suggestLoading && suggestData && (
+            <div className="bm-suggest">
+              <p className="bm-suggest__intro">
+                Sélectionne les prompts que tu veux ajouter à ton projet ({selectedSugs.size}/{suggestData.prompts.length} cochés).
+                Tout est coché par défaut — décoche ceux qui ne te parlent pas. Tu pourras toujours
+                en ajouter / supprimer plus tard.
+              </p>
+              <div className="bm-suggest__actions">
+                <button type="button" className="bm-suggest__toggle-all" onClick={() => setSelectedSugs(new Set(suggestData.prompts.map((_, i) => i)))}>
+                  Tout cocher
+                </button>
+                <button type="button" className="bm-suggest__toggle-all" onClick={() => setSelectedSugs(new Set())}>
+                  Tout décocher
+                </button>
+              </div>
+              <ul className="bm-suggest__list">
+                {suggestData.prompts.map((p, i) => (
+                  <li key={i} className="bm-suggest__item">
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={selectedSugs.has(i)}
+                        onChange={() => toggleSug(i)}
+                      />
+                      <span className="bm-suggest__text">{p.text}</span>
+                      <span className="bm-suggest__topic">{p.topicHint}</span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+              <div className="bm-suggest__footer">
+                <Button variant="ghost" size="md" onClick={() => { setSuggestOpen(false); setSuggestData(null); }}>
+                  Annuler
+                </Button>
+                <Button
+                  variant="primary"
+                  size="md"
+                  onClick={handleImportSuggestions}
+                  loading={importingSugs}
+                  disabled={selectedSugs.size === 0}
+                >
+                  Importer {selectedSugs.size > 0 ? `(${selectedSugs.size})` : ''}
+                </Button>
+              </div>
+            </div>
+          )}
+        </Modal>
       )}
     </div>
   );
