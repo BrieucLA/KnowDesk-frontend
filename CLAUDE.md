@@ -358,6 +358,10 @@ Cibles à étendre (par valeur, dans cet ordre) : `apiClient` refresh + retry, `
 
   Cf section backend (`knowdesk-backend/CLAUDE.md`) pour le détail de l'API (17 endpoints), les migrations (34-38), les wrappers LLM (mistralClient, perplexityClient), le worker BullMQ et les coûts mesurés.
 
+- **Settings → Modèles IA — regroupement par catégorie (Sprint R-S1, mai 2026)** : la page Settings → Modèles IA regroupe désormais les services par catégorie d'usage : 💬 Chatbot (chat-response, chat-query-rewrite, slot-filling, topic-clustering), 🔎 Recherche (search-ai), 📚 KB (article-quality, import-pdf-slicing, import-pdf-vision), 🎓 Formations (learning-quiz), 📊 Brand Monitoring (brand-monitoring-memory/search/sentiment/clustering). Le backend `GET /settings/org/ai-services` retourne `categories[]` en plus de `services[]` ; le frontend filtre `services` par `category.key` pour grouper. Side benefit : on a maintenant l'inventaire complet des 13 services IA de la plateforme et de leur modèle effectif dans une vue unique.
+
+- **Brand Monitoring — rendering markdown des réponses (Sprint R-S2, mai 2026)** : nouveau composant `MarkdownContent.tsx` qui rend les réponses LLM en HTML safe (titres `##`, listes, **gras**, code, tableaux GFM, liens `target=_blank`, citations `[1]`) au lieu du `<pre>` brut illisible. Dépendances ajoutées : `react-markdown` + `remark-gfm`. CSS dédié `.bm-md` co-localisé dans `brandMonitoring.css`. Pas de raw HTML rendu (react-markdown safe par défaut), donc même un contenu LLM malveillant ne peut pas injecter de script.
+
 ### Haute priorité
 - Toasts sur les erreurs API
 - Stripe billing — plans, quotas, page de facturation

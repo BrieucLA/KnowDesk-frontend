@@ -472,8 +472,38 @@
 .ai-models__list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 32px;
   margin-top: 16px;
+}
+
+.ai-models__category {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ai-models__category-head {
+  border-left: 3px solid var(--brand-400);
+  padding-left: 12px;
+}
+
+.ai-models__category-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+
+.ai-models__category-desc {
+  margin: 0;
+  font-size: 12px;
+  color: var(--neutral-600);
+  line-height: 1.5;
+}
+
+.ai-models__category-services {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .ai-models__service {

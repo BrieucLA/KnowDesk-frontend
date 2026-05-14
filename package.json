@@ -40,8 +40,10 @@
     "lowlight": "^3.3.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^6.30.3",
     "recharts": "^3.8.1",
+    "remark-gfm": "^4.0.1",
     "zustand": "^4.5.4"
   },
   "devDependencies": {

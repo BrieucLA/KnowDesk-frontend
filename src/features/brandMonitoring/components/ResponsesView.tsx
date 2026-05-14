@@ -4,6 +4,7 @@ import { useToast } from '../../../shared/lib/useToast';
 import { Skeleton } from '../../../shared/components/ui/Skeleton';
 import { Modal } from '../../../shared/components/ui/Modal';
 import { formatRelative } from '../../../shared/lib/formatDate';
+import { MarkdownContent } from './MarkdownContent';
 import type { ResponseWithMentions, Sentiment } from '../types';
 
 function sentimentEmoji(s: Sentiment | null): string {
@@ -118,7 +119,9 @@ export function ResponsesView({ projectId }: ResponsesViewProps) {
                 </span>
               ))}
             </div>
-            <pre className="bm-resp-detail__content">{openResp.content}</pre>
+            <div className="bm-resp-detail__content">
+              <MarkdownContent text={openResp.content} />
+            </div>
             {openResp.sources && openResp.sources.length > 0 && (
               <div className="bm-resp-sources">
                 <h4 className="bm-resp-sources__title">Sources citées ({openResp.sources.length})</h4>

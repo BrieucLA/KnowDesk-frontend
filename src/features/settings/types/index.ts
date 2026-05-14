@@ -29,10 +29,24 @@ export interface ChatModelMeta {
   description:  string;
 }
 
-export type AiServiceKey = 'chat-response' | 'search-ai' | 'slot-filling' | 'topic-clustering' | 'article-quality' | 'learning-quiz' | 'chat-query-rewrite' | 'import-pdf-slicing' | 'import-pdf-vision';
+export type AiServiceKey =
+  | 'chat-response' | 'search-ai' | 'slot-filling' | 'topic-clustering'
+  | 'article-quality' | 'learning-quiz' | 'chat-query-rewrite'
+  | 'import-pdf-slicing' | 'import-pdf-vision'
+  | 'brand-monitoring-memory' | 'brand-monitoring-search'
+  | 'brand-monitoring-sentiment' | 'brand-monitoring-clustering';
+
+export type AiServiceCategory = 'kb' | 'search' | 'chatbot' | 'brand_monitoring' | 'learning';
+
+export interface AiServiceCategoryMeta {
+  key:         AiServiceCategory;
+  label:       string;
+  description: string;
+}
 
 export interface AiServiceItem {
   key:         AiServiceKey;
+  category:    AiServiceCategory;
   label:       string;
   description: string;
   modifiable:  boolean;
@@ -45,6 +59,7 @@ export interface AiServiceItem {
 
 export interface AiServicesPayload {
   services:        AiServiceItem[];
+  categories:      AiServiceCategoryMeta[];
   availableModels: ChatModelMeta[];
 }
 
