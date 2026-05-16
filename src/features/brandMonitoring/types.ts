@@ -49,6 +49,25 @@ export interface AlignmentPayload {
   byBrand:           AlignmentBrand[];
 }
 
+// R-S8 Recommandations
+export type RecommendationKind =
+  | 'absent_from_llm'
+  | 'missing_topic'
+  | 'missing_attribute'
+  | 'missing_source';
+
+export interface MonitoringRecommendation {
+  id:           string;
+  project_id:   string;
+  kind:         RecommendationKind;
+  title:        string;
+  body:         string;
+  priority:     number;
+  metadata:     Record<string, unknown> | null;
+  dismissed_at: string | null;
+  created_at:   string;
+}
+
 export interface BrandProject {
   id:                 string;
   org_id:             string;

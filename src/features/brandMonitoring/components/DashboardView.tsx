@@ -4,7 +4,7 @@ import { useToast } from '../../../shared/lib/useToast';
 import { Button } from '../../../shared/components/ui/Button';
 import { Skeleton } from '../../../shared/components/ui/Skeleton';
 import { TimelineChart } from './TimelineChart';
-import type { ShareOfVoice, TopicSov, AlignmentPayload } from '../types';
+import type { ShareOfVoice, TopicSov, AlignmentPayload, MonitoringRecommendation } from '../types';
 
 interface DashboardViewProps {
   projectId:       string;
@@ -16,21 +16,25 @@ export function DashboardView({ projectId, onReloadProject }: DashboardViewProps
   const [sov,    setSov]    = useState<ShareOfVoice | null>(null);
   const [topics, setTopics] = useState<TopicSov[]>([]);
   const [alignment, setAlignment] = useState<AlignmentPayload | null>(null);
+  const [recos, setRecos] = useState<MonitoringRecommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
   const [clustering, setClustering] = useState(false);
+  const [generatingRecos, setGeneratingRecos] = useState(false);
 
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const [s, t, a] = await Promise.all([
+      const [s, t, a, rc] = await Promise.all([
         brandMonitoringApi.shareOfVoice(projectId),
         brandMonitoringApi.topics(projectId),
-        brandMonitoringApi.alignment(projectId).catch(() => null), // best effort — pas critique
+        brandMonitoringApi.alignment(projectId).catch(() => null), // best effort
+        brandMonitoringApi.listRecommendations(projectId).catch(() => []),
       ]);
       setSov(s);
       setTopics(t.topics);
       setAlignment(a);
+      setRecos(rc);
     } catch (err) {
       toast.error((err as Error).message ?? 'Chargement impossible.');
     } finally {
@@ -50,6 +54,30 @@ export function DashboardView({ projectId, onReloadProject }: DashboardViewProps
       toast.error((err as Error).message ?? 'Lancement impossible.');
     } finally {
       setRunning(false);
+    }
+  };
+
+  const handleGenerateRecos = async () => {
+    setGeneratingRecos(true);
+    try {
+      const r = await brandMonitoringApi.generateRecommendations(projectId);
+      toast.success(r.generated === 0
+        ? 'Aucun signal détecté pour générer des recommandations. Lance plus de runs pour accumuler du signal.'
+        : `${r.generated} recommandation${r.generated > 1 ? 's' : ''} générée${r.generated > 1 ? 's' : ''}.`);
+      await reload();
+    } catch (err) {
+      toast.error((err as Error).message ?? 'Génération impossible.');
+    } finally {
+      setGeneratingRecos(false);
+    }
+  };
+
+  const handleDismissReco = async (recoId: string) => {
+    try {
+      await brandMonitoringApi.dismissRecommendation(recoId);
+      setRecos(prev => prev.filter(r => r.id !== recoId));
+    } catch (err) {
+      toast.error((err as Error).message ?? 'Suppression impossible.');
     }
   };
 
@@ -86,7 +114,36 @@ export function DashboardView({ projectId, onReloadProject }: DashboardViewProps
         <Button variant="secondary" size="sm" onClick={handleCluster} loading={clustering}>
           ✨ Regrouper les prompts par topic
         </Button>
+        <Button variant="secondary" size="sm" onClick={handleGenerateRecos} loading={generatingRecos}>
+          💡 Générer les recommandations
+        </Button>
       </div>
+
+      {recos.length > 0 && (
+        <section className="bm-card bm-recos">
+          <h3 className="bm-card__title">Actions à mener ({recos.length})</h3>
+          <p className="bm-card__sub">
+            Signaux détectés dans tes données. Click sur « Traité » pour archiver une recommandation —
+            elle ne sera plus régénérée tant que tu ne la réinitialises pas.
+          </p>
+          <ul className="bm-recos__list">
+            {recos.map(r => (
+              <li key={r.id} className={`bm-reco bm-reco--${r.kind}`}>
+                <div className="bm-reco__head">
+                  <span className="bm-reco__badge">{labelForKind(r.kind)}</span>
+                  <strong className="bm-reco__title">{r.title}</strong>
+                </div>
+                <p className="bm-reco__body">{r.body}</p>
+                <div className="bm-reco__actions">
+                  <button type="button" className="bm-reco__dismiss" onClick={() => handleDismissReco(r.id)}>
+                    ✓ Traité
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {!hasData && (
         <div className="bm-empty-data">
@@ -213,6 +270,15 @@ export function DashboardView({ projectId, onReloadProject }: DashboardViewProps
       )}
     </div>
   );
+}
+
+function labelForKind(kind: MonitoringRecommendation['kind']): string {
+  switch (kind) {
+    case 'absent_from_llm':   return '🚨 Critique';
+    case 'missing_topic':     return '📉 Topic';
+    case 'missing_attribute': return '🎯 Positionnement';
+    case 'missing_source':    return '🔗 Source';
+  }
 }
 
 interface SoVBarsProps {

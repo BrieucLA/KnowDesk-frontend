@@ -4,7 +4,7 @@ import type {
   ShareOfVoice, TopicSov, Timeline, ResponseWithMentions,
   IndustryMeta, IndustryKey, SuggestPromptsPayload, LlmMode,
   ProviderMeta, BrandMonitoringProvider, MonitoredBrandKind,
-  AlignmentPayload,
+  AlignmentPayload, MonitoringRecommendation,
 } from '../types';
 
 const BASE = '/brand-monitoring';
@@ -32,6 +32,14 @@ export const brandMonitoringApi = {
   // R-S7 — Brand alignment
   alignment: (projectId: string) =>
     apiClient.get<AlignmentPayload>(`${BASE}/projects/${projectId}/alignment`),
+
+  // R-S8 — Recommandations
+  listRecommendations: (projectId: string, includeDismissed = false) =>
+    apiClient.get<MonitoringRecommendation[]>(`${BASE}/projects/${projectId}/recommendations${includeDismissed ? '?includeDismissed=1' : ''}`),
+  generateRecommendations: (projectId: string) =>
+    apiClient.post<{ generated: number; byKind: Record<string, number> }>(`${BASE}/projects/${projectId}/recommendations/generate`, {}),
+  dismissRecommendation: (recoId: string) =>
+    apiClient.post<null>(`${BASE}/recommendations/${recoId}/dismiss`, {}),
 
   // R-S3 — Multi-LLM
   listProviders: () => apiClient.get<ProviderMeta[]>(`${BASE}/providers`),
